@@ -135,11 +135,36 @@ const IndicatorDetail: React.FC = () => {
     ? Math.max(...filteredData.map(point => point.value)) 
     : 0;
   
-  // Format value based on indicator type
-  const formatValue = (value: number) => {
+  // Calculate month-to-month job growth for job creation indicator
+  const processedData = React.useMemo(() => {
     if (indicator.id === 'job-creation') {
-      // For job creation, show whole numbers with commas
-      return Math.round(value).toLocaleString();
+      // For job creation, calculate month-to-month changes
+      return filteredData.map((point, index, array) => {
+        if (index === 0) {
+          return { ...point, originalValue: point.value, value: 0 };
+        }
+        const previousValue = array[index - 1].value;
+        const monthlyChange = point.value - previousValue;
+        return { 
+          ...point, 
+          originalValue: point.value, // Keep the original value
+          value: monthlyChange // Set value to the monthly change
+        };
+      }).slice(1); // Remove first item with zero change
+    }
+    return filteredData;
+  }, [filteredData, indicator.id]);
+
+  // Format value based on indicator type
+  const formatValue = (value: number, useOriginal = false) => {
+    if (indicator.id === 'job-creation') {
+      if (useOriginal) {
+        // Show total jobs for original value
+        return Math.round(value).toLocaleString();
+      }
+      // Show monthly change with + or - sign
+      const prefix = value > 0 ? '+' : '';
+      return `${prefix}${Math.round(value).toLocaleString()}`;
     } else {
       // For other indicators, use the default formatting with decimals
       return value.toFixed(2);

@@ -59,6 +59,25 @@ const DetailChart: React.FC<DetailChartProps> = ({ data, filteredData }) => {
       const date = new Date(point.date);
       return date.toLocaleDateString(undefined, { year: 'numeric', month: 'short' });
     }),
+    
+    // Set tooltip callbacks
+    tooltip: {
+      callbacks: {
+        label: function(context) {
+          const dataPoint = filteredData[context.dataIndex];
+          if (indicator.id === 'job-creation' && 'originalValue' in dataPoint) {
+            const monthlyChange = dataPoint.value;
+            const totalJobs = dataPoint.originalValue;
+            const prefix = monthlyChange > 0 ? '+' : '';
+            return [
+              `${context.dataset.label}: ${prefix}${Math.round(monthlyChange).toLocaleString()} jobs`,
+              `Total: ${Math.round(totalJobs).toLocaleString()} jobs`
+            ];
+          }
+          return `${context.dataset.label}: ${context.formattedValue}`;
+        }
+      }
+    },
     datasets: presidentGroups.map(group => ({
       label: `${group.president.name} (${group.president.term.start.substring(0, 4)}-${group.president.term.end ? group.president.term.end.substring(0, 4) : 'Present'})`,
       data: filteredData.map(point => {

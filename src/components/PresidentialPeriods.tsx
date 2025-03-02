@@ -39,6 +39,9 @@ const PresidentialPeriods: React.FC<PresidentialPeriodsProps> = ({ data }) => {
     const netChange = endValue - startValue;
     const percentChange = (netChange / startValue) * 100;
     
+    // For job creation, calculate total jobs added during presidency
+    const totalJobsAdded = indicator.id === 'job-creation' ? netChange : null;
+    
     // Calculate annualized change
     const startDate = new Date(presidentData[0].date);
     const endDate = new Date(presidentData[presidentData.length - 1].date);
@@ -121,8 +124,17 @@ const PresidentialPeriods: React.FC<PresidentialPeriodsProps> = ({ data }) => {
                   <TrendingDown className="h-5 w-5 mr-2" />
                 )}
                 <span className="font-bold">
-                  {stats.percentChange > 0 ? '+' : ''}
-                  {stats.percentChange.toFixed(2)}%
+                  {indicator.id === 'job-creation' ? (
+                    <>
+                      {stats.netChange > 0 ? '+' : ''}
+                      {Math.round(stats.netChange).toLocaleString()} jobs
+                    </>
+                  ) : (
+                    <>
+                      {stats.percentChange > 0 ? '+' : ''}
+                      {stats.percentChange.toFixed(2)}%
+                    </>
+                  )}
                 </span>
               </div>
             </div>
