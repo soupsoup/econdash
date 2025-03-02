@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery } from 'react-query';
 import { format, subYears, parseISO } from 'date-fns';
@@ -12,12 +12,21 @@ import ApiErrorNotice from '../components/MockDataNotice';
 const IndicatorDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  
+
   const [timeRange, setTimeRange] = useState<number>(10); // Default to 10 years
   const [viewMode, setViewMode] = useState<'chart' | 'table'>('chart');
   const [apiErrors, setApiErrors] = useState<Record<string, string>>({});
   const [lastUpdated, setLastUpdated] = useState<string | null>(getLastUpdatedTimestamp());
-  
+
+  // Create memo hooks before conditional logic
+  const csvData = useMemo(() => {
+    if (!data?.dataPoints) return [];
+    return data.dataPoints.map(point => ({
+      Date: point.date,
+      Value: point.value
+    }));
+  }, [data]);
+
   // Fetch indicator data
   const { data: indicatorData, isLoading, error, refetch } = useQuery(
     ['indicatorData', id],
@@ -32,7 +41,7 @@ const IndicatorDetail: React.FC = () => {
       },
       onError: (err) => {
         console.error('Error fetching indicator data:', err);
-        
+
         // Extract and format error details
         if (err instanceof Error) {
           setApiErrors(prev => ({
@@ -48,7 +57,7 @@ const IndicatorDetail: React.FC = () => {
       }
     }
   );
-  
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -59,7 +68,7 @@ const IndicatorDetail: React.FC = () => {
       </div>
     );
   }
-  
+
   if (error) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -94,7 +103,7 @@ const IndicatorDetail: React.FC = () => {
       </div>
     );
   }
-  
+
   if (!indicatorData) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -112,29 +121,29 @@ const IndicatorDetail: React.FC = () => {
       </div>
     );
   }
-  
+
   const { indicator, data: dataPoints } = indicatorData;
-  
+
   // Filter data based on selected time range
   const cutoffDate = subYears(new Date(), timeRange);
   const filteredData = dataPoints.filter(point => parseISO(point.date) >= cutoffDate);
-  
+
   // Get current value
   const currentValue = dataPoints[dataPoints.length - 1]?.value || 0;
-  
+
   // Calculate average, min, and max values
   const average = filteredData.length > 0 
     ? filteredData.reduce((sum, point) => sum + point.value, 0) / filteredData.length 
     : 0;
-  
+
   const minValue = filteredData.length > 0 
     ? Math.min(...filteredData.map(point => point.value)) 
     : 0;
-    
+
   const maxValue = filteredData.length > 0 
     ? Math.max(...filteredData.map(point => point.value)) 
     : 0;
-  
+
   // Calculate month-to-month job growth for job creation indicator
   const processedData = React.useMemo(() => {
     if (indicator.id === 'job-creation') {
@@ -170,7 +179,7 @@ const IndicatorDetail: React.FC = () => {
       return value.toFixed(2);
     }
   };
-  
+
   // Export data as CSV
   const exportCSV = () => {
     const headers = ['Date', `Value (${indicator.unit})`, 'President'];
@@ -180,7 +189,7 @@ const IndicatorDetail: React.FC = () => {
         `${point.date},${point.value},${point.president}`
       )
     ].join('\n');
-    
+
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
@@ -190,7 +199,7 @@ const IndicatorDetail: React.FC = () => {
     link.click();
     document.body.removeChild(link);
   };
-  
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
@@ -208,7 +217,7 @@ const IndicatorDetail: React.FC = () => {
               <h1 className="text-2xl font-bold text-gray-800 mt-2">{indicator.name}</h1>
               <p className="text-gray-600">{indicator.description}</p>
             </div>
-            
+
             <div className="flex items-center space-x-3 mt-4 md:mt-0">
               <div className="text-sm text-gray-600">
                 {lastUpdated ? (
@@ -228,10 +237,10 @@ const IndicatorDetail: React.FC = () => {
           </div>
         </div>
       </header>
-      
+
       <main className="container mx-auto px-4 py-8">
         {Object.keys(apiErrors).length > 0 && <ApiErrorNotice errors={apiErrors} />}
-        
+
         {/* Key metrics */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
           <div className="bg-white rounded-lg shadow-md p-4">
@@ -240,21 +249,21 @@ const IndicatorDetail: React.FC = () => {
               {formatValue(currentValue)} {indicator.unit}
             </p>
           </div>
-          
+
           <div className="bg-white rounded-lg shadow-md p-4">
             <p className="text-sm text-gray-600 mb-1">Average</p>
             <p className="text-2xl font-bold text-gray-800">
               {formatValue(average)} {indicator.unit}
             </p>
           </div>
-          
+
           <div className="bg-white rounded-lg shadow-md p-4">
             <p className="text-sm text-gray-600 mb-1">Minimum</p>
             <p className="text-2xl font-bold text-gray-800">
               {formatValue(minValue)} {indicator.unit}
             </p>
           </div>
-          
+
           <div className="bg-white rounded-lg shadow-md p-4">
             <p className="text-sm text-gray-600 mb-1">Maximum</p>
             <p className="text-2xl font-bold text-gray-800">
@@ -262,7 +271,7 @@ const IndicatorDetail: React.FC = () => {
             </p>
           </div>
         </div>
-        
+
         {/* Time range selector */}
         <div className="bg-white rounded-lg shadow-md p-4 mb-8">
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4">
@@ -270,7 +279,7 @@ const IndicatorDetail: React.FC = () => {
               <Calendar className="h-5 w-5 text-blue-600 mr-2" />
               <h2 className="text-lg font-semibold text-gray-800">Time Range</h2>
             </div>
-            
+
             <div className="flex space-x-2">
               <button
                 onClick={() => setViewMode('chart')}
@@ -294,7 +303,7 @@ const IndicatorDetail: React.FC = () => {
               </button>
             </div>
           </div>
-          
+
           <div className="flex flex-wrap gap-2">
             {[1, 5, 10, 20, 30].map(years => (
               <button
@@ -311,7 +320,7 @@ const IndicatorDetail: React.FC = () => {
             ))}
           </div>
         </div>
-        
+
         {/* Chart or Table */}
         <div className="bg-white rounded-lg shadow-md p-4 mb-8">
           <div className="flex items-center mb-4">
@@ -320,24 +329,24 @@ const IndicatorDetail: React.FC = () => {
               {indicator.name} Data ({filteredData.length} data points)
             </h2>
           </div>
-          
+
           <div className={viewMode === 'chart' ? 'block' : 'hidden'}>
             <div className="h-96">
               <DetailChart data={indicatorData} filteredData={filteredData} />
             </div>
           </div>
-          
+
           <div className={viewMode === 'table' ? 'block' : 'hidden'}>
             <DataTable data={filteredData} indicator={indicator} />
           </div>
         </div>
-        
+
         {/* Presidential periods */}
         <div className="bg-white rounded-lg shadow-md p-4 mb-8">
           <h2 className="text-lg font-semibold text-gray-800 mb-4">Performance by Presidential Term</h2>
           <PresidentialPeriods data={indicatorData} />
         </div>
-        
+
         {/* Source information */}
         <div className="bg-white rounded-lg shadow-md p-4">
           <h2 className="text-lg font-semibold text-gray-800 mb-2">Data Source Information</h2>
@@ -362,7 +371,7 @@ const IndicatorDetail: React.FC = () => {
           </div>
         </div>
       </main>
-      
+
       <footer className="bg-white border-t border-gray-200 mt-12">
         <div className="container mx-auto px-4 py-6">
           <p className="text-center text-gray-600 text-sm">

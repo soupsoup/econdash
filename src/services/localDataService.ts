@@ -51,3 +51,33 @@ export async function loadLocalJobCreationData(): Promise<LocalDataPoint[]> {
     return [];
   }
 }
+import { DataPoint } from '../types';
+
+// Function to parse CSV data from the NONFARMPAYROLL_FRED.csv file
+export const parseNonFarmPayrollCsv = (csvData: string): DataPoint[] => {
+  const lines = csvData.trim().split('\n');
+  // Skip header
+  const dataLines = lines.slice(1);
+  
+  return dataLines.map(line => {
+    const [dateStr, valueStr] = line.split(',');
+    return {
+      date: new Date(dateStr).toISOString().split('T')[0],
+      value: parseFloat(valueStr),
+      label: `${parseFloat(valueStr).toLocaleString()} jobs`
+    };
+  });
+};
+
+// Function to convert the loaded CSV data into the format expected by your app
+export const getJobCreationDataFromCsv = (): DataPoint[] => {
+  try {
+    // The CSV data has been uploaded to your project
+    // You would need to load this file or have it imported
+    // For now, we'll return an empty array
+    return [];
+  } catch (error) {
+    console.error('Error loading job creation data from CSV:', error);
+    return [];
+  }
+};
