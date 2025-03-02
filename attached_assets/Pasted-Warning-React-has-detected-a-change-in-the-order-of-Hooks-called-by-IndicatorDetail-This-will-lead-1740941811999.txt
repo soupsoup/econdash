@@ -1,0 +1,53 @@
+Warning: React has detected a change in the order of Hooks called by IndicatorDetail. This will lead to bugs and errors if not fixed. For more information, read the Rules of Hooks: https://reactjs.org/link/rules-of-hooks
+
+   Previous render            Next render
+   ------------------------------------------------------
+1. useContext                 useContext
+2. useContext                 useContext
+3. useContext                 useContext
+4. useContext                 useContext
+5. useContext                 useContext
+6. useContext                 useContext
+7. useContext                 useContext
+8. useContext                 useContext
+9. useRef                     useRef
+10. useContext                useContext
+11. useLayoutEffect           useLayoutEffect
+12. useCallback               useCallback
+13. useState                  useState
+14. useState                  useState
+15. useState                  useState
+16. useState                  useState
+17. useRef                    useRef
+18. useState                  useState
+19. useContext                useContext
+20. useContext                useContext
+21. useContext                useContext
+22. useState                  useState
+23. useEffect                 useEffect
+24. useEffect                 useEffect
+25. undefined                 useMemo
+   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+    at IndicatorDetail (https://04dc0226-9a25-4dd1-bb56-2c494088206d-00-16r6x7yjm3g5q.riker.replit.dev/src/pages/IndicatorDetail.tsx?t=1740941587757:30:18)
+    at RenderedRoute (https://04dc0226-9a25-4dd1-bb56-2c494088206d-00-16r6x7yjm3g5q.riker.replit.dev/node_modules/.vite/deps/react-router-dom.js?v=4f3aa9bd:4089:5)
+    at Routes (https://04dc0226-9a25-4dd1-bb56-2c494088206d-00-16r6x7yjm3g5q.riker.replit.dev/node_modules/.vite/deps/react-router-dom.js?v=4f3aa9bd:4559:5)
+    at App (https://04dc0226-9a25-4dd1-bb56-2c494088206d-00-16r6x7yjm3g5q.riker.replit.dev/src/App.tsx?t=1740941587757:26:21)
+    at QueryClientProvider2 (https://04dc0226-9a25-4dd1-bb56-2c494088206d-00-16r6x7yjm3g5q.riker.replit.dev/node_modules/.vite/deps/react-query.js?v=035495a1:2664:21)
+    at Router (https://04dc0226-9a25-4dd1-bb56-2c494088206d-00-16r6x7yjm3g5q.riker.replit.dev/node_modules/.vite/deps/react-router-dom.js?v=4f3aa9bd:4502:15)
+    at BrowserRouter (https://04dc0226-9a25-4dd1-bb56-2c494088206d-00-16r6x7yjm3g5q.riker.replit.dev/node_modules/.vite/deps/react-router-dom.js?v=4f3aa9bd:5248:5)
+Rendered more hooks than during the previous render.
+Rendered more hooks than during the previous render.
+The above error occurred in the <IndicatorDetail> component:
+
+    at IndicatorDetail (https://04dc0226-9a25-4dd1-bb56-2c494088206d-00-16r6x7yjm3g5q.riker.replit.dev/src/pages/IndicatorDetail.tsx?t=1740941587757:30:18)
+    at RenderedRoute (https://04dc0226-9a25-4dd1-bb56-2c494088206d-00-16r6x7yjm3g5q.riker.replit.dev/node_modules/.vite/deps/react-router-dom.js?v=4f3aa9bd:4089:5)
+    at Routes (https://04dc0226-9a25-4dd1-bb56-2c494088206d-00-16r6x7yjm3g5q.riker.replit.dev/node_modules/.vite/deps/react-router-dom.js?v=4f3aa9bd:4559:5)
+    at App (https://04dc0226-9a25-4dd1-bb56-2c494088206d-00-16r6x7yjm3g5q.riker.replit.dev/src/App.tsx?t=1740941587757:26:21)
+    at QueryClientProvider2 (https://04dc0226-9a25-4dd1-bb56-2c494088206d-00-16r6x7yjm3g5q.riker.replit.dev/node_modules/.vite/deps/react-query.js?v=035495a1:2664:21)
+    at Router (https://04dc0226-9a25-4dd1-bb56-2c494088206d-00-16r6x7yjm3g5q.riker.replit.dev/node_modules/.vite/deps/react-router-dom.js?v=4f3aa9bd:4502:15)
+    at BrowserRouter (https://04dc0226-9a25-4dd1-bb56-2c494088206d-00-16r6x7yjm3g5q.riker.replit.dev/node_modules/.vite/deps/react-router-dom.js?v=4f3aa9bd:5248:5)
+
+Consider adding an error boundary to your tree to customize error handling behavior.
+Visit https://reactjs.org/link/error-boundaries to learn more about error boundaries.
+Rendered more hooks than during the previous render.
