@@ -9,6 +9,8 @@ export default defineConfig({
     exclude: ['lucide-react'],
   },
   server: {
+    host: '0.0.0.0',
+    port: 3000,
     proxy: {
       // BLS API proxy
       '/api/bls': {
