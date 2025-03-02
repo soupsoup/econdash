@@ -18,7 +18,7 @@ const IndicatorDetail: React.FC = () => {
   const [apiErrors, setApiErrors] = useState<Record<string, string>>({});
   const [lastUpdated, setLastUpdated] = useState<string | null>(getLastUpdatedTimestamp());
 
-  // Create memo hooks before conditional logic
+  // Ensure all useMemo hooks are in the same place to maintain consistent order
   const csvData = useMemo(() => {
     if (!data?.dataPoints) return [];
     return data.dataPoints.map(point => ({
@@ -145,7 +145,7 @@ const IndicatorDetail: React.FC = () => {
     : 0;
 
   // Calculate month-to-month job growth for job creation indicator
-  const processedData = React.useMemo(() => {
+  const processedData = useMemo(() => {
     if (indicator.id === 'job-creation') {
       // For job creation, calculate month-to-month changes
       return filteredData.map((point, index, array) => {
