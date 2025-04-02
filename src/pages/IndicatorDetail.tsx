@@ -42,17 +42,6 @@ const IndicatorDetail: React.FC = () => {
         // Extract and format error details
         if (err instanceof Error) {
           setApiErrors(prev => ({
-
-  // Create memoized CSV data
-  const csvData = useMemo(() => {
-    if (!indicatorData?.data) return [];
-    return indicatorData.data.map(point => ({
-      Date: point.date,
-      Value: point.value
-    }));
-  }, [indicatorData]);
-
-
             ...prev,
             'Data Fetch Error': err.message
           }));
@@ -65,6 +54,16 @@ const IndicatorDetail: React.FC = () => {
       }
     }
   );
+
+  // Create memoized CSV data
+  const csvData = useMemo(() => {
+    if (!indicatorData?.data) return [];
+    return indicatorData.data.map(point => ({
+      Date: point.date,
+      Value: point.value
+    }));
+  }, [indicatorData]);
+
 
   if (isLoading) {
     return (
