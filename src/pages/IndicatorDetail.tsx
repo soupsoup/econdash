@@ -1,3 +1,4 @@
+
 import React, { useState, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery } from 'react-query';
@@ -42,44 +43,6 @@ const IndicatorDetail: React.FC = () => {
             ...prev,
             'Data Fetch Error': err.message
           }));
-        }
-      }
-    }
-  );
-
-  // Create memoized CSV data
-  const csvData = useMemo(() => {
-    if (!indicatorData?.data) return [];
-    return indicatorData.data.map(point => ({
-      Date: point.date,
-      Value: point.value
-    }));
-  }, [indicatorData]);
-    ['indicatorData', id],
-    async () => {
-      console.log('Fetching indicator data for ID:', id);
-      const data = await fetchIndicatorData(id || '');
-      console.log('Received data:', data);
-      return data;
-    },
-    {
-      enabled: !!id,
-      refetchOnWindowFocus: false,
-      retry: 2,
-      retryDelay: 1000,
-      onSuccess: () => {
-        // Update last updated timestamp
-        setLastUpdated(getLastUpdatedTimestamp());
-      },
-      onError: (err) => {
-        console.error('Error fetching indicator data:', err);
-
-        // Extract and format error details
-        if (err instanceof Error) {
-          setApiErrors(prev => ({
-            ...prev,
-            'Data Fetch Error': err.message
-          }));
         } else {
           setApiErrors(prev => ({
             ...prev,
@@ -98,7 +61,6 @@ const IndicatorDetail: React.FC = () => {
       Value: point.value
     }));
   }, [indicatorData]);
-
 
   if (isLoading) {
     return (
@@ -208,7 +170,7 @@ const IndicatorDetail: React.FC = () => {
       }).slice(1); // Remove first item with zero change
     }
     return filteredData;
-  }, [filteredData, indicator.id]);
+  }, [filteredData, indicator?.id]);
 
   // Format value based on indicator type
   const formatValue = (value: number, useOriginal = false) => {
@@ -378,7 +340,7 @@ const IndicatorDetail: React.FC = () => {
 
           <div className={viewMode === 'chart' ? 'block' : 'hidden'}>
             <div className="h-96">
-              <DetailChart data={indicatorData} filteredData={filteredData} />
+              <DetailChart data={indicatorData} filteredData={processedData} />
             </div>
           </div>
 
