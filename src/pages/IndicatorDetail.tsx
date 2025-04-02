@@ -18,15 +18,6 @@ const IndicatorDetail: React.FC = () => {
   const [apiErrors, setApiErrors] = useState<Record<string, string>>({});
   const [lastUpdated, setLastUpdated] = useState<string | null>(getLastUpdatedTimestamp());
 
-  // Ensure all useMemo hooks are in the same place to maintain consistent order
-  const csvData = useMemo(() => {
-    if (!indicatorData?.data) return [];
-    return indicatorData.data.map(point => ({
-      Date: point.date,
-      Value: point.value
-    }));
-  }, [indicatorData]);
-
   // Fetch indicator data
   const { data: indicatorData, isLoading, error, refetch } = useQuery(
     ['indicatorData', id],
@@ -51,6 +42,17 @@ const IndicatorDetail: React.FC = () => {
         // Extract and format error details
         if (err instanceof Error) {
           setApiErrors(prev => ({
+
+  // Create memoized CSV data
+  const csvData = useMemo(() => {
+    if (!indicatorData?.data) return [];
+    return indicatorData.data.map(point => ({
+      Date: point.date,
+      Value: point.value
+    }));
+  }, [indicatorData]);
+
+
             ...prev,
             'Data Fetch Error': err.message
           }));
