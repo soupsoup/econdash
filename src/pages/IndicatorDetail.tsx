@@ -20,12 +20,12 @@ const IndicatorDetail: React.FC = () => {
 
   // Ensure all useMemo hooks are in the same place to maintain consistent order
   const csvData = useMemo(() => {
-    if (!data?.dataPoints) return [];
-    return data.dataPoints.map(point => ({
+    if (!indicatorData?.data) return [];
+    return indicatorData.data.map(point => ({
       Date: point.date,
       Value: point.value
     }));
-  }, [data]);
+  }, [indicatorData]);
 
   // Fetch indicator data
   const { data: indicatorData, isLoading, error, refetch } = useQuery(

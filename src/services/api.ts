@@ -532,6 +532,22 @@ export const fetchIndicatorData = async (indicatorId: string): Promise<Indicator
   if (!indicatorId) {
     throw new Error('Indicator ID is required');
   }
+  
+  console.log(`Fetching indicator data for ID: ${indicatorId}`);
+  const localStorageKey = `indicator-${indicatorId}`;
+  const storedData = localStorage.getItem(localStorageKey);
+  
+  // Try to use cached data first
+  if (storedData) {
+    try {
+      const parsed = JSON.parse(storedData);
+      if (parsed && parsed.indicator && parsed.data) {
+        return parsed;
+      }
+    } catch (e) {
+      console.warn('Failed to parse stored data:', e);
+    }
+  }
 
   const indicator = economicIndicators.find(ind => ind.id === indicatorId);
   
