@@ -1,21 +1,26 @@
-<!doctype html>
+
+<!DOCTYPE html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Presidential Economic Dashboard</title>
-    <meta name="description" content="Track economic indicators across presidential administrations with data from BLS, Federal Reserve, and EIA" />
   </head>
   <body>
-    <div id="root"></div>
+    <div id="root">
+      <!-- React will render here -->
+      <noscript>
+        You need to enable JavaScript to run this app.
+      </noscript>
+    </div>
     <script type="module" src="/src/main.tsx"></script>
-    <!-- Add debugging element to verify HTML is loading -->
     <script>
-      console.log("HTML document loaded");
-      if (!document.getElementById('root')) {
-        console.error("Root element not found!");
-      }
+      console.log('Index.html loaded successfully');
+      document.addEventListener('DOMContentLoaded', function() {
+        console.log('DOM fully loaded');
+        console.log('Root element exists:', !!document.getElementById('root'));
+      });
     </script>
   </body>
 </html>

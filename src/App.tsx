@@ -26,6 +26,17 @@ function App() {
           <Route path="/indicator/:id" element={<IndicatorDetail />} />
         </Routes>
       </ErrorBoundary>
+      {/* Debug information */}
+      <div className="p-5 m-5 bg-white border border-gray-200 rounded shadow">
+        <h1 className="text-2xl font-bold mb-4">Presidential Economic Dashboard</h1>
+        <p className="mb-4">This dashboard is loading. If you see this message, React is working but there might be issues with the components.</p>
+        <button 
+          className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+          onClick={() => console.log('Button clicked!')}
+        >
+          Test Button
+        </button>
+      </div>
     </>
   );
 }
