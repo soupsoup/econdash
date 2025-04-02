@@ -33,6 +33,41 @@ const IndicatorDetail: React.FC = () => {
       retry: 2,
       retryDelay: 1000,
       onSuccess: () => {
+        setLastUpdated(getLastUpdatedTimestamp());
+      },
+      onError: (err) => {
+        console.error('Error fetching indicator data:', err);
+        if (err instanceof Error) {
+          setApiErrors(prev => ({
+            ...prev,
+            'Data Fetch Error': err.message
+          }));
+        }
+      }
+    }
+  );
+
+  // Create memoized CSV data
+  const csvData = useMemo(() => {
+    if (!indicatorData?.data) return [];
+    return indicatorData.data.map(point => ({
+      Date: point.date,
+      Value: point.value
+    }));
+  }, [indicatorData]);
+    ['indicatorData', id],
+    async () => {
+      console.log('Fetching indicator data for ID:', id);
+      const data = await fetchIndicatorData(id || '');
+      console.log('Received data:', data);
+      return data;
+    },
+    {
+      enabled: !!id,
+      refetchOnWindowFocus: false,
+      retry: 2,
+      retryDelay: 1000,
+      onSuccess: () => {
         // Update last updated timestamp
         setLastUpdated(getLastUpdatedTimestamp());
       },
