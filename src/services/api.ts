@@ -529,9 +529,14 @@ const shouldUpdateData = (indicatorId: string, existingData: IndicatorDataPoint[
 
 // Fetch data for a specific indicator
 export const fetchIndicatorData = async (indicatorId: string): Promise<IndicatorData> => {
+  if (!indicatorId) {
+    throw new Error('Indicator ID is required');
+  }
+
   const indicator = economicIndicators.find(ind => ind.id === indicatorId);
   
   if (!indicator) {
+    console.error('Available indicators:', economicIndicators.map(i => i.id));
     throw new Error(`Indicator with id ${indicatorId} not found`);
   }
   

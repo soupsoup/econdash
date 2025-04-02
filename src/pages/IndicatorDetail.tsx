@@ -30,11 +30,17 @@ const IndicatorDetail: React.FC = () => {
   // Fetch indicator data
   const { data: indicatorData, isLoading, error, refetch } = useQuery(
     ['indicatorData', id],
-    () => fetchIndicatorData(id || ''),
+    async () => {
+      console.log('Fetching indicator data for ID:', id);
+      const data = await fetchIndicatorData(id || '');
+      console.log('Received data:', data);
+      return data;
+    },
     {
       enabled: !!id,
       refetchOnWindowFocus: false,
-      retry: 1, // Reduced retries to avoid excessive API calls
+      retry: 2,
+      retryDelay: 1000,
       onSuccess: () => {
         // Update last updated timestamp
         setLastUpdated(getLastUpdatedTimestamp());
@@ -70,6 +76,7 @@ const IndicatorDetail: React.FC = () => {
   }
 
   if (error) {
+    console.error('IndicatorDetail Error:', error);
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center max-w-md px-4">
@@ -82,6 +89,9 @@ const IndicatorDetail: React.FC = () => {
             <p className="text-sm text-red-800 font-medium">Error details:</p>
             <p className="text-sm text-red-700 font-mono mt-1 overflow-auto max-h-48">
               {error instanceof Error ? error.message : 'Unknown error'}
+            </p>
+            <p className="text-sm text-red-600 mt-2">
+              Indicator ID: {id}
             </p>
           </div>
           <div className="flex space-x-3 justify-center">
