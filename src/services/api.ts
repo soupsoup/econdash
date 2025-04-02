@@ -535,12 +535,12 @@ export const fetchIndicatorData = async (indicatorId: string): Promise<Indicator
   
   console.log(`Fetching indicator data for ID: ${indicatorId}`);
   const localStorageKey = `indicator-${indicatorId}`;
-  const storedData = localStorage.getItem(localStorageKey);
+  const storedData = getFromLocalStorage(localStorageKey);
   
   // Try to use cached data first
   if (storedData) {
     try {
-      const parsed = JSON.parse(storedData);
+      const parsed = storedData.data;
       if (parsed && parsed.indicator && parsed.data) {
         return parsed;
       }
@@ -557,10 +557,6 @@ export const fetchIndicatorData = async (indicatorId: string): Promise<Indicator
   }
   
   if (DEBUG) console.log(`Fetching data for indicator: ${indicatorId}`);
-  
-  // Check if we have data in local storage
-  const localStorageKey = `indicator-${indicatorId}`;
-  const storedData = getFromLocalStorage(localStorageKey);
   
   // If we have valid stored data, use it
   if (storedData && !shouldUpdateData(indicatorId, storedData.data.data)) {
