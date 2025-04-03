@@ -33,13 +33,18 @@ export default function DataUpload({ onUpload }: DataUploadProps) {
     // Parse based on indicator type
     if (selectedIndicator === 'inflation' || selectedIndicator === 'unemployment') {
       data = lines.slice(1).map(line => {
-        const [date, value] = line.split(',');
+        const [rawDate, rawValue] = line.split(',');
+        // Parse date from "YYYY-MMM" format to "YYYY-MM-DD"
+        const [year, month] = rawDate.trim().split('-');
+        const monthNum = new Date(Date.parse(month + " 1, " + year)).getMonth() + 1;
+        const formattedDate = `${year}-${monthNum.toString().padStart(2, '0')}-01`;
+        
         return {
-          date: date.trim(),
-          value: parseFloat(value.trim()),
+          date: formattedDate,
+          value: rawValue.trim() ? parseFloat(rawValue.trim()) : null,
           president: '' // Will be determined by date
         };
-      });
+      }).filter(point => point.value !== null);
     } else {
       // Default format for other indicators
       data = lines.slice(1).map(line => {
