@@ -1,15 +1,28 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowUpRight, ArrowDownRight, ExternalLink, Maximize2, AlertTriangle } from 'lucide-react';
 import { IndicatorData } from '../types';
 import IndicatorChart from './IndicatorChart';
 
+// Placeholder for DataSourceSelector component.  Needs actual implementation.
+const DataSourceSelector = ({ indicatorId, onPreferenceChange }) => (
+  <div>
+    <label htmlFor={`data-source-${indicatorId}`}>Data Source:</label>
+    <select id={`data-source-${indicatorId}`} onChange={onPreferenceChange}>
+      <option value="api">API</option>
+      <option value="uploaded">Uploaded Data</option>
+    </select>
+  </div>
+);
+
+
 interface IndicatorCardProps {
   data: IndicatorData | null;
   isLoading: boolean;
+  refetch: () => void; // Added refetch function
 }
 
-const IndicatorCard: React.FC<IndicatorCardProps> = ({ data, isLoading }) => {
+const IndicatorCard: React.FC<IndicatorCardProps> = ({ data, isLoading, refetch }) => {
   if (isLoading) {
     return (
       <div className="bg-white rounded-lg shadow-md p-6 animate-pulse">
@@ -30,7 +43,7 @@ const IndicatorCard: React.FC<IndicatorCardProps> = ({ data, isLoading }) => {
             <p className="text-sm text-gray-600">Fetching indicator data</p>
           </div>
         </div>
-        
+
         <div className="flex items-center justify-center h-40 bg-gray-50 rounded-md">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
         </div>
@@ -39,7 +52,7 @@ const IndicatorCard: React.FC<IndicatorCardProps> = ({ data, isLoading }) => {
   }
 
   const { indicator, data: dataPoints } = data;
-  
+
   // Check if we have data
   if (!dataPoints || dataPoints.length === 0) {
     return (
@@ -50,14 +63,14 @@ const IndicatorCard: React.FC<IndicatorCardProps> = ({ data, isLoading }) => {
             <p className="text-sm text-gray-600">{indicator.description}</p>
           </div>
         </div>
-        
+
         <div className="flex items-center justify-center h-40 bg-red-50 rounded-md border border-red-100">
           <div className="text-center p-4">
             <AlertTriangle className="h-8 w-8 text-red-500 mx-auto mb-2" />
             <p className="text-sm text-red-800">No data available</p>
           </div>
         </div>
-        
+
         <div className="mt-4 text-xs text-gray-500 flex justify-between items-center">
           <div>
             <span>Source: {indicator.source}</span>
@@ -73,22 +86,22 @@ const IndicatorCard: React.FC<IndicatorCardProps> = ({ data, isLoading }) => {
       </div>
     );
   }
-  
+
   // Get current and previous values for comparison
   const currentValue = dataPoints[dataPoints.length - 1]?.value;
   const previousValue = dataPoints[dataPoints.length - 2]?.value;
-  
+
   // Calculate change
   const change = currentValue - (previousValue || 0);
   const percentChange = previousValue ? (change / previousValue) * 100 : 0;
-  
+
   // Determine if change is positive (based on whether higher is better for this indicator)
   const isPositiveChange = indicator.higherIsBetter ? change > 0 : change < 0;
-  
+
   // Format the current value based on the indicator type
   const formatValue = (value: number | undefined) => {
     if (!value && value !== 0) return "N/A";
-    
+
     if (indicator.id === 'job-creation') {
       // For job creation, show whole numbers with commas
       return value.toLocaleString();
@@ -97,7 +110,7 @@ const IndicatorCard: React.FC<IndicatorCardProps> = ({ data, isLoading }) => {
       return value.toLocaleString();
     }
   };
-  
+
   // Format the change value based on the indicator type
   const formatChange = (changeValue: number) => {
     if (indicator.id === 'job-creation') {
@@ -108,10 +121,10 @@ const IndicatorCard: React.FC<IndicatorCardProps> = ({ data, isLoading }) => {
       return Math.abs(changeValue).toFixed(1);
     }
   };
-  
+
   return (
     <div className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow">
-      <div className="flex justify-between items-start mb-4">
+      <div className="flex justify-between items-center mb-4">
         <div>
           <h3 className="text-lg font-semibold text-gray-800">{indicator.name}</h3>
           <p className="text-sm text-gray-600">{indicator.description}</p>
@@ -135,12 +148,12 @@ const IndicatorCard: React.FC<IndicatorCardProps> = ({ data, isLoading }) => {
           </a>
         </div>
       </div>
-      
+      <DataSourceSelector indicatorId={indicator.id} onPreferenceChange={refetch} /> {/* Added data source selector */}
       <div className="flex items-baseline mb-6">
         <span className="text-3xl font-bold mr-2">
           {formatValue(currentValue)} {indicator.unit}
         </span>
-        
+
         {change !== 0 && previousValue && (
           <div className={`flex items-center text-sm ${isPositiveChange ? 'text-green-600' : 'text-red-600'}`}>
             {isPositiveChange ? (
@@ -152,11 +165,11 @@ const IndicatorCard: React.FC<IndicatorCardProps> = ({ data, isLoading }) => {
           </div>
         )}
       </div>
-      
+
       <div className="h-40">
         <IndicatorChart data={data} />
       </div>
-      
+
       <div className="mt-4 text-xs text-gray-500 flex justify-between items-center">
         <div>
           <span>Updated {indicator.frequency}</span>

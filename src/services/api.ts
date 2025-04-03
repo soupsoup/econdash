@@ -616,40 +616,37 @@ const getSeriesIdForIndicator = (indicatorId: string): { source: string; seriesI
   }
 };
 
-// Check if we need to update data based on the latest data point
-const shouldUpdateData = (indicatorId: string, existingData: IndicatorDataPoint[]): boolean => {
-  if (!existingData || existingData.length === 0) return true;
+// Data source preference storage
+const DATA_SOURCE_PREFERENCES_KEY = `${LOCAL_STORAGE_PREFIX}data_source_preferences`;
 
-  const indicator = economicIndicators.find(ind => ind.id === indicatorId);
-  if (!indicator) return true;
+export interface DataSourcePreference {
+  useUploadedData: boolean;
+}
 
-  // Sort data by date to get the latest data point
-  const sortedData = [...existingData].sort((a, b) =>
-    new Date(b.date).getTime() - new Date(a.date).getTime()
-  );
-
-  const latestDataPoint = sortedData[0];
-  const latestDate = new Date(latestDataPoint.date);
-  const now = new Date();
-
-  // Calculate the difference in days
-  const daysDiff = Math.floor((now.getTime() - latestDate.getTime()) / (1000 * 60 * 60 * 24));
-
-  // Determine if we need to update based on the indicator's frequency
-  switch (indicator.frequency) {
-    case 'daily':
-      return daysDiff >= 1;
-    case 'weekly':
-      return daysDiff >= 7;
-    case 'monthly':
-      return daysDiff >= 30;
-    case 'quarterly':
-      return daysDiff >= 90;
-    case 'yearly':
-      return daysDiff >= 365;
-    default:
-      return true;
+export const getDataSourcePreferences = (): Record<string, DataSourcePreference> => {
+  try {
+    const stored = localStorage.getItem(DATA_SOURCE_PREFERENCES_KEY);
+    return stored ? JSON.parse(stored) : {};
+  } catch (error) {
+    console.error('Error reading data source preferences:', error);
+    return {};
   }
+};
+
+export const setDataSourcePreference = (indicatorId: string, preference: DataSourcePreference): void => {
+  try {
+    const preferences = getDataSourcePreferences();
+    preferences[indicatorId] = preference;
+    localStorage.setItem(DATA_SOURCE_PREFERENCES_KEY, JSON.stringify(preferences));
+  } catch (error) {
+    console.error('Error saving data source preference:', error);
+  }
+};
+
+// Check if we need to update data based on manual refresh only
+const shouldUpdateData = (indicatorId: string, existingData: IndicatorDataPoint[]): boolean => {
+  // Only update if there's no existing data
+  return !existingData || existingData.length === 0;
 };
 
 // Fetch data for a specific indicator
