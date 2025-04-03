@@ -191,9 +191,9 @@ const getDataFromCacheOrStorageOrApi = async <T>(
 
   // All retries failed, handle the error
   const errorMessage = lastError instanceof Error ? lastError.message : String(lastError);
-    if (errorMessage.includes('threshold') || 
-        errorMessage.includes('rate limit') || 
-        errorMessage.includes('too many requests')) {
+  if (errorMessage.includes('threshold') || 
+      errorMessage.includes('rate limit') || 
+      errorMessage.includes('too many requests')) {
       // Mark this API as rate limited
       apiStatus[apiSource] = { rateLimitReached: true, lastChecked: now };
       console.warn(`Rate limit detected for ${apiSource} API`);
