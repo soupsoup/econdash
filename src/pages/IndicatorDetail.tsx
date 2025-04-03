@@ -18,7 +18,7 @@ const IndicatorDetail: React.FC = () => {
   const [apiErrors, setApiErrors] = useState<Record<string, string>>({});
   const [lastUpdated, setLastUpdated] = useState<string | null>(getLastUpdatedTimestamp());
 
-  const { data: indicatorData, isLoading, error, refetch } = useQuery(
+  const { data: indicatorData = { indicator: { id: '' }, data: [] }, isLoading, error, refetch } = useQuery(
     ['indicatorData', id],
     async () => {
       console.log('Fetching indicator data for ID:', id);
@@ -152,7 +152,8 @@ const IndicatorDetail: React.FC = () => {
 
   // Calculate month-to-month job growth for job creation indicator
   const processedData = useMemo(() => {
-    if (indicator.id === 'job-creation') {
+    if (!filteredData) return [];
+    if (indicator?.id === 'job-creation') {
       return filteredData.map((point, index, array) => {
         if (index === 0) {
           return { ...point, originalValue: point.value, value: 0 };
