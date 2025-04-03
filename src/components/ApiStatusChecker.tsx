@@ -16,12 +16,6 @@ const ApiStatusChecker: React.FC = () => {
     items: 0
   });
   
-  const [localStorageInfo, setLocalStorageInfo] = useState({
-    used: 0,
-    total: 0,
-    items: 0
-  });
-  
   // Check local storage usage
   const checkLocalStorage = () => {
     try {
