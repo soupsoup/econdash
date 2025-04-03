@@ -278,8 +278,7 @@ const fetchBLSData = async (seriesId: string, startYear: number, endYear: number
         timeout: 10000, // 10 second timeout
         withCredentials: true, // Add credentials for CORS
         headers: {
-          'Content-Type': 'application/json',
-          'Access-Control-Allow-Origin': '*'
+          'Content-Type': 'application/json'
         }
       });
 

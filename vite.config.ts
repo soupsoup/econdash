@@ -23,20 +23,11 @@ export default defineConfig({
         rewrite: (path) => path.replace(/^\/api\/bls/, ''),
         configure: (proxy) => {
           proxy.on('proxyReq', (proxyReq, req, res) => {
-            // Always set these headers
             proxyReq.setHeader('Content-Type', 'application/json');
-            proxyReq.setHeader('Accept', 'application/json');
             
-            // For POST requests, properly handle the body
-            if (req.method === 'POST') {
-              let bodyData = req.body;
-              if (typeof bodyData === 'string') {
-                bodyData = JSON.parse(bodyData);
-              }
-              const modifiedBody = JSON.stringify({
-                ...bodyData,
-                registrationkey: process.env.VITE_BLS_API_KEY
-              });
+            if (req.method === 'POST' && req.body) {
+              const bodyData = typeof req.body === 'string' ? JSON.parse(req.body) : req.body;
+              const modifiedBody = JSON.stringify(bodyData);
               proxyReq.setHeader('Content-Length', Buffer.byteLength(modifiedBody));
               proxyReq.write(modifiedBody);
             }
