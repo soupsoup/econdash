@@ -194,24 +194,23 @@ const getDataFromCacheOrStorageOrApi = async <T>(
   if (errorMessage.includes('threshold') || 
       errorMessage.includes('rate limit') || 
       errorMessage.includes('too many requests')) {
-      // Mark this API as rate limited
-      apiStatus[apiSource] = { rateLimitReached: true, lastChecked: now };
-      console.warn(`Rate limit detected for ${apiSource} API`);
-    }
+    // Mark this API as rate limited
+    apiStatus[apiSource] = { rateLimitReached: true, lastChecked: now };
+    console.warn(`Rate limit detected for ${apiSource} API`);
+  }
 
-    // Check for any local storage data, even if expired
-    const storedData = getFromLocalStorage(cacheKey);
-    if (storedData) {
-      if (DEBUG) console.log(`Using expired local storage data for ${cacheKey} due to API error`);
-      return storedData.data;
-    }
+  // Check for any local storage data, even if expired
+  const storedData = getFromLocalStorage(cacheKey);
+  if (storedData) {
+    if (DEBUG) console.log(`Using expired local storage data for ${cacheKey} due to API error`);
+    return storedData.data;
+  }
 
-    // No local storage data available, rethrow the error with full details
-    if (axios.isAxiosError(error) && error.response) {
-      throw new Error(`${apiSource} API Error: ${errorMessage}. Status: ${error.response.status}. Response: ${JSON.stringify(error.response.data)}`);
-    } else {
-      throw error;
-    }
+  // No local storage data available, rethrow the error with full details
+  if (axios.isAxiosError(lastError) && lastError.response) {
+    throw new Error(`${apiSource} API Error: ${errorMessage}. Status: ${lastError.response.status}. Response: ${JSON.stringify(lastError.response.data)}`);
+  } else {
+    throw lastError;
   }
 };
 
