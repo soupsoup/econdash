@@ -11,8 +11,8 @@ const EIA_API_KEY = import.meta.env.VITE_EIA_API_KEY || 'WU9DIO3Pc3R6vrqHlObPJgp
 
 // API Base URLs with proxy prefixes to avoid CORS issues
 const FRED_BASE_URL = '/api/fred/fred/series/observations';
-const BLS_BASE_URL = 'https://api.bls.gov/publicAPI/v2/timeseries/data/';
-const EIA_BASE_URL = 'https://api.eia.gov/v2';
+const BLS_BASE_URL = '/api/bls/publicAPI/v2/timeseries/data/';
+const EIA_BASE_URL = '/api/eia/v2';
 
 // Configure default headers
 axios.defaults.headers.common['Content-Type'] = 'application/json';
