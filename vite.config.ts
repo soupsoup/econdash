@@ -23,9 +23,12 @@ export default defineConfig({
         rewrite: (path) => path.replace(/^\/api\/bls/, ''),
         configure: (proxy) => {
           proxy.on('proxyReq', (proxyReq, req, res) => {
+            // Always set these headers
             proxyReq.setHeader('Content-Type', 'application/json');
             proxyReq.setHeader('Accept', 'application/json');
-            if (req.method === 'POST') {
+            
+            // For POST requests, properly handle the body
+            if (req.method === 'POST' && req.body) {
               const bodyData = JSON.stringify({
                 ...req.body,
                 registrationkey: process.env.VITE_BLS_API_KEY
@@ -56,9 +59,9 @@ export default defineConfig({
         changeOrigin: true,
         secure: false,
         rewrite: (path) => {
-          const url = new URL(path.replace(/^\/api\/eia/, ''), 'https://api.eia.gov');
-          url.searchParams.append('api_key', process.env.VITE_EIA_API_KEY);
-          return url.pathname + url.search;
+          const newPath = path.replace(/^\/api\/eia/, '');
+          const hasQuery = newPath.includes('?');
+          return `${newPath}${hasQuery ? '&' : '?'}api_key=${process.env.VITE_EIA_API_KEY}`;
         },
         configure: (proxy) => {
           proxy.on('proxyReq', (proxyReq, req, res) => {
