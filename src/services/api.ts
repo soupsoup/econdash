@@ -47,24 +47,6 @@ const isCacheValid = (cacheKey: string): boolean => {
 // Helper function to save data to local storage
 const saveToLocalStorage = (key: string, data: any): void => {
   try {
-
-const testEIAApi = async () => {
-  const testUrl = `${EIA_BASE_URL}/petroleum/pri/gnd/data/?api_key=${EIA_API_KEY}`;
-  try {
-    console.log('Testing EIA API with URL:', testUrl.replace(EIA_API_KEY, '***'));
-    const response = await axios.get(testUrl);
-    console.log('EIA API Test Response:', {
-      status: response.status,
-      headers: response.headers,
-      data: response.data ? 'Data received' : 'No data'
-    });
-    return response.data;
-  } catch (error) {
-    console.error('EIA API Test Error:', error);
-    throw error;
-  }
-};
-
     const serializedData = JSON.stringify({
       data,
       timestamp: Date.now()
@@ -178,16 +160,16 @@ const getDataFromCacheOrStorageOrApi = async <T>(
       // Reset rate limit flag on successful call
       apiStatus[apiSource] = { rateLimitReached: false, lastChecked: now };
 
-    // Update memory cache
-    apiCache[cacheKey] = {
-      data,
-      timestamp: now,
-    };
+      // Update memory cache
+      apiCache[cacheKey] = {
+        data,
+        timestamp: now,
+      };
 
-    // Save to local storage
-    saveToLocalStorage(cacheKey, data);
+      // Save to local storage
+      saveToLocalStorage(cacheKey, data);
 
-    return data;
+      return data;
     } catch (error) {
       lastError = error;
 
@@ -195,9 +177,9 @@ const getDataFromCacheOrStorageOrApi = async <T>(
       const errorMessage = error instanceof Error ? error.message : String(error);
 
       // If it's the last attempt, rate limit error, or method not allowed, break the retry loop
-      if (attempt === RETRY_CONFIG.maxRetries - 1 || 
-          errorMessage.includes('threshold') || 
-          errorMessage.includes('rate limit') || 
+      if (attempt === RETRY_CONFIG.maxRetries - 1 ||
+          errorMessage.includes('threshold') ||
+          errorMessage.includes('rate limit') ||
           errorMessage.includes('too many requests') ||
           (axios.isAxiosError(error) && error.response?.status === 405)) {
         if (axios.isAxiosError(error) && error.response?.status === 405) {
@@ -213,8 +195,8 @@ const getDataFromCacheOrStorageOrApi = async <T>(
 
   // All retries failed, handle the error
   const errorMessage = lastError instanceof Error ? lastError.message : String(lastError);
-  if (errorMessage.includes('threshold') || 
-      errorMessage.includes('rate limit') || 
+  if (errorMessage.includes('threshold') ||
+      errorMessage.includes('rate limit') ||
       errorMessage.includes('too many requests')) {
     // Mark this API as rate limited
     apiStatus[apiSource] = { rateLimitReached: true, lastChecked: now };
@@ -590,7 +572,7 @@ const shouldUpdateData = (indicatorId: string, existingData: IndicatorDataPoint[
   if (!indicator) return true;
 
   // Sort data by date to get the latest data point
-  const sortedData = [...existingData].sort((a, b) => 
+  const sortedData = [...existingData].sort((a, b) =>
     new Date(b.date).getTime() - new Date(a.date).getTime()
   );
 
@@ -785,7 +767,7 @@ export const fetchAllIndicatorsData = async (): Promise<IndicatorData[]> => {
   }
 
   // Use Promise.allSettled to handle individual indicator failures
-  const promises = economicIndicators.map(indicator => 
+  const promises = economicIndicators.map(indicator =>
     fetchIndicatorData(indicator.id)
       .then(data => {
         results.push(data);
@@ -867,5 +849,22 @@ export const clearAllStoredData = (): void => {
     console.log('All stored data cleared');
   } catch (error) {
     console.error('Error clearing stored data:', error);
+  }
+};
+
+const testEIAApi = async () => {
+  const testUrl = `${EIA_BASE_URL}/petroleum/pri/gnd/data/?api_key=${EIA_API_KEY}`;
+  try {
+    console.log('Testing EIA API with URL:', testUrl.replace(EIA_API_KEY, '***'));
+    const response = await axios.get(testUrl);
+    console.log('EIA API Test Response:', {
+      status: response.status,
+      headers: response.headers,
+      data: response.data ? 'Data received' : 'No data'
+    });
+    return response.data;
+  } catch (error) {
+    console.error('EIA API Test Error:', error);
+    throw error;
   }
 };
