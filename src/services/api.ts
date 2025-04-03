@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { format, subYears, parseISO } from 'date-fns';
+import { format } from 'date-fns';
 import { IndicatorData, IndicatorDataPoint } from '../types';
 import { economicIndicators } from '../data/indicators';
 import { getPresidentByDate } from '../data/presidents';
@@ -23,8 +23,14 @@ const DEBUG = true;
 // Local Storage Keys
 const LOCAL_STORAGE_PREFIX = 'presidential_dashboard_';
 const LAST_UPDATED_KEY = `${LOCAL_STORAGE_PREFIX}last_updated`;
+export const DATA_SOURCE_PREFERENCES_KEY = `${LOCAL_STORAGE_PREFIX}data_source_preferences`;
 
-// Cache for API responses to avoid unnecessary requests
+// Types
+interface DataSourcePreference {
+  useUploadedData: boolean;
+}
+
+// Cache for API responses
 const apiCache: Record<string, { data: any; timestamp: number }> = {};
 const CACHE_DURATION = 24 * 60 * 60 * 1000; // 24 hours
 
@@ -35,16 +41,23 @@ const apiStatus = {
   EIA: { rateLimitReached: false, lastChecked: 0 }
 };
 
-// Helper function to check if cache is valid
+// Retry configuration
+const RETRY_CONFIG = {
+  maxRetries: 3,
+  initialDelay: 1000,
+  maxDelay: 10000,
+};
+
+// Helper Functions
+const wait = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+
 const isCacheValid = (cacheKey: string): boolean => {
   const cacheEntry = apiCache[cacheKey];
   if (!cacheEntry) return false;
-
   const now = Date.now();
   return now - cacheEntry.timestamp < CACHE_DURATION;
 };
 
-// Helper function to save data to local storage
 const saveToLocalStorage = (key: string, data: any): void => {
   try {
     const serializedData = JSON.stringify({
@@ -52,22 +65,17 @@ const saveToLocalStorage = (key: string, data: any): void => {
       timestamp: Date.now()
     });
     localStorage.setItem(`${LOCAL_STORAGE_PREFIX}${key}`, serializedData);
-
-    // Update last updated timestamp
     localStorage.setItem(LAST_UPDATED_KEY, Date.now().toString());
-
     if (DEBUG) console.log(`Saved data to local storage: ${key}`);
   } catch (error) {
     console.error(`Error saving to local storage: ${key}`, error);
   }
 };
 
-// Helper function to get data from local storage
 const getFromLocalStorage = (key: string): { data: any; timestamp: number } | null => {
   try {
     const serializedData = localStorage.getItem(`${LOCAL_STORAGE_PREFIX}${key}`);
     if (!serializedData) return null;
-
     return JSON.parse(serializedData);
   } catch (error) {
     console.error(`Error retrieving from local storage: ${key}`, error);
@@ -75,164 +83,13 @@ const getFromLocalStorage = (key: string): { data: any; timestamp: number } | nu
   }
 };
 
-// Helper function to check if local storage data is valid (not too old)
 const isLocalStorageDataValid = (key: string): boolean => {
   const storedData = getFromLocalStorage(key);
   if (!storedData) return false;
-
   const now = Date.now();
   return now - storedData.timestamp < CACHE_DURATION;
 };
 
-// Retry configuration
-const RETRY_CONFIG = {
-  maxRetries: 3,
-  initialDelay: 1000, // 1 second
-  maxDelay: 10000, // 10 seconds
-};
-
-// Helper function for exponential backoff
-const wait = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
-
-// Helper function to get data from cache, local storage, or API with retries
-const getIndicatorData = async (indicatorId: string) => {
-  const preferences = getDataSourcePreferences();
-  const preference = preferences[indicatorId];
-
-  // If using uploaded data, only use local storage
-  if (preference?.useUploadedData) {
-    const cachedData = localStorage.getItem(`indicator-${indicatorId}`);
-    if (cachedData) {
-      return JSON.parse(cachedData);
-    }
-    return null;
-  }
-
-  // Otherwise proceed with normal API fetch logic
-const getDataFromCacheOrStorageOrApi = async <T>(
-  cacheKey: string,
-  apiFn: () => Promise<T>,
-  apiSource: 'BLS' | 'FRED' | 'EIA'
-): Promise<T> => {
-  // Check memory cache first (fastest)
-  if (isCacheValid(cacheKey)) {
-    if (DEBUG) console.log(`Using memory cached data for ${cacheKey}`);
-    return apiCache[cacheKey].data;
-  }
-
-  // Check local storage next
-  if (isLocalStorageDataValid(cacheKey)) {
-    const storedData = getFromLocalStorage(cacheKey);
-    if (DEBUG) console.log(`Using local storage data for ${cacheKey}`);
-
-    // Update memory cache
-    apiCache[cacheKey] = {
-      data: storedData!.data,
-      timestamp: storedData!.timestamp
-    };
-
-    return storedData!.data;
-  }
-
-  // Check if rate limit has been reached for this API
-  const now = Date.now();
-  const rateLimitStatus = apiStatus[apiSource];
-
-  // If rate limit was reached in the last hour, try to use expired local storage data
-  if (rateLimitStatus.rateLimitReached && (now - rateLimitStatus.lastChecked < 60 * 60 * 1000)) {
-    if (DEBUG) console.log(`Rate limit reached for ${apiSource}, checking for expired data`);
-
-    // Check for any local storage data, even if expired
-    const storedData = getFromLocalStorage(cacheKey);
-    if (storedData) {
-      if (DEBUG) console.log(`Using expired local storage data for ${cacheKey} due to rate limit`);
-      return storedData.data;
-    }
-
-    // No local storage data available, throw specific rate limit error
-    throw new Error(`${apiSource} API rate limit reached. Please try again later.`);
-  }
-
-  if (DEBUG) console.log(`Fetching fresh data for ${cacheKey}`);
-
-  // Always attempt to fetch from API
-  let lastError: any;
-
-  for (let attempt = 0; attempt < RETRY_CONFIG.maxRetries; attempt++) {
-    try {
-      // Add delay for retries (not first attempt)
-      if (attempt > 0) {
-        const delay = Math.min(
-          RETRY_CONFIG.initialDelay * Math.pow(2, attempt),
-          RETRY_CONFIG.maxDelay
-        );
-        await wait(delay);
-      }
-
-      const data = await apiFn();
-
-      // Reset rate limit flag on successful call
-      apiStatus[apiSource] = { rateLimitReached: false, lastChecked: now };
-
-      // Update memory cache
-      apiCache[cacheKey] = {
-        data,
-        timestamp: now,
-      };
-
-      // Save to local storage
-      saveToLocalStorage(cacheKey, data);
-
-      return data;
-    } catch (error) {
-      lastError = error;
-
-      // Check if this is a rate limit error
-      const errorMessage = error instanceof Error ? error.message : String(error);
-
-      // If it's the last attempt, rate limit error, or method not allowed, break the retry loop
-      if (attempt === RETRY_CONFIG.maxRetries - 1 ||
-          errorMessage.includes('threshold') ||
-          errorMessage.includes('rate limit') ||
-          errorMessage.includes('too many requests') ||
-          (axios.isAxiosError(error) && error.response?.status === 405)) {
-        if (axios.isAxiosError(error) && error.response?.status === 405) {
-          throw new Error(`API Error: Method not allowed. The API endpoint ${error.config?.url} does not support the ${error.config?.method} method.`);
-        }
-        break;
-      }
-
-      console.warn(`API attempt ${attempt + 1} failed, retrying...`);
-      continue;
-    }
-  }
-
-  // All retries failed, handle the error
-  const errorMessage = lastError instanceof Error ? lastError.message : String(lastError);
-  if (errorMessage.includes('threshold') ||
-      errorMessage.includes('rate limit') ||
-      errorMessage.includes('too many requests')) {
-    // Mark this API as rate limited
-    apiStatus[apiSource] = { rateLimitReached: true, lastChecked: now };
-    console.warn(`Rate limit detected for ${apiSource} API`);
-  }
-
-  // Check for any local storage data, even if expired
-  const storedData = getFromLocalStorage(cacheKey);
-  if (storedData) {
-    if (DEBUG) console.log(`Using expired local storage data for ${cacheKey} due to API error`);
-    return storedData.data;
-  }
-
-  // No local storage data available, rethrow the error with full details
-  if (axios.isAxiosError(lastError) && lastError.response) {
-    throw new Error(`${apiSource} API Error: ${errorMessage}. Status: ${lastError.response.status}. Response: ${JSON.stringify(lastError.response.data)}`);
-  } else {
-    throw lastError;
-  }
-};
-
-// Safe error logging function to prevent Symbol() cloning issues
 const safeLogError = (source: string, error: unknown) => {
   if (axios.isAxiosError(error)) {
     console.error(`${source} Error Details:`, {
@@ -258,7 +115,7 @@ const safeLogError = (source: string, error: unknown) => {
   }
 };
 
-// BLS API Functions
+// API Functions
 const fetchBLSData = async (seriesId: string, startYear: number, endYear: number): Promise<IndicatorDataPoint[]> => {
   const cacheKey = `bls-${seriesId}-${startYear}-${endYear}`;
 
@@ -276,7 +133,6 @@ const fetchBLSData = async (seriesId: string, startYear: number, endYear: number
     }
 
     try {
-      // BLS API requires POST method, not PUT
       const response = await axios({
         method: 'post',
         url: BLS_BASE_URL,
@@ -289,8 +145,8 @@ const fetchBLSData = async (seriesId: string, startYear: number, endYear: number
           calculations: false,
           annualaverage: false
         },
-        timeout: 10000, // 10 second timeout
-        withCredentials: true, // Add credentials for CORS
+        timeout: 10000, 
+        withCredentials: true, 
         headers: {
           'Content-Type': 'application/json'
         }
@@ -305,9 +161,7 @@ const fetchBLSData = async (seriesId: string, startYear: number, endYear: number
         throw new Error(`BLS API Error: ${response.data.message || JSON.stringify(response.data)}`);
       }
 
-      // Check if we're fetching unemployment data
       if (seriesId === 'LNS14000000') {
-        // Parse the uploaded CSV data
         const csvText = `
 Year,Jan,Feb,Mar,Apr,May,Jun,Jul,Aug,Sep,Oct,Nov,Dec
 2015,5.7,5.5,5.4,5.4,5.6,5.3,5.2,5.1,5.0,5.0,5.1,5.0
@@ -324,24 +178,17 @@ Year,Jan,Feb,Mar,Apr,May,Jun,Jul,Aug,Sep,Oct,Nov,Dec
 
         const lines = csvText.trim().split('\n');
         const dataPoints: IndicatorDataPoint[] = [];
-
-        // Start from line 1 (skip header)
         const years = lines.slice(1);
 
         years.forEach(yearLine => {
           const values = yearLine.split(',');
           const year = values[0];
-
-          // Skip if not a valid year
           if (!year || isNaN(parseInt(year))) return;
-
-          // Process each month (columns 1-12)
           for (let month = 1; month <= 12; month++) {
             const value = values[month];
             if (value && !isNaN(parseFloat(value))) {
               const dateStr = `${year}-${month.toString().padStart(2, '0')}-01`;
               const president = getPresidentByDate(dateStr);
-
               dataPoints.push({
                 date: dateStr,
                 value: parseFloat(value),
@@ -350,23 +197,16 @@ Year,Jan,Feb,Mar,Apr,May,Jun,Jul,Aug,Sep,Oct,Nov,Dec
             }
           }
         });
-
         return dataPoints;
-
-        return csvData;
       }
 
-      // Handle other BLS data series
       const seriesData = response.data.Results.series[0];
-
       if (!seriesData || !seriesData.data) {
         throw new Error('No data returned from BLS API');
       }
 
       return seriesData.data.map((item: any) => {
         let dateStr: string;
-
-        // Handle different period formats (M01, Q01, etc.)
         if (item.period.startsWith('M')) {
           const month = parseInt(item.period.substring(1));
           dateStr = `${item.year}-${month.toString().padStart(2, '0')}-01`;
@@ -375,14 +215,12 @@ Year,Jan,Feb,Mar,Apr,May,Jun,Jul,Aug,Sep,Oct,Nov,Dec
           const month = (quarter - 1) * 3 + 1;
           dateStr = `${item.year}-${month.toString().padStart(2, '0')}-01`;
         } else if (item.period === 'A01') {
-          // Annual data
           dateStr = `${item.year}-01-01`;
         } else {
-          dateStr = `${item.year}-01-01`; // Default to January 1st
+          dateStr = `${item.year}-01-01`; 
         }
 
         const president = getPresidentByDate(dateStr);
-
         return {
           date: dateStr,
           value: parseFloat(item.value),
@@ -398,12 +236,10 @@ Year,Jan,Feb,Mar,Apr,May,Jun,Jul,Aug,Sep,Oct,Nov,Dec
   }, 'BLS');
 };
 
-// FRED API Functions
 const fetchFREDData = async (seriesId: string, startDate: string): Promise<IndicatorDataPoint[]> => {
   const cacheKey = `fred-${seriesId}-${startDate}`;
 
   return getDataFromCacheOrStorageOrApi(cacheKey, async () => {
-    // Fix for FRED API - use annual frequency for all requests to avoid the 400 error
     if (DEBUG) {
       console.log('FRED API Request:', {
         url: FRED_BASE_URL,
@@ -412,7 +248,7 @@ const fetchFREDData = async (seriesId: string, startDate: string): Promise<Indic
           api_key: FRED_API_KEY.substring(0, 5) + '...',
           file_type: 'json',
           observation_start: startDate,
-          frequency: 'a', // Changed to 'a' (annual) to fix the 400 error
+          frequency: 'a', 
         }
       });
     }
@@ -424,9 +260,9 @@ const fetchFREDData = async (seriesId: string, startDate: string): Promise<Indic
           api_key: FRED_API_KEY,
           file_type: 'json',
           observation_start: startDate,
-          frequency: 'a', // Changed to 'a' (annual) to fix the 400 error
+          frequency: 'a', 
         },
-        timeout: 10000, // 10 second timeout
+        timeout: 10000, 
       });
 
       if (DEBUG) {
@@ -440,7 +276,6 @@ const fetchFREDData = async (seriesId: string, startDate: string): Promise<Indic
       return response.data.observations.map((item: any) => {
         const date = new Date(item.date);
         const president = getPresidentByDate(item.date);
-
         return {
           date: item.date,
           value: parseFloat(item.value),
@@ -456,21 +291,17 @@ const fetchFREDData = async (seriesId: string, startDate: string): Promise<Indic
   }, 'FRED');
 };
 
-// EIA API Functions
 const fetchEIAData = async (seriesId: string): Promise<IndicatorDataPoint[]> => {
   const cacheKey = `eia-${seriesId}`;
 
   return getDataFromCacheOrStorageOrApi(cacheKey, async () => {
-    // Fix for EIA API - use correct endpoint format and series ID format
-    // Try multiple formats for the series ID since the API is picky
     const seriesFormats = [
-      seriesId.replace(/\//g, '.'),  // Replace slashes with dots (PET.EMM_EPM0_PTE_NUS_DPG.W)
-      seriesId,                      // Original format (PET/EMM_EPM0_PTE_NUS_DPG/W)
-      seriesId.replace(/\//g, '-'),  // Replace slashes with hyphens (PET-EMM_EPM0_PTE_NUS_DPG-W)
-      `${seriesId.split('/')[0]}.${seriesId.split('/')[1]}.${seriesId.split('/')[2]}` // Explicit format
+      seriesId.replace(/\//g, '.'),  
+      seriesId,                      
+      seriesId.replace(/\//g, '-'),  
+      `${seriesId.split('/')[0]}.${seriesId.split('/')[1]}.${seriesId.split('/')[2]}` 
     ];
 
-    // Try different API endpoints
     const apiEndpoints = [
       `${EIA_BASE_URL}/series`,
       `${EIA_BASE_URL}/data`
@@ -478,7 +309,6 @@ const fetchEIAData = async (seriesId: string): Promise<IndicatorDataPoint[]> => 
 
     let lastError: any = null;
 
-    // Try all combinations of series formats and API endpoints
     for (const endpoint of apiEndpoints) {
       for (const format of seriesFormats) {
         try {
@@ -486,16 +316,14 @@ const fetchEIAData = async (seriesId: string): Promise<IndicatorDataPoint[]> => 
             console.log(`Trying EIA API with endpoint: ${endpoint} and series format: ${format}`);
           }
 
-          // For gas prices, try a different approach - use a specific endpoint
           if (seriesId.includes('EMM_EPM0_PTE_NUS_DPG')) {
-            // Simplified parameters for testing
             const params = new URLSearchParams({
               'api_key': EIA_API_KEY,
               'frequency': 'weekly',
               'data': 'value',
               'facets[product]': 'EPMR',
               'facets[duoarea]': 'NUS',
-              'length': '5' // Request less data for testing
+              'length': '5' 
             });
 
             const eiaUrl = `${EIA_BASE_URL}/petroleum/pri/gnd/data/?${params.toString()}`;
@@ -538,7 +366,6 @@ const fetchEIAData = async (seriesId: string): Promise<IndicatorDataPoint[]> => 
             return response.data.response.data.map((item: any) => {
               const dateStr = item.period;
               const president = getPresidentByDate(dateStr);
-
               return {
                 date: dateStr,
                 value: parseFloat(item.value),
@@ -547,7 +374,6 @@ const fetchEIAData = async (seriesId: string): Promise<IndicatorDataPoint[]> => 
             }).sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
           }
 
-          // Standard series API approach
           const eiaUrl = `${endpoint}?api_key=${EIA_API_KEY}&series_id=${format}`;
 
           if (DEBUG) {
@@ -557,7 +383,7 @@ const fetchEIAData = async (seriesId: string): Promise<IndicatorDataPoint[]> => 
           }
 
           const response = await axios.get(eiaUrl, {
-            timeout: 10000, // 10 second timeout
+            timeout: 10000, 
           });
 
           if (DEBUG) {
@@ -572,7 +398,6 @@ const fetchEIAData = async (seriesId: string): Promise<IndicatorDataPoint[]> => 
           return response.data.response.data.map((item: any) => {
             const dateStr = item.period;
             const president = getPresidentByDate(dateStr);
-
             return {
               date: dateStr,
               value: parseFloat(item.value),
@@ -585,18 +410,15 @@ const fetchEIAData = async (seriesId: string): Promise<IndicatorDataPoint[]> => 
             console.warn(`EIA API attempt failed with endpoint: ${endpoint} and series format: ${format}`);
             safeLogError('EIA API', error);
           }
-          // Continue to the next attempt
         }
       }
     }
 
-    // If we've tried all combinations and still failed, handle the error
     if (DEBUG) {
       console.error('EIA API Error Details (all attempts failed)');
       safeLogError('EIA API', lastError);
     }
 
-    // Throw with detailed error information
     if (axios.isAxiosError(lastError) && lastError.response) {
       throw new Error(`EIA API Error: ${lastError.message}. Status: ${lastError.response.status}. Response: ${JSON.stringify(lastError.response.data)}`);
     } else {
@@ -605,38 +427,148 @@ const fetchEIAData = async (seriesId: string): Promise<IndicatorDataPoint[]> => 
   }, 'EIA');
 };
 
-// Map indicators to their respective API series IDs
 const getSeriesIdForIndicator = (indicatorId: string): { source: string; seriesId: string } => {
   switch (indicatorId) {
     case 'unemployment':
-      return { source: 'BLS', seriesId: 'LNS14000000' }; // Unemployment Rate
+      return { source: 'BLS', seriesId: 'LNS14000000' }; 
     case 'inflation':
-      return { source: 'BLS', seriesId: 'CUUR0000SA0' }; // Consumer Price Index for All Urban Consumers
+      return { source: 'BLS', seriesId: 'CUUR0000SA0' }; 
     case 'gdp-growth':
-      return { source: 'FRED', seriesId: 'A191RL1Q225SBEA' }; // Real GDP Growth Rate
+      return { source: 'FRED', seriesId: 'A191RL1Q225SBEA' }; 
     case 'job-creation':
-      return { source: 'BLS', seriesId: 'CES0000000001' }; // Nonfarm Payroll Employment
+      return { source: 'BLS', seriesId: 'CES0000000001' }; 
     case 'federal-debt':
-      return { source: 'FRED', seriesId: 'GFDEGDQ188S' }; // Federal Debt to GDP
+      return { source: 'FRED', seriesId: 'GFDEGDQ188S' }; 
     case 'gas-prices':
-      // Try multiple formats for gas prices
-      return { source: 'EIA', seriesId: 'PET/EMM_EPM0_PTE_NUS_DPG/W' }; // Weekly U.S. Regular All Formulations Retail Gasoline Prices
+      return { source: 'EIA', seriesId: 'PET/EMM_EPM0_PTE_NUS_DPG/W' }; 
     case 'median-income':
-      return { source: 'FRED', seriesId: 'MEHOINUSA672N' }; // Real Median Household Income
+      return { source: 'FRED', seriesId: 'MEHOINUSA672N' }; 
     case 'stock-market':
-      return { source: 'FRED', seriesId: 'SP500' }; // S&P 500 Index
+      return { source: 'FRED', seriesId: 'SP500' }; 
     default:
       throw new Error(`Unknown indicator: ${indicatorId}`);
   }
 };
 
-// Check if we need to update data based on manual refresh only
 const shouldUpdateData = (indicatorId: string, existingData: IndicatorDataPoint[]): boolean => {
-  // Only update if there's no existing data
   return !existingData || existingData.length === 0;
 };
 
-// Fetch data for a specific indicator
+const getDataFromCacheOrStorageOrApi = async <T>(
+  cacheKey: string,
+  apiFn: () => Promise<T>,
+  apiSource: 'BLS' | 'FRED' | 'EIA'
+): Promise<T> => {
+  if (isCacheValid(cacheKey)) {
+    if (DEBUG) console.log(`Using memory cached data for ${cacheKey}`);
+    return apiCache[cacheKey].data;
+  }
+
+  if (isLocalStorageDataValid(cacheKey)) {
+    const storedData = getFromLocalStorage(cacheKey);
+    if (DEBUG) console.log(`Using local storage data for ${cacheKey}`);
+    apiCache[cacheKey] = {
+      data: storedData!.data,
+      timestamp: storedData!.timestamp
+    };
+    return storedData!.data;
+  }
+
+  const now = Date.now();
+  const rateLimitStatus = apiStatus[apiSource];
+
+  if (rateLimitStatus.rateLimitReached && (now - rateLimitStatus.lastChecked < 60 * 60 * 1000)) {
+    if (DEBUG) console.log(`Rate limit reached for ${apiSource}, checking for expired data`);
+    const storedData = getFromLocalStorage(cacheKey);
+    if (storedData) {
+      if (DEBUG) console.log(`Using expired local storage data for ${cacheKey} due to rate limit`);
+      return storedData.data;
+    }
+    throw new Error(`${apiSource} API rate limit reached. Please try again later.`);
+  }
+
+  if (DEBUG) console.log(`Fetching fresh data for ${cacheKey}`);
+  let lastError: any;
+
+  for (let attempt = 0; attempt < RETRY_CONFIG.maxRetries; attempt++) {
+    try {
+      if (attempt > 0) {
+        const delay = Math.min(
+          RETRY_CONFIG.initialDelay * Math.pow(2, attempt),
+          RETRY_CONFIG.maxDelay
+        );
+        await wait(delay);
+      }
+
+      const data = await apiFn();
+      apiStatus[apiSource] = { rateLimitReached: false, lastChecked: now };
+      apiCache[cacheKey] = {
+        data,
+        timestamp: now,
+      };
+      saveToLocalStorage(cacheKey, data);
+      return data;
+    } catch (error) {
+      lastError = error;
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      if (attempt === RETRY_CONFIG.maxRetries - 1 ||
+        errorMessage.includes('threshold') ||
+        errorMessage.includes('rate limit') ||
+        errorMessage.includes('too many requests') ||
+        (axios.isAxiosError(error) && error.response?.status === 405)) {
+        if (axios.isAxiosError(error) && error.response?.status === 405) {
+          throw new Error(`API Error: Method not allowed. The API endpoint ${error.config?.url} does not support the ${error.config?.method} method.`);
+        }
+        break;
+      }
+      console.warn(`API attempt ${attempt + 1} failed, retrying...`);
+      continue;
+    }
+  }
+
+  const errorMessage = lastError instanceof Error ? lastError.message : String(lastError);
+  if (errorMessage.includes('threshold') ||
+    errorMessage.includes('rate limit') ||
+    errorMessage.includes('too many requests')) {
+    apiStatus[apiSource] = { rateLimitReached: true, lastChecked: now };
+    console.warn(`Rate limit detected for ${apiSource} API`);
+  }
+
+  const storedData = getFromLocalStorage(cacheKey);
+  if (storedData) {
+    if (DEBUG) console.log(`Using expired local storage data for ${cacheKey} due to API error`);
+    return storedData.data;
+  }
+
+  if (axios.isAxiosError(lastError) && lastError.response) {
+    throw new Error(`${apiSource} API Error: ${errorMessage}. Status: ${lastError.response.status}. Response: ${JSON.stringify(lastError.response.data)}`);
+  } else {
+    throw lastError;
+  }
+};
+
+
+// Exported functions
+export const getDataSourcePreferences = (): Record<string, DataSourcePreference> => {
+  try {
+    const stored = localStorage.getItem(DATA_SOURCE_PREFERENCES_KEY);
+    return stored ? JSON.parse(stored) : {};
+  } catch (error) {
+    console.error('Error reading data source preferences:', error);
+    return {};
+  }
+};
+
+export const setDataSourcePreference = (indicatorId: string, preference: DataSourcePreference): void => {
+  try {
+    const preferences = getDataSourcePreferences();
+    preferences[indicatorId] = preference;
+    localStorage.setItem(DATA_SOURCE_PREFERENCES_KEY, JSON.stringify(preferences));
+  } catch (error) {
+    console.error('Error saving data source preference:', error);
+  }
+};
+
 export const fetchIndicatorData = async (indicatorId: string): Promise<IndicatorData> => {
   if (!indicatorId) {
     throw new Error('Indicator ID is required');
@@ -646,7 +578,6 @@ export const fetchIndicatorData = async (indicatorId: string): Promise<Indicator
   const localStorageKey = `indicator-${indicatorId}`;
   const storedData = getFromLocalStorage(localStorageKey);
 
-  // Try to use cached data first
   if (storedData) {
     try {
       const parsed = storedData.data;
@@ -667,7 +598,6 @@ export const fetchIndicatorData = async (indicatorId: string): Promise<Indicator
 
   if (DEBUG) console.log(`Fetching data for indicator: ${indicatorId}`);
 
-  // If we have valid stored data, use it
   if (storedData && !shouldUpdateData(indicatorId, storedData.data.data)) {
     if (DEBUG) console.log(`Using stored data for ${indicatorId}`);
     return storedData.data;
@@ -675,7 +605,7 @@ export const fetchIndicatorData = async (indicatorId: string): Promise<Indicator
 
   const { source, seriesId } = getSeriesIdForIndicator(indicatorId);
   const currentYear = new Date().getFullYear();
-  const startYear = currentYear - 30; // Get 30 years of data
+  const startYear = currentYear - 30; 
   const startDate = `${startYear}-01-01`;
 
   let data: IndicatorDataPoint[] = [];
@@ -701,43 +631,33 @@ export const fetchIndicatorData = async (indicatorId: string): Promise<Indicator
       throw new Error(`No data returned for indicator ${indicatorId}`);
     }
 
-    // Process data if needed (e.g., calculate inflation rate from CPI)
     if (indicatorId === 'inflation' && data.length > 0) {
-      // Convert CPI to inflation rate (year-over-year percentage change)
       const processedData: IndicatorDataPoint[] = [];
-
       for (let i = 12; i < data.length; i++) {
         const currentValue = data[i].value;
-        const previousValue = data[i - 12].value; // 12 months ago
+        const previousValue = data[i - 12].value; 
         const inflationRate = ((currentValue - previousValue) / previousValue) * 100;
-
         processedData.push({
           date: data[i].date,
           value: parseFloat(inflationRate.toFixed(2)),
           president: data[i].president,
         });
       }
-
       data = processedData;
     }
 
-    // Process job creation data (monthly change)
     if (indicatorId === 'job-creation' && data.length > 0) {
       const processedData: IndicatorDataPoint[] = [];
-
       for (let i = 1; i < data.length; i++) {
         const currentValue = data[i].value;
         const previousValue = data[i - 1].value;
-        // Use actual job numbers instead of thousands
         const change = currentValue - previousValue;
-
         processedData.push({
           date: data[i].date,
           value: change,
           president: data[i].president,
         });
       }
-
       data = processedData;
     }
 
@@ -749,34 +669,25 @@ export const fetchIndicatorData = async (indicatorId: string): Promise<Indicator
       lastUpdated: format(new Date(), 'yyyy-MM-dd'),
     };
 
-    // Save to local storage
     saveToLocalStorage(localStorageKey, result);
-
     return result;
   } catch (error) {
-    // Convert error to string to avoid Symbol() cloning issues
     errorMessage = error instanceof Error ? error.message : String(error);
     console.error(`Error in fetchIndicatorData for ${indicatorId}:`, errorMessage);
 
-    // Check if we have any stored data to use as fallback
     if (storedData) {
       console.warn(`Using stored data for ${indicatorId} due to API error`);
       return storedData.data;
     }
 
-    // Throw the error with source information
     throw new Error(`${source} API Error: ${errorMessage}`);
   }
 };
 
-// Fetch all indicators data
 export const fetchAllIndicatorsData = async (): Promise<IndicatorData[]> => {
   if (DEBUG) console.log('Fetching all indicators data');
-
   const results: IndicatorData[] = [];
   const errors: Record<string, string> = {};
-
-  // Check if we have all data in local storage and if it's recent enough
   const allStoredData: IndicatorData[] = [];
   let allDataIsRecent = true;
 
@@ -786,8 +697,6 @@ export const fetchAllIndicatorsData = async (): Promise<IndicatorData[]> => {
 
     if (storedData) {
       allStoredData.push(storedData.data);
-
-      // Check if the data is recent enough
       if (shouldUpdateData(indicator.id, storedData.data.data)) {
         allDataIsRecent = false;
       }
@@ -796,13 +705,11 @@ export const fetchAllIndicatorsData = async (): Promise<IndicatorData[]> => {
     }
   }
 
-  // If we have all data and it's recent enough, use it
   if (allStoredData.length === economicIndicators.length && allDataIsRecent) {
     if (DEBUG) console.log('Using all stored data (all indicators are up to date)');
     return allStoredData;
   }
 
-  // Use Promise.allSettled to handle individual indicator failures
   const promises = economicIndicators.map(indicator =>
     fetchIndicatorData(indicator.id)
       .then(data => {
@@ -813,16 +720,12 @@ export const fetchAllIndicatorsData = async (): Promise<IndicatorData[]> => {
         const errorMessage = error instanceof Error ? error.message : String(error);
         errors[indicator.id] = errorMessage;
         console.error(`Error fetching data for ${indicator.id}:`, errorMessage);
-
-        // Try to use stored data as fallback
         const localStorageKey = `indicator-${indicator.id}`;
         const storedData = getFromLocalStorage(localStorageKey);
-
         if (storedData) {
           console.warn(`Using stored data for ${indicator.id} due to API error`);
           results.push(storedData.data);
         }
-
         return { status: 'rejected', reason: error };
       })
   );
@@ -837,34 +740,27 @@ export const fetchAllIndicatorsData = async (): Promise<IndicatorData[]> => {
   return results;
 };
 
-// Check for data updates
 export const checkForDataUpdates = async (): Promise<boolean> => {
   try {
-    // Check if any indicators need updating
     for (const indicator of economicIndicators) {
       const localStorageKey = `indicator-${indicator.id}`;
       const storedData = getFromLocalStorage(localStorageKey);
-
       if (!storedData || shouldUpdateData(indicator.id, storedData.data.data)) {
         return true;
       }
     }
-
     return false;
   } catch (error) {
-    // Convert error to string to avoid Symbol() cloning issues
     const errorMessage = error instanceof Error ? error.message : String(error);
     console.error('Error checking for updates:', errorMessage);
     return false;
   }
 };
 
-// Get the last updated timestamp
 export const getLastUpdatedTimestamp = (): string | null => {
   try {
     const timestamp = localStorage.getItem(LAST_UPDATED_KEY);
     if (!timestamp) return null;
-
     return format(new Date(parseInt(timestamp)), 'yyyy-MM-dd');
   } catch (error) {
     console.error('Error getting last updated timestamp:', error);
@@ -872,16 +768,13 @@ export const getLastUpdatedTimestamp = (): string | null => {
   }
 };
 
-// Clear all stored data (for debugging or resetting)
 export const clearAllStoredData = (): void => {
   try {
-    // Clear all items with our prefix
     Object.keys(localStorage).forEach(key => {
       if (key.startsWith(LOCAL_STORAGE_PREFIX)) {
         localStorage.removeItem(key);
       }
     });
-
     console.log('All stored data cleared');
   } catch (error) {
     console.error('Error clearing stored data:', error);
@@ -899,56 +792,10 @@ export const updateIndicatorData = (indicatorId: string, newData: IndicatorDataP
     lastUpdated: format(new Date(), 'yyyy-MM-dd'),
   };
 
-  // Update memory cache
   apiCache[localStorageKey] = {
     data: result,
     timestamp: Date.now(),
   };
 
-  // Save to local storage
   saveToLocalStorage(localStorageKey, result);
-};
-
-// Data source preference interface and exports
-interface DataSourcePreference {
-  useUploadedData: boolean;
-}
-
-export const DATA_SOURCE_PREFERENCES_KEY = `${LOCAL_STORAGE_PREFIX}data_source_preferences`;
-
-export const getDataSourcePreferences = (): Record<string, DataSourcePreference> => {
-  try {
-    const stored = localStorage.getItem(DATA_SOURCE_PREFERENCES_KEY);
-    return stored ? JSON.parse(stored) : {};
-  } catch (error) {
-    console.error('Error reading data source preferences:', error);
-    return {};
-  }
-};
-
-export const setDataSourcePreference = (indicatorId: string, preference: DataSourcePreference): void => {
-  try {
-    const preferences = getDataSourcePreferences();
-    preferences[indicatorId] = preference;
-    localStorage.setItem(DATA_SOURCE_PREFERENCES_KEY, JSON.stringify(preferences));
-  } catch (error) {
-    console.error('Error saving data source preference:', error);
-  }
-};
-
-const testEIAApi = async () => {
-  const testUrl = `${EIA_BASE_URL}/petroleum/pri/gnd/data/?api_key=${EIA_API_KEY}`;
-  try {
-    console.log('Testing EIA API with URL:', testUrl.replace(EIA_API_KEY, '***'));
-    const response = await axios.get(testUrl);
-    console.log('EIA API Test Response:', {
-      status: response.status,
-      headers: response.headers,
-      data: response.data ? 'Data received' : 'No data'
-    });
-    return response.data;
-  } catch (error) {
-    console.error('EIA API Test Error:', error);
-    throw error;
-  }
 };
