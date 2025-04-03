@@ -19,17 +19,22 @@ export default defineConfig({
       '/api/bls': {
         target: 'https://api.bls.gov',
         changeOrigin: true,
+        secure: false,
         rewrite: (path) => path.replace(/^\/api\/bls/, ''),
         configure: (proxy) => {
-          proxy.on('error', (err, req, res) => {
-            console.error('BLS Proxy Error:', err);
-          });
           proxy.on('proxyReq', (proxyReq, req, res) => {
-            console.log('BLS Proxy Request:', req.method, req.url);
+            proxyReq.setHeader('Content-Type', 'application/json');
+            proxyReq.setHeader('Accept', 'application/json');
+            if (req.method === 'POST') {
+              const body = req.body;
+              if (body) {
+                const bodyData = JSON.stringify(body);
+                proxyReq.setHeader('Content-Length', Buffer.byteLength(bodyData));
+                proxyReq.write(bodyData);
+              }
+            }
           });
-          proxy.on('proxyRes', (proxyRes, req, res) => {
-            console.log('BLS Proxy Response:', proxyRes.statusCode);
-          });
+          proxy.on('error', (err) => console.error('BLS Proxy Error:', err));
         }
       },
       // FRED API proxy
@@ -53,17 +58,18 @@ export default defineConfig({
       '/api/eia': {
         target: 'https://api.eia.gov',
         changeOrigin: true,
+        secure: false,
         rewrite: (path) => path.replace(/^\/api\/eia/, ''),
         configure: (proxy) => {
-          proxy.on('error', (err, req, res) => {
-            console.error('EIA Proxy Error:', err);
-          });
           proxy.on('proxyReq', (proxyReq, req, res) => {
-            console.log('EIA Proxy Request:', req.method, req.url);
+            proxyReq.setHeader('Content-Type', 'application/json');
+            proxyReq.setHeader('Accept', 'application/json');
+            // Add API key to query params
+            const url = new URL(proxyReq.path, 'https://api.eia.gov');
+            url.searchParams.append('api_key', process.env.VITE_EIA_API_KEY);
+            proxyReq.path = url.pathname + url.search;
           });
-          proxy.on('proxyRes', (proxyRes, req, res) => {
-            console.log('EIA Proxy Response:', proxyRes.statusCode);
-          });
+          proxy.on('error', (err) => console.error('EIA Proxy Error:', err));
         }
       }
     }
