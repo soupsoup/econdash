@@ -176,11 +176,15 @@ const getDataFromCacheOrStorageOrApi = async <T>(
       // Check if this is a rate limit error
       const errorMessage = error instanceof Error ? error.message : String(error);
 
-      // If it's the last attempt or a rate limit error, break the retry loop
+      // If it's the last attempt, rate limit error, or method not allowed, break the retry loop
       if (attempt === RETRY_CONFIG.maxRetries - 1 || 
           errorMessage.includes('threshold') || 
           errorMessage.includes('rate limit') || 
-          errorMessage.includes('too many requests')) {
+          errorMessage.includes('too many requests') ||
+          (axios.isAxiosError(error) && error.response?.status === 405)) {
+        if (axios.isAxiosError(error) && error.response?.status === 405) {
+          throw new Error(`API Error: Method not allowed. The API endpoint ${error.config?.url} does not support the ${error.config?.method} method.`);
+        }
         break;
       }
 
