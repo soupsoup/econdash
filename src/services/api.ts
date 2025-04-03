@@ -291,6 +291,48 @@ const fetchBLSData = async (seriesId: string, startYear: number, endYear: number
         throw new Error(`BLS API Error: ${response.data.message || JSON.stringify(response.data)}`);
       }
 
+      // Check if we're fetching unemployment data
+      if (seriesId === 'LNS14000000') {
+        // Parse the uploaded CSV data
+        const csvData = await fetch('/attached_assets/Unemployment Rate (FEB 2025) BLS DATA - BLS Data Series.csv')
+          .then(response => response.text())
+          .then(text => {
+            const lines = text.split('\n');
+            const dataPoints: IndicatorDataPoint[] = [];
+            
+            // Start from line 13 (0-based index) which contains the headers
+            const years = lines.slice(13);
+            
+            years.forEach(yearLine => {
+              const values = yearLine.split(',');
+              const year = values[0];
+              
+              // Skip if not a valid year
+              if (!year || isNaN(parseInt(year))) return;
+              
+              // Process each month (columns 1-12)
+              for (let month = 1; month <= 12; month++) {
+                const value = values[month];
+                if (value && !isNaN(parseFloat(value))) {
+                  const dateStr = `${year}-${month.toString().padStart(2, '0')}-01`;
+                  const president = getPresidentByDate(dateStr);
+                  
+                  dataPoints.push({
+                    date: dateStr,
+                    value: parseFloat(value),
+                    president: president?.name || 'Unknown'
+                  });
+                }
+              }
+            });
+            
+            return dataPoints;
+          });
+
+        return csvData;
+      }
+
+      // Handle other BLS data series
       const seriesData = response.data.Results.series[0];
 
       if (!seriesData || !seriesData.data) {
