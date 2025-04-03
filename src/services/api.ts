@@ -47,6 +47,24 @@ const isCacheValid = (cacheKey: string): boolean => {
 // Helper function to save data to local storage
 const saveToLocalStorage = (key: string, data: any): void => {
   try {
+
+const testEIAApi = async () => {
+  const testUrl = `${EIA_BASE_URL}/petroleum/pri/gnd/data/?api_key=${EIA_API_KEY}`;
+  try {
+    console.log('Testing EIA API with URL:', testUrl.replace(EIA_API_KEY, '***'));
+    const response = await axios.get(testUrl);
+    console.log('EIA API Test Response:', {
+      status: response.status,
+      headers: response.headers,
+      data: response.data ? 'Data received' : 'No data'
+    });
+    return response.data;
+  } catch (error) {
+    console.error('EIA API Test Error:', error);
+    throw error;
+  }
+};
+
     const serializedData = JSON.stringify({
       data,
       timestamp: Date.now()
@@ -422,17 +440,14 @@ const fetchEIAData = async (seriesId: string): Promise<IndicatorDataPoint[]> => 
 
           // For gas prices, try a different approach - use a specific endpoint
           if (seriesId.includes('EMM_EPM0_PTE_NUS_DPG')) {
-            // Try the petroleum data API endpoint specifically
+            // Simplified parameters for testing
             const params = new URLSearchParams({
               'api_key': EIA_API_KEY,
               'frequency': 'weekly',
-              'data[0]': 'value',
-              'facets[product][]': 'EPMR',
-              'facets[duoarea][]': 'NUS',
-              'sort[0][column]': 'period',
-              'sort[0][direction]': 'desc',
-              'offset': '0',
-              'length': '100'
+              'data': 'value',
+              'facets[product]': 'EPMR',
+              'facets[duoarea]': 'NUS',
+              'length': '5' // Request less data for testing
             });
 
             const eiaUrl = `${EIA_BASE_URL}/petroleum/pri/gnd/data/?${params.toString()}`;

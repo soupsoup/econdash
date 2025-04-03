@@ -60,14 +60,11 @@ export default defineConfig({
             proxyReq.setHeader('Accept', 'application/json');
           });
           proxy.on('proxyRes', (proxyRes, req, res) => {
-            if (DEBUG) {
-              console.log('EIA Proxy Response:', {
-                status: proxyRes.statusCode,
-                headers: proxyRes.headers
-              });
-            }
+            console.log('EIA Proxy Response:', {
+              status: proxyRes.statusCode,
+              headers: proxyRes.headers
+            });
           });
-        configure: (proxy) => {
           proxy.on('proxyReq', (proxyReq, req, res) => {
             proxyReq.setHeader('Content-Type', 'application/json');
             proxyReq.setHeader('Accept', 'application/json');
