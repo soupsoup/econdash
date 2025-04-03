@@ -324,24 +324,24 @@ Year,Jan,Feb,Mar,Apr,May,Jun,Jul,Aug,Sep,Oct,Nov,Dec
 
         const lines = csvText.trim().split('\n');
         const dataPoints: IndicatorDataPoint[] = [];
-        
+
         // Start from line 1 (skip header)
         const years = lines.slice(1);
-        
+
         years.forEach(yearLine => {
           const values = yearLine.split(',');
           const year = values[0];
-          
+
           // Skip if not a valid year
           if (!year || isNaN(parseInt(year))) return;
-          
+
           // Process each month (columns 1-12)
           for (let month = 1; month <= 12; month++) {
             const value = values[month];
             if (value && !isNaN(parseFloat(value))) {
               const dateStr = `${year}-${month.toString().padStart(2, '0')}-01`;
               const president = getPresidentByDate(dateStr);
-              
+
               dataPoints.push({
                 date: dateStr,
                 value: parseFloat(value),
@@ -350,7 +350,7 @@ Year,Jan,Feb,Mar,Apr,May,Jun,Jul,Aug,Sep,Oct,Nov,Dec
             }
           }
         });
-        
+
         return dataPoints;
 
         return csvData;
@@ -809,7 +809,7 @@ export const fetchAllIndicatorsData = async (): Promise<IndicatorData[]> => {
 
   for (const indicator of economicIndicators) {
     const localStorageKey = `indicator-${indicator.id}`;
-    const storedData = getFromLocalStorage(localStorageKey);
+    const`storedData = getFromLocalStorage(localStorageKey);
 
     if (storedData) {
       allStoredData.push(storedData.data);
@@ -927,7 +927,7 @@ export const updateIndicatorData = (indicatorId: string, newData: IndicatorDataP
   };
 
   // Update memory cache
-apiCache[localStorageKey] = {
+  apiCache[localStorageKey] = {
     data: result,
     timestamp: Date.now(),
   };
