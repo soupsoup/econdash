@@ -1,15 +1,7 @@
+
 import { President } from '../types';
 
 export const presidents: President[] = [
-  {
-    name: 'Bill Clinton',
-    party: 'Democratic',
-    term: {
-      start: '1993-01-20',
-      end: '2001-01-20'
-    },
-    color: '#2E86C1'
-  },
   {
     name: 'George W. Bush',
     party: 'Republican',
@@ -29,7 +21,7 @@ export const presidents: President[] = [
     color: '#2471A3'
   },
   {
-    name: 'Donald Trump',
+    name: 'Donald J. Trump',
     party: 'Republican',
     term: {
       start: '2017-01-20',
@@ -47,7 +39,7 @@ export const presidents: President[] = [
     color: '#1A5276'
   },
   {
-    name: 'Donald Trump',
+    name: 'Donald J. Trump',
     party: 'Republican',
     term: {
       start: '2025-01-20',
