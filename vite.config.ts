@@ -26,12 +26,12 @@ export default defineConfig({
             proxyReq.setHeader('Content-Type', 'application/json');
             proxyReq.setHeader('Accept', 'application/json');
             if (req.method === 'POST') {
-              const body = req.body;
-              if (body) {
-                const bodyData = JSON.stringify(body);
-                proxyReq.setHeader('Content-Length', Buffer.byteLength(bodyData));
-                proxyReq.write(bodyData);
-              }
+              const bodyData = JSON.stringify({
+                ...req.body,
+                registrationkey: process.env.VITE_BLS_API_KEY
+              });
+              proxyReq.setHeader('Content-Length', Buffer.byteLength(bodyData));
+              proxyReq.write(bodyData);
             }
           });
           proxy.on('error', (err) => console.error('BLS Proxy Error:', err));
@@ -41,17 +41,13 @@ export default defineConfig({
       '/api/fred': {
         target: 'https://api.stlouisfed.org',
         changeOrigin: true,
-        rewrite: (path) => path.replace(/^\/api\/fred/, ''),
+        rewrite: (path) => {
+          const url = new URL(path.replace(/^\/api\/fred/, ''), 'https://api.stlouisfed.org');
+          url.searchParams.append('api_key', process.env.VITE_FRED_API_KEY);
+          return url.pathname + url.search;
+        },
         configure: (proxy) => {
-          proxy.on('error', (err, req, res) => {
-            console.error('FRED Proxy Error:', err);
-          });
-          proxy.on('proxyReq', (proxyReq, req, res) => {
-            console.log('FRED Proxy Request:', req.method, req.url);
-          });
-          proxy.on('proxyRes', (proxyRes, req, res) => {
-            console.log('FRED Proxy Response:', proxyRes.statusCode);
-          });
+          proxy.on('error', (err) => console.error('FRED Proxy Error:', err));
         }
       },
       // EIA API proxy
@@ -59,15 +55,15 @@ export default defineConfig({
         target: 'https://api.eia.gov',
         changeOrigin: true,
         secure: false,
-        rewrite: (path) => path.replace(/^\/api\/eia/, ''),
+        rewrite: (path) => {
+          const url = new URL(path.replace(/^\/api\/eia/, ''), 'https://api.eia.gov');
+          url.searchParams.append('api_key', process.env.VITE_EIA_API_KEY);
+          return url.pathname + url.search;
+        },
         configure: (proxy) => {
           proxy.on('proxyReq', (proxyReq, req, res) => {
             proxyReq.setHeader('Content-Type', 'application/json');
             proxyReq.setHeader('Accept', 'application/json');
-            // Add API key to query params
-            const url = new URL(proxyReq.path, 'https://api.eia.gov');
-            url.searchParams.append('api_key', process.env.VITE_EIA_API_KEY);
-            proxyReq.path = url.pathname + url.search;
           });
           proxy.on('error', (err) => console.error('EIA Proxy Error:', err));
         }
