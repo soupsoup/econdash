@@ -12,7 +12,8 @@ function App() {
     refetchOnWindowFocus: false,
     staleTime: Infinity,
     retry: 0,
-    enabled: false 
+    enabled: false,
+    cacheTime: Infinity
   });
 
   const hasApiErrors = !!error;

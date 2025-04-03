@@ -38,8 +38,10 @@ function Dashboard() {
     error
   } = useQuery('allIndicatorsData', fetchAllIndicatorsData, {
     refetchOnWindowFocus: false,
-    staleTime: 1000 * 60 * 60, // 1 hour
-    retry: 1, // Reduced retries to avoid excessive API calls
+    staleTime: Infinity,
+    retry: 0,
+    enabled: false, // Disable automatic fetching
+    cacheTime: Infinity,
     onSuccess: () => {
       // Update last updated timestamp
       setLastUpdated(getLastUpdatedTimestamp());
