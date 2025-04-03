@@ -84,7 +84,17 @@ const isLocalStorageDataValid = (key: string): boolean => {
   return now - storedData.timestamp < CACHE_DURATION;
 };
 
-// Helper function to get data from cache, local storage, or API
+// Retry configuration
+const RETRY_CONFIG = {
+  maxRetries: 3,
+  initialDelay: 1000, // 1 second
+  maxDelay: 10000, // 10 seconds
+};
+
+// Helper function for exponential backoff
+const wait = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+
+// Helper function to get data from cache, local storage, or API with retries
 const getDataFromCacheOrStorageOrApi = async <T>(
   cacheKey: string,
   apiFn: () => Promise<T>,
@@ -132,11 +142,23 @@ const getDataFromCacheOrStorageOrApi = async <T>(
   if (DEBUG) console.log(`Fetching fresh data for ${cacheKey}`);
 
   // Always attempt to fetch from API
-  try {
-    const data = await apiFn();
+  let lastError: any;
+  
+  for (let attempt = 0; attempt < RETRY_CONFIG.maxRetries; attempt++) {
+    try {
+      // Add delay for retries (not first attempt)
+      if (attempt > 0) {
+        const delay = Math.min(
+          RETRY_CONFIG.initialDelay * Math.pow(2, attempt),
+          RETRY_CONFIG.maxDelay
+        );
+        await wait(delay);
+      }
 
-    // Reset rate limit flag on successful call
-    apiStatus[apiSource] = { rateLimitReached: false, lastChecked: now };
+      const data = await apiFn();
+      
+      // Reset rate limit flag on successful call
+      apiStatus[apiSource] = { rateLimitReached: false, lastChecked: now };
 
     // Update memory cache
     apiCache[cacheKey] = {
@@ -148,9 +170,27 @@ const getDataFromCacheOrStorageOrApi = async <T>(
     saveToLocalStorage(cacheKey, data);
 
     return data;
-  } catch (error) {
-    // Check if this is a rate limit error
-    const errorMessage = error instanceof Error ? error.message : String(error);
+    } catch (error) {
+      lastError = error;
+      
+      // Check if this is a rate limit error
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      
+      // If it's the last attempt or a rate limit error, break the retry loop
+      if (attempt === RETRY_CONFIG.maxRetries - 1 || 
+          errorMessage.includes('threshold') || 
+          errorMessage.includes('rate limit') || 
+          errorMessage.includes('too many requests')) {
+        break;
+      }
+      
+      console.warn(`API attempt ${attempt + 1} failed, retrying...`);
+      continue;
+    }
+  }
+
+  // All retries failed, handle the error
+  const errorMessage = lastError instanceof Error ? lastError.message : String(lastError);
     if (errorMessage.includes('threshold') || 
         errorMessage.includes('rate limit') || 
         errorMessage.includes('too many requests')) {
