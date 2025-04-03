@@ -90,9 +90,12 @@ const DetailChart: React.FC<DetailChartProps> = ({ data, filteredData }) => {
       return {
         label: `${group.president.name} (${group.president.term.start.substring(0, 4)}-${group.president.term.end ? group.president.term.end.substring(0, 4) : 'Present'})`,
         data: presidentData.map(point => point.value),
-      borderColor: group.president.color,
-      backgroundColor: `${group.president.color}33`,
-      borderWidth: 2,
+        borderColor: group.president.color,
+        backgroundColor: `${group.president.color}33`,
+        borderWidth: 2,
+        tension: 0.3,
+        spanGaps: true
+      };
       pointRadius: 2,
       pointHoverRadius: 6,
       tension: 0.3,
