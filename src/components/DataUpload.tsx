@@ -28,14 +28,29 @@ export default function DataUpload({ onUpload }: DataUploadProps) {
     if (!selectedIndicator || !csvContent) return;
 
     const lines = csvContent.trim().split('\n');
-    const data: IndicatorDataPoint[] = lines.slice(1).map(line => {
-      const [date, value, president] = line.split(',');
-      return {
-        date: date.trim(),
-        value: parseFloat(value.trim()),
-        president: president.trim()
-      };
-    });
+    let data: IndicatorDataPoint[];
+    
+    // Parse based on indicator type
+    if (selectedIndicator === 'inflation' || selectedIndicator === 'unemployment') {
+      data = lines.slice(1).map(line => {
+        const [date, value] = line.split(',');
+        return {
+          date: date.trim(),
+          value: parseFloat(value.trim()),
+          president: '' // Will be determined by date
+        };
+      });
+    } else {
+      // Default format for other indicators
+      data = lines.slice(1).map(line => {
+        const [date, value, president] = line.split(',');
+        return {
+          date: date.trim(),
+          value: parseFloat(value.trim()),
+          president: president?.trim() || ''
+        };
+      });
+    }
 
     // Set preference to use uploaded data
     setDataSourcePreference(selectedIndicator, { useUploadedData: true });
