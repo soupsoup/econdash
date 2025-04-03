@@ -10,11 +10,11 @@ interface ApiStatus {
 }
 
 const ApiStatusChecker: React.FC = () => {
-  const [apiStatuses, setApiStatuses] = useState<ApiStatus[]>([
-    { name: 'BLS API', url: 'https://api.bls.gov/publicAPI/v2/timeseries/data/', status: 'checking' },
-    { name: 'FRED API', url: 'https://api.stlouisfed.org/fred/series/observations', status: 'checking' },
-    { name: 'EIA API', url: 'https://api.eia.gov/v2', status: 'checking' }
-  ]);
+  const [localStorageInfo, setLocalStorageInfo] = useState({
+    used: 0,
+    total: 0,
+    items: 0
+  });
   
   const [localStorageInfo, setLocalStorageInfo] = useState({
     used: 0,
