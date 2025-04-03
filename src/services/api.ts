@@ -630,33 +630,6 @@ const getSeriesIdForIndicator = (indicatorId: string): { source: string; seriesI
   }
 };
 
-// Data source preference storage
-interface DataSourcePreference {
-  useUploadedData: boolean;
-}
-
-export const DATA_SOURCE_PREFERENCES_KEY = `${LOCAL_STORAGE_PREFIX}data_source_preferences`;
-
-export const getDataSourcePreferences = (): Record<string, DataSourcePreference> => {
-  try {
-    const stored = localStorage.getItem(DATA_SOURCE_PREFERENCES_KEY);
-    return stored ? JSON.parse(stored) : {};
-  } catch (error) {
-    console.error('Error reading data source preferences:', error);
-    return {};
-  }
-};
-
-export const setDataSourcePreference = (indicatorId: string, preference: DataSourcePreference): void => {
-  try {
-    const preferences = getDataSourcePreferences();
-    preferences[indicatorId] = preference;
-    localStorage.setItem(DATA_SOURCE_PREFERENCES_KEY, JSON.stringify(preferences));
-  } catch (error) {
-    console.error('Error saving data source preference:', error);
-  }
-};
-
 // Check if we need to update data based on manual refresh only
 const shouldUpdateData = (indicatorId: string, existingData: IndicatorDataPoint[]): boolean => {
   // Only update if there's no existing data
@@ -809,7 +782,7 @@ export const fetchAllIndicatorsData = async (): Promise<IndicatorData[]> => {
 
   for (const indicator of economicIndicators) {
     const localStorageKey = `indicator-${indicator.id}`;
-    const`storedData = getFromLocalStorage(localStorageKey);
+    const storedData = getFromLocalStorage(localStorageKey);
 
     if (storedData) {
       allStoredData.push(storedData.data);
@@ -934,6 +907,33 @@ export const updateIndicatorData = (indicatorId: string, newData: IndicatorDataP
 
   // Save to local storage
   saveToLocalStorage(localStorageKey, result);
+};
+
+// Data source preference interface and exports
+interface DataSourcePreference {
+  useUploadedData: boolean;
+}
+
+export const DATA_SOURCE_PREFERENCES_KEY = `${LOCAL_STORAGE_PREFIX}data_source_preferences`;
+
+export const getDataSourcePreferences = (): Record<string, DataSourcePreference> => {
+  try {
+    const stored = localStorage.getItem(DATA_SOURCE_PREFERENCES_KEY);
+    return stored ? JSON.parse(stored) : {};
+  } catch (error) {
+    console.error('Error reading data source preferences:', error);
+    return {};
+  }
+};
+
+export const setDataSourcePreference = (indicatorId: string, preference: DataSourcePreference): void => {
+  try {
+    const preferences = getDataSourcePreferences();
+    preferences[indicatorId] = preference;
+    localStorage.setItem(DATA_SOURCE_PREFERENCES_KEY, JSON.stringify(preferences));
+  } catch (error) {
+    console.error('Error saving data source preference:', error);
+  }
 };
 
 const testEIAApi = async () => {
