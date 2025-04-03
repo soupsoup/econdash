@@ -580,8 +580,11 @@ export const fetchIndicatorData = async (indicatorId: string): Promise<Indicator
   const preferences = getDataSourcePreferences();
   const useUploadedData = preferences[indicatorId]?.useUploadedData;
 
-  // If we have stored data and preference is set to use uploaded data, return it
-  if (storedData && useUploadedData) {
+  // Always check for user preference first
+  if (useUploadedData) {
+    if (!storedData) {
+      throw new Error('No uploaded data found. Please upload data first.');
+    }
     try {
       const parsed = storedData.data;
       if (parsed && parsed.indicator && parsed.data) {
@@ -590,6 +593,7 @@ export const fetchIndicatorData = async (indicatorId: string): Promise<Indicator
       }
     } catch (e) {
       console.warn('Failed to parse stored data:', e);
+      throw new Error('Failed to parse uploaded data. Please try uploading again.');
     }
   }
 
