@@ -577,11 +577,15 @@ export const fetchIndicatorData = async (indicatorId: string): Promise<Indicator
   console.log(`Fetching indicator data for ID: ${indicatorId}`);
   const localStorageKey = `indicator-${indicatorId}`;
   const storedData = getFromLocalStorage(localStorageKey);
+  const preferences = getDataSourcePreferences();
+  const useUploadedData = preferences[indicatorId]?.useUploadedData;
 
-  if (storedData) {
+  // If we have stored data and preference is set to use uploaded data, return it
+  if (storedData && useUploadedData) {
     try {
       const parsed = storedData.data;
       if (parsed && parsed.indicator && parsed.data) {
+        if (DEBUG) console.log(`Using uploaded data for ${indicatorId}`);
         return parsed;
       }
     } catch (e) {
@@ -598,8 +602,9 @@ export const fetchIndicatorData = async (indicatorId: string): Promise<Indicator
 
   if (DEBUG) console.log(`Fetching data for indicator: ${indicatorId}`);
 
-  if (storedData && !shouldUpdateData(indicatorId, storedData.data.data)) {
-    if (DEBUG) console.log(`Using stored data for ${indicatorId}`);
+  // Only proceed with API data if we're not using uploaded data
+  if (!useUploadedData && storedData && !shouldUpdateData(indicatorId, storedData.data.data)) {
+    if (DEBUG) console.log(`Using stored API data for ${indicatorId}`);
     return storedData.data;
   }
 
