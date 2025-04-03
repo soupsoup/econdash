@@ -13,13 +13,11 @@ import ApiErrorNotice from '../components/MockDataNotice';
 const IndicatorDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-
-  const [timeRange, setTimeRange] = useState<number>(10); // Default to 10 years
+  const [timeRange, setTimeRange] = useState<number>(10);
   const [viewMode, setViewMode] = useState<'chart' | 'table'>('chart');
   const [apiErrors, setApiErrors] = useState<Record<string, string>>({});
   const [lastUpdated, setLastUpdated] = useState<string | null>(getLastUpdatedTimestamp());
 
-  // Fetch indicator data
   const { data: indicatorData, isLoading, error, refetch } = useQuery(
     ['indicatorData', id],
     async () => {
@@ -155,7 +153,6 @@ const IndicatorDetail: React.FC = () => {
   // Calculate month-to-month job growth for job creation indicator
   const processedData = useMemo(() => {
     if (indicator.id === 'job-creation') {
-      // For job creation, calculate month-to-month changes
       return filteredData.map((point, index, array) => {
         if (index === 0) {
           return { ...point, originalValue: point.value, value: 0 };
@@ -164,26 +161,23 @@ const IndicatorDetail: React.FC = () => {
         const monthlyChange = point.value - previousValue;
         return { 
           ...point, 
-          originalValue: point.value, // Keep the original value
-          value: monthlyChange // Set value to the monthly change
+          originalValue: point.value,
+          value: monthlyChange
         };
-      }).slice(1); // Remove first item with zero change
+      }).slice(1);
     }
     return filteredData;
-  }, [filteredData, indicator?.id]);
+  }, [filteredData, indicator.id]);
 
   // Format value based on indicator type
   const formatValue = (value: number, useOriginal = false) => {
     if (indicator.id === 'job-creation') {
       if (useOriginal) {
-        // Show total jobs for original value
         return Math.round(value).toLocaleString();
       }
-      // Show monthly change with + or - sign
       const prefix = value > 0 ? '+' : '';
       return `${prefix}${Math.round(value).toLocaleString()}`;
     } else {
-      // For other indicators, use the default formatting with decimals
       return value.toFixed(2);
     }
   };
@@ -210,7 +204,6 @@ const IndicatorDetail: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header */}
       <header className="bg-white shadow-md">
         <div className="container mx-auto px-4 py-6">
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center">
@@ -249,7 +242,6 @@ const IndicatorDetail: React.FC = () => {
       <main className="container mx-auto px-4 py-8">
         {Object.keys(apiErrors).length > 0 && <ApiErrorNotice errors={apiErrors} />}
 
-        {/* Key metrics */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
           <div className="bg-white rounded-lg shadow-md p-4">
             <p className="text-sm text-gray-600 mb-1">Current Value</p>
@@ -280,7 +272,6 @@ const IndicatorDetail: React.FC = () => {
           </div>
         </div>
 
-        {/* Time range selector */}
         <div className="bg-white rounded-lg shadow-md p-4 mb-8">
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4">
             <div className="flex items-center mb-4 sm:mb-0">
@@ -329,7 +320,6 @@ const IndicatorDetail: React.FC = () => {
           </div>
         </div>
 
-        {/* Chart or Table */}
         <div className="bg-white rounded-lg shadow-md p-4 mb-8">
           <div className="flex items-center mb-4">
             <Filter className="h-5 w-5 text-blue-600 mr-2" />
@@ -349,13 +339,11 @@ const IndicatorDetail: React.FC = () => {
           </div>
         </div>
 
-        {/* Presidential periods */}
         <div className="bg-white rounded-lg shadow-md p-4 mb-8">
           <h2 className="text-lg font-semibold text-gray-800 mb-4">Performance by Presidential Term</h2>
           <PresidentialPeriods data={indicatorData} />
         </div>
 
-        {/* Source information */}
         <div className="bg-white rounded-lg shadow-md p-4">
           <h2 className="text-lg font-semibold text-gray-800 mb-2">Data Source Information</h2>
           <p className="text-gray-600 mb-4">
