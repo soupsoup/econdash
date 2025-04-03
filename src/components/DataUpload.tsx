@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import { economicIndicators } from '../data/indicators';
 import { IndicatorDataPoint } from '../types';
+import { setDataSourcePreference } from '../services/api';
 
 interface DataUploadProps {
   onUpload: (data: IndicatorDataPoint[], indicatorId: string) => void;

@@ -4,16 +4,7 @@ import { ArrowUpRight, ArrowDownRight, ExternalLink, Maximize2, AlertTriangle } 
 import { IndicatorData } from '../types';
 import IndicatorChart from './IndicatorChart';
 
-// Placeholder for DataSourceSelector component.  Needs actual implementation.
-const DataSourceSelector = ({ indicatorId, onPreferenceChange }) => (
-  <div>
-    <label htmlFor={`data-source-${indicatorId}`}>Data Source:</label>
-    <select id={`data-source-${indicatorId}`} onChange={onPreferenceChange}>
-      <option value="api">API</option>
-      <option value="uploaded">Uploaded Data</option>
-    </select>
-  </div>
-);
+import DataSourceSelector from './DataSourceSelector';
 
 
 interface IndicatorCardProps {
