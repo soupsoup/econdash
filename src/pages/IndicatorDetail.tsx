@@ -13,10 +13,10 @@ import ApiErrorNotice from '../components/MockDataNotice';
 const IndicatorDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const [timeRange, setTimeRange] = useState<number>(10);
-  const [viewMode, setViewMode] = useState<'chart' | 'table'>('chart');
   const [apiErrors, setApiErrors] = useState<Record<string, string>>({});
   const [lastUpdated, setLastUpdated] = useState<string | null>(getLastUpdatedTimestamp());
+  const [timeRange, setTimeRange] = useState<number>(10);
+  const [viewMode, setViewMode] = useState<'chart' | 'table'>('chart');
 
   const { data: indicatorData = { indicator: { id: '' }, data: [] }, isLoading, error, refetch } = useQuery(
     ['indicatorData', id],
@@ -51,14 +51,92 @@ const IndicatorDetail: React.FC = () => {
     }
   );
 
+  // Calculate cutoff date
+  const cutoffDate = subYears(new Date(), timeRange);
+  const filteredData = indicatorData.data.filter(point => parseISO(point.date) >= cutoffDate);
+
+  // Create memoized derived data
+  const {
+    currentValue,
+    average,
+    minValue,
+    maxValue,
+    processedData
+  } = useMemo(() => {
+    const current = indicatorData.data[indicatorData.data.length - 1]?.value || 0;
+    const avg = filteredData.length > 0 
+      ? filteredData.reduce((sum, point) => sum + point.value, 0) / filteredData.length 
+      : 0;
+    const min = filteredData.length > 0 
+      ? Math.min(...filteredData.map(point => point.value)) 
+      : 0;
+    const max = filteredData.length > 0 
+      ? Math.max(...filteredData.map(point => point.value)) 
+      : 0;
+    
+    let processed = filteredData;
+    if (indicatorData.indicator?.id === 'job-creation') {
+      processed = filteredData.map((point, index, array) => {
+        if (index === 0) {
+          return { ...point, originalValue: point.value, value: 0 };
+        }
+        const previousValue = array[index - 1].value;
+        const monthlyChange = point.value - previousValue;
+        return { 
+          ...point, 
+          originalValue: point.value,
+          value: monthlyChange
+        };
+      }).slice(1);
+    }
+
+    return {
+      currentValue: current,
+      average: avg,
+      minValue: min,
+      maxValue: max,
+      processedData: processed
+    };
+  }, [filteredData, indicatorData]);
+
   // Create memoized CSV data
   const csvData = useMemo(() => {
-    if (!indicatorData?.data) return [];
-    return indicatorData.data.map(point => ({
+    return filteredData.map(point => ({
       Date: point.date,
       Value: point.value
     }));
-  }, [indicatorData]);
+  }, [filteredData]);
+
+  const formatValue = (value: number, useOriginal = false) => {
+    if (indicatorData.indicator?.id === 'job-creation') {
+      if (useOriginal) {
+        return Math.round(value).toLocaleString();
+      }
+      const prefix = value > 0 ? '+' : '';
+      return `${prefix}${Math.round(value).toLocaleString()}`;
+    } else {
+      return value.toFixed(2);
+    }
+  };
+
+  const exportCSV = () => {
+    const headers = ['Date', `Value (${indicatorData.indicator?.unit})`, 'President'];
+    const csvContent = [
+      headers.join(','),
+      ...filteredData.map(point => 
+        `${point.date},${point.value},${point.president}`
+      )
+    ].join('\n');
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.setAttribute('href', url);
+    link.setAttribute('download', `${indicatorData.indicator?.id}-data.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
 
   if (isLoading) {
     return (
@@ -72,50 +150,20 @@ const IndicatorDetail: React.FC = () => {
   }
 
   if (error) {
-    console.error('IndicatorDetail Error:', error);
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center max-w-md px-4">
           <AlertTriangle className="h-12 w-12 text-red-500 mx-auto mb-4" />
           <h2 className="text-xl font-bold text-gray-800 mb-2">Error Loading Data</h2>
           <p className="text-gray-600 mb-4">
-            We couldn't retrieve the economic data for this indicator from our data sources.
+            We couldn't retrieve the economic data for this indicator.
           </p>
           <div className="bg-red-50 border border-red-200 rounded-md p-3 mb-6 text-left">
             <p className="text-sm text-red-800 font-medium">Error details:</p>
             <p className="text-sm text-red-700 font-mono mt-1 overflow-auto max-h-48">
               {error instanceof Error ? error.message : 'Unknown error'}
             </p>
-            <p className="text-sm text-red-600 mt-2">
-              Indicator ID: {id}
-            </p>
           </div>
-          <div className="flex space-x-3 justify-center">
-            <button
-              onClick={() => navigate('/')}
-              className="flex items-center bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md transition-colors"
-            >
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              Back to Dashboard
-            </button>
-            <button
-              onClick={() => refetch()}
-              className="flex items-center bg-gray-200 hover:bg-gray-300 text-gray-800 px-4 py-2 rounded-md transition-colors"
-            >
-              Try Again
-            </button>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  if (!indicatorData) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <h2 className="text-xl font-bold text-gray-800 mb-2">Indicator Not Found</h2>
-          <p className="text-gray-600 mb-4">The requested economic indicator could not be found.</p>
           <button
             onClick={() => navigate('/')}
             className="flex items-center mx-auto bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md transition-colors"
@@ -128,80 +176,7 @@ const IndicatorDetail: React.FC = () => {
     );
   }
 
-  const { indicator, data: dataPoints } = indicatorData;
-
-  // Filter data based on selected time range
-  const cutoffDate = subYears(new Date(), timeRange);
-  const filteredData = dataPoints.filter(point => parseISO(point.date) >= cutoffDate);
-
-  // Get current value
-  const currentValue = dataPoints[dataPoints.length - 1]?.value || 0;
-
-  // Calculate average, min, and max values
-  const average = filteredData.length > 0 
-    ? filteredData.reduce((sum, point) => sum + point.value, 0) / filteredData.length 
-    : 0;
-
-  const minValue = filteredData.length > 0 
-    ? Math.min(...filteredData.map(point => point.value)) 
-    : 0;
-
-  const maxValue = filteredData.length > 0 
-    ? Math.max(...filteredData.map(point => point.value)) 
-    : 0;
-
-  // Calculate month-to-month job growth for job creation indicator
-  const processedData = useMemo(() => {
-    if (!filteredData) return [];
-    if (indicator?.id === 'job-creation') {
-      return filteredData.map((point, index, array) => {
-        if (index === 0) {
-          return { ...point, originalValue: point.value, value: 0 };
-        }
-        const previousValue = array[index - 1].value;
-        const monthlyChange = point.value - previousValue;
-        return { 
-          ...point, 
-          originalValue: point.value,
-          value: monthlyChange
-        };
-      }).slice(1);
-    }
-    return filteredData;
-  }, [filteredData, indicator.id]);
-
-  // Format value based on indicator type
-  const formatValue = (value: number, useOriginal = false) => {
-    if (indicator.id === 'job-creation') {
-      if (useOriginal) {
-        return Math.round(value).toLocaleString();
-      }
-      const prefix = value > 0 ? '+' : '';
-      return `${prefix}${Math.round(value).toLocaleString()}`;
-    } else {
-      return value.toFixed(2);
-    }
-  };
-
-  // Export data as CSV
-  const exportCSV = () => {
-    const headers = ['Date', `Value (${indicator.unit})`, 'President'];
-    const csvContent = [
-      headers.join(','),
-      ...filteredData.map(point => 
-        `${point.date},${point.value},${point.president}`
-      )
-    ].join('\n');
-
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.setAttribute('href', url);
-    link.setAttribute('download', `${indicator.id}-data.csv`);
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-  };
+  const { indicator } = indicatorData;
 
   return (
     <div className="min-h-screen bg-gray-50">
