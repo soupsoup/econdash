@@ -631,11 +631,11 @@ const getSeriesIdForIndicator = (indicatorId: string): { source: string; seriesI
 };
 
 // Data source preference storage
-const DATA_SOURCE_PREFERENCES_KEY = `${LOCAL_STORAGE_PREFIX}data_source_preferences`;
-
-export interface DataSourcePreference {
+interface DataSourcePreference {
   useUploadedData: boolean;
 }
+
+const DATA_SOURCE_PREFERENCES_KEY = `${LOCAL_STORAGE_PREFIX}data_source_preferences`;
 
 export const getDataSourcePreferences = (): Record<string, DataSourcePreference> => {
   try {
