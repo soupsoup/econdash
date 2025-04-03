@@ -28,13 +28,17 @@ export default defineConfig({
             proxyReq.setHeader('Accept', 'application/json');
             
             // For POST requests, properly handle the body
-            if (req.method === 'POST' && req.body) {
-              const bodyData = JSON.stringify({
-                ...req.body,
+            if (req.method === 'POST') {
+              let bodyData = req.body;
+              if (typeof bodyData === 'string') {
+                bodyData = JSON.parse(bodyData);
+              }
+              const modifiedBody = JSON.stringify({
+                ...bodyData,
                 registrationkey: process.env.VITE_BLS_API_KEY
               });
-              proxyReq.setHeader('Content-Length', Buffer.byteLength(bodyData));
-              proxyReq.write(bodyData);
+              proxyReq.setHeader('Content-Length', Buffer.byteLength(modifiedBody));
+              proxyReq.write(modifiedBody);
             }
           });
           proxy.on('error', (err) => console.error('BLS Proxy Error:', err));
@@ -60,8 +64,7 @@ export default defineConfig({
         secure: false,
         rewrite: (path) => {
           const newPath = path.replace(/^\/api\/eia/, '');
-          const hasQuery = newPath.includes('?');
-          return `${newPath}${hasQuery ? '&' : '?'}api_key=${process.env.VITE_EIA_API_KEY}`;
+          return `${newPath}?api_key=${process.env.VITE_EIA_API_KEY}`;
         },
         configure: (proxy) => {
           proxy.on('proxyReq', (proxyReq, req, res) => {
