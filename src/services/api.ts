@@ -864,7 +864,7 @@ export const updateIndicatorData = (indicatorId: string, newData: IndicatorDataP
   };
 
   // Update memory cache
-  apiCache[localStorageKey] = {
+apiCache[localStorageKey] = {
     data: result,
     timestamp: Date.now(),
   };
