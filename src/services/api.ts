@@ -294,40 +294,50 @@ const fetchBLSData = async (seriesId: string, startYear: number, endYear: number
       // Check if we're fetching unemployment data
       if (seriesId === 'LNS14000000') {
         // Parse the uploaded CSV data
-        const csvData = await fetch('/attached_assets/Unemployment Rate (FEB 2025) BLS DATA - BLS Data Series.csv')
-          .then(response => response.text())
-          .then(text => {
-            const lines = text.split('\n');
-            const dataPoints: IndicatorDataPoint[] = [];
-            
-            // Start from line 13 (0-based index) which contains the headers
-            const years = lines.slice(13);
-            
-            years.forEach(yearLine => {
-              const values = yearLine.split(',');
-              const year = values[0];
+        const csvText = `
+Year,Jan,Feb,Mar,Apr,May,Jun,Jul,Aug,Sep,Oct,Nov,Dec
+2015,5.7,5.5,5.4,5.4,5.6,5.3,5.2,5.1,5.0,5.0,5.1,5.0
+2016,4.8,4.9,5.0,5.1,4.8,4.9,4.8,4.9,5.0,4.9,4.7,4.7
+2017,4.7,4.6,4.4,4.4,4.4,4.3,4.3,4.4,4.3,4.2,4.2,4.1
+2018,4.0,4.1,4.0,4.0,3.8,4.0,3.8,3.8,3.7,3.8,3.8,3.9
+2019,4.0,3.8,3.8,3.7,3.6,3.6,3.7,3.6,3.5,3.6,3.6,3.6
+2020,3.6,3.5,4.4,14.8,13.2,11.0,10.2,8.4,7.8,6.9,6.7,6.7
+2021,6.4,6.2,6.1,6.1,5.8,5.9,5.4,5.1,4.7,4.5,4.2,3.9
+2022,4.0,3.8,3.7,3.7,3.6,3.6,3.5,3.6,3.5,3.6,3.6,3.5
+2023,3.5,3.6,3.5,3.4,3.6,3.6,3.5,3.7,3.8,3.9,3.7,3.8
+2024,3.7,3.9,3.9,3.9,4.0,4.1,4.2,4.2,4.1,4.1,4.2,4.1
+2025,4.0,4.1`;
+
+        const lines = csvText.trim().split('\n');
+        const dataPoints: IndicatorDataPoint[] = [];
+        
+        // Start from line 1 (skip header)
+        const years = lines.slice(1);
+        
+        years.forEach(yearLine => {
+          const values = yearLine.split(',');
+          const year = values[0];
+          
+          // Skip if not a valid year
+          if (!year || isNaN(parseInt(year))) return;
+          
+          // Process each month (columns 1-12)
+          for (let month = 1; month <= 12; month++) {
+            const value = values[month];
+            if (value && !isNaN(parseFloat(value))) {
+              const dateStr = `${year}-${month.toString().padStart(2, '0')}-01`;
+              const president = getPresidentByDate(dateStr);
               
-              // Skip if not a valid year
-              if (!year || isNaN(parseInt(year))) return;
-              
-              // Process each month (columns 1-12)
-              for (let month = 1; month <= 12; month++) {
-                const value = values[month];
-                if (value && !isNaN(parseFloat(value))) {
-                  const dateStr = `${year}-${month.toString().padStart(2, '0')}-01`;
-                  const president = getPresidentByDate(dateStr);
-                  
-                  dataPoints.push({
-                    date: dateStr,
-                    value: parseFloat(value),
-                    president: president?.name || 'Unknown'
-                  });
-                }
-              }
-            });
-            
-            return dataPoints;
-          });
+              dataPoints.push({
+                date: dateStr,
+                value: parseFloat(value),
+                president: president?.name || 'Unknown'
+              });
+            }
+          }
+        });
+        
+        return dataPoints;
 
         return csvData;
       }
