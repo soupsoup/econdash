@@ -143,7 +143,7 @@ const getDataFromCacheOrStorageOrApi = async <T>(
 
   // Always attempt to fetch from API
   let lastError: any;
-  
+
   for (let attempt = 0; attempt < RETRY_CONFIG.maxRetries; attempt++) {
     try {
       // Add delay for retries (not first attempt)
@@ -156,7 +156,7 @@ const getDataFromCacheOrStorageOrApi = async <T>(
       }
 
       const data = await apiFn();
-      
+
       // Reset rate limit flag on successful call
       apiStatus[apiSource] = { rateLimitReached: false, lastChecked: now };
 
@@ -172,10 +172,10 @@ const getDataFromCacheOrStorageOrApi = async <T>(
     return data;
     } catch (error) {
       lastError = error;
-      
+
       // Check if this is a rate limit error
       const errorMessage = error instanceof Error ? error.message : String(error);
-      
+
       // If it's the last attempt or a rate limit error, break the retry loop
       if (attempt === RETRY_CONFIG.maxRetries - 1 || 
           errorMessage.includes('threshold') || 
@@ -183,7 +183,7 @@ const getDataFromCacheOrStorageOrApi = async <T>(
           errorMessage.includes('too many requests')) {
         break;
       }
-      
+
       console.warn(`API attempt ${attempt + 1} failed, retrying...`);
       continue;
     }
@@ -269,13 +269,13 @@ const fetchBLSData = async (seriesId: string, startYear: number, endYear: number
           registrationkey: BLS_API_KEY,
           catalog: false,
           calculations: false,
-          annualaverage: false,
-          calculations: false,
-          annualaverage: false,
+          annualaverage: false
         },
         timeout: 10000, // 10 second timeout
+        withCredentials: true, // Add credentials for CORS
         headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
+          'Access-Control-Allow-Origin': '*'
         }
       });
 
