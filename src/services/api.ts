@@ -95,6 +95,20 @@ const RETRY_CONFIG = {
 const wait = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
 // Helper function to get data from cache, local storage, or API with retries
+const getIndicatorData = async (indicatorId: string) => {
+  const preferences = getDataSourcePreferences();
+  const preference = preferences[indicatorId];
+
+  // If using uploaded data, only use local storage
+  if (preference?.useUploadedData) {
+    const cachedData = localStorage.getItem(`indicator-${indicatorId}`);
+    if (cachedData) {
+      return JSON.parse(cachedData);
+    }
+    return null;
+  }
+
+  // Otherwise proceed with normal API fetch logic
 const getDataFromCacheOrStorageOrApi = async <T>(
   cacheKey: string,
   apiFn: () => Promise<T>,

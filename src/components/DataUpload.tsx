@@ -36,6 +36,8 @@ export default function DataUpload({ onUpload }: DataUploadProps) {
       };
     });
 
+    // Set preference to use uploaded data
+    setDataSourcePreference(selectedIndicator, { useUploadedData: true });
     onUpload(data, selectedIndicator);
     setCsvContent('');
     setSelectedIndicator('');
