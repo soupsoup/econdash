@@ -9,10 +9,26 @@ import ApiStatusChecker from '../components/ApiStatusChecker';
 import { AlertTriangle } from 'lucide-react';
 import ApiErrorNotice from '../components/MockDataNotice';
 
+import DataUpload from '../components/DataUpload';
+import { updateIndicatorData } from '../services/api';
+
 function Dashboard() {
   const [hasNewData, setHasNewData] = useState(false);
   const [apiErrors, setApiErrors] = useState<Record<string, string>>({});
   const [lastUpdated, setLastUpdated] = useState<string | null>(getLastUpdatedTimestamp());
+
+  const handleDataUpload = (data: IndicatorDataPoint[], indicatorId: string) => {
+    try {
+      updateIndicatorData(indicatorId, data);
+      refetch();
+    } catch (error) {
+      console.error('Error uploading data:', error);
+      setApiErrors(prev => ({
+        ...prev,
+        'Data Upload Error': error instanceof Error ? error.message : String(error)
+      }));
+    }
+  };
 
   // Fetch all indicators data
   const { 

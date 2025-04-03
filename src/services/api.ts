@@ -852,6 +852,27 @@ export const clearAllStoredData = (): void => {
   }
 };
 
+export const updateIndicatorData = (indicatorId: string, newData: IndicatorDataPoint[]): void => {
+  const indicator = economicIndicators.find(ind => ind.id === indicatorId);
+  if (!indicator) throw new Error(`Invalid indicator ID: ${indicatorId}`);
+
+  const localStorageKey = `indicator-${indicatorId}`;
+  const result = {
+    indicator,
+    data: newData,
+    lastUpdated: format(new Date(), 'yyyy-MM-dd'),
+  };
+
+  // Update memory cache
+  apiCache[localStorageKey] = {
+    data: result,
+    timestamp: Date.now(),
+  };
+
+  // Save to local storage
+  saveToLocalStorage(localStorageKey, result);
+};
+
 const testEIAApi = async () => {
   const testUrl = `${EIA_BASE_URL}/petroleum/pri/gnd/data/?api_key=${EIA_API_KEY}`;
   try {
