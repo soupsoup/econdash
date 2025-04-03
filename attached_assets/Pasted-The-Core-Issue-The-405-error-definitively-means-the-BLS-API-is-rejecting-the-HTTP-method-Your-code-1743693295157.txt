@@ -1,0 +1,49 @@
+The Core Issue: The 405 error definitively means the BLS API is rejecting the HTTP method. Your code is using POST, which is correct. This strongly indicates a backend proxy misconfiguration.
+Troubleshooting:
+Isolate Backend: The most crucial step is to bypass your frontend and test your backend proxy directly. Use a tool like curl or Postman:
+Construct the exact POST request that your frontend sends, but send it to your backend's /api/bls/publicAPI/v2/timeseries/data/ endpoint.
+
+Include the Content-Type: application/json header.
+
+Include the JSON payload with seriesid, startyear, endyear, and registrationkey.
+
+Example curl command:
+
+Bash
+
+curl -X POST \
+http://your-backend-server/api/bls/publicAPI/v2/timeseries/data/ \
+-H "Content-Type: application/json" \
+-d '{
+"seriesid": ["LNS14000000"],
+"startyear": "2023",
+"endyear": "2024",
+"registrationkey": "YOUR_BLS_API_KEY",
+"catalog": false,
+"calculations": false,
+"annualaverage": false
+}'
+Replace http://your-backend-server and YOUR_BLS_API_KEY with your actual values.
+Backend Debugging:
+If the curl command fails, the problem is 100% in your backend.
+Crucially, log the incoming request to your backend. Log the method, URL, headers, and body. This will reveal if your frontend is sending the request correctly and what your backend is actually receiving.
+Then, log the outgoing request from your backend to the BLS API. Again, log the method, URL, headers, and body. This will show if your backend is forwarding the request correctly.
+Common Backend Problems:
+Route not configured: The /api/bls/publicAPI/v2/timeseries/data/ route might not be defined to handle POST requests.
+Incorrect forwarding: Your backend might be forwarding to the wrong BLS URL or changing the method (e.g., to GET).
+Body not forwarded: Your backend might be stripping the request body, so the BLS API receives an empty payload.
+Headers missing: The Content-Type header might not be forwarded.
+Frontend (Unlikely Issue): Your frontend code is correct, but for cleanliness:
+Remove 'Access-Control-Allow-Origin': '*' from the headers in the fetchBLSData function. It's not needed in the request.
+2. FRED API - Available (CORS Blocked - Expected Behavior)
+
+No Change: This is still expected. The key is that your actual data fetching uses the proxy.
+3. EIA API - Unavailable (Status Code 403: Forbidden)
+
+The Core Issue: The 403 means the EIA API is rejecting your request, and this is almost always about the API key.
+Troubleshooting:
+Isolate Backend: Similar to BLS, test your backend directly with curl or Postman.
+
+Construct the exact GET request your frontend sends (or tries to send) to your backend's /api/eia/v2 endpoint.
+
+Your backend then needs to forward this to the EIA, including the API key in the URL.
