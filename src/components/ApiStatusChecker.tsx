@@ -10,6 +10,7 @@ interface ApiStatus {
 }
 
 const ApiStatusChecker: React.FC = () => {
+  const [apiStatuses, setApiStatuses] = useState<ApiStatus[]>([]);
   const [localStorageInfo, setLocalStorageInfo] = useState({
     used: 0,
     total: 0,
