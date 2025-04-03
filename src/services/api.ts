@@ -423,18 +423,46 @@ const fetchEIAData = async (seriesId: string): Promise<IndicatorDataPoint[]> => 
           // For gas prices, try a different approach - use a specific endpoint
           if (seriesId.includes('EMM_EPM0_PTE_NUS_DPG')) {
             // Try the petroleum data API endpoint specifically
-            // Reduced length parameter to 100 to avoid large responses
-            const eiaUrl = `${EIA_BASE_URL}/petroleum/pri/gnd/data/?api_key=${EIA_API_KEY}&frequency=weekly&data[0]=value&facets[product][]=EPMR&facets[duoarea][]=NUS&sort[0][column]=period&sort[0][direction]=desc&offset=0&length=100`;
+            const params = new URLSearchParams({
+              'api_key': EIA_API_KEY,
+              'frequency': 'weekly',
+              'data[0]': 'value',
+              'facets[product][]': 'EPMR',
+              'facets[duoarea][]': 'NUS',
+              'sort[0][column]': 'period',
+              'sort[0][direction]': 'desc',
+              'offset': '0',
+              'length': '100'
+            });
+
+            const eiaUrl = `${EIA_BASE_URL}/petroleum/pri/gnd/data/?${params.toString()}`;
 
             if (DEBUG) {
               console.log('EIA API Request (petroleum endpoint):', {
-                url: eiaUrl.replace(EIA_API_KEY, EIA_API_KEY.substring(0, 5) + '...')
+                url: eiaUrl.replace(EIA_API_KEY, EIA_API_KEY.substring(0, 5) + '...'),
+                headers: {
+                  'Content-Type': 'application/json',
+                  'Accept': 'application/json'
+                }
               });
             }
 
             const response = await axios.get(eiaUrl, {
-              timeout: 10000, // 10 second timeout
+              timeout: 10000,
+              headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+              }
             });
+
+            if (DEBUG) {
+              console.log('EIA API Response:', {
+                status: response.status,
+                statusText: response.statusText,
+                headers: response.headers,
+                data: response.data ? 'Data received' : 'No data'
+              });
+            }
 
             if (DEBUG) {
               console.log('EIA Petroleum API Response Status:', response.status);

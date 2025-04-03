@@ -52,11 +52,21 @@ export default defineConfig({
       '/api/eia': {
         target: 'https://api.eia.gov',
         changeOrigin: true,
-        secure: false,
-        rewrite: (path) => {
-          const newPath = path.replace(/^\/api\/eia/, '');
-          return `${newPath}?api_key=${process.env.VITE_EIA_API_KEY}`;
-        },
+        secure: true,
+        rewrite: (path) => path.replace(/^\/api\/eia/, ''),
+        configure: (proxy) => {
+          proxy.on('proxyReq', (proxyReq, req, res) => {
+            proxyReq.setHeader('Content-Type', 'application/json');
+            proxyReq.setHeader('Accept', 'application/json');
+          });
+          proxy.on('proxyRes', (proxyRes, req, res) => {
+            if (DEBUG) {
+              console.log('EIA Proxy Response:', {
+                status: proxyRes.statusCode,
+                headers: proxyRes.headers
+              });
+            }
+          });
         configure: (proxy) => {
           proxy.on('proxyReq', (proxyReq, req, res) => {
             proxyReq.setHeader('Content-Type', 'application/json');
