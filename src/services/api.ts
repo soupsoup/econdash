@@ -11,8 +11,12 @@ const EIA_API_KEY = import.meta.env.VITE_EIA_API_KEY || 'WU9DIO3Pc3R6vrqHlObPJgp
 
 // API Base URLs with proxy prefixes to avoid CORS issues
 const FRED_BASE_URL = '/api/fred/fred/series/observations';
-const BLS_BASE_URL = '/api/bls/publicAPI/v2/timeseries/data/';
-const EIA_BASE_URL = '/api/eia/v2';
+const BLS_BASE_URL = 'https://api.bls.gov/publicAPI/v2/timeseries/data/';
+const EIA_BASE_URL = 'https://api.eia.gov/v2';
+
+// Configure default headers
+axios.defaults.headers.common['Content-Type'] = 'application/json';
+axios.defaults.headers.common['Access-Control-Allow-Origin'] = '*';
 
 // Debug flag
 const DEBUG = true;
@@ -218,13 +222,16 @@ const fetchBLSData = async (seriesId: string, startYear: number, endYear: number
     try {
       // BLS API requires POST method, not PUT
       const response = await axios({
-        method: 'post',  // Explicitly use POST method
+        method: 'post',
         url: BLS_BASE_URL,
         data: {
           seriesid: [seriesId],
           startyear: startYear.toString(),
           endyear: endYear.toString(),
           registrationkey: BLS_API_KEY,
+          catalog: false,
+          calculations: false,
+          annualaverage: false,
           calculations: false,
           annualaverage: false,
         },
