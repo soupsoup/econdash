@@ -635,7 +635,7 @@ interface DataSourcePreference {
   useUploadedData: boolean;
 }
 
-const DATA_SOURCE_PREFERENCES_KEY = `${LOCAL_STORAGE_PREFIX}data_source_preferences`;
+export const DATA_SOURCE_PREFERENCES_KEY = `${LOCAL_STORAGE_PREFIX}data_source_preferences`;
 
 export const getDataSourcePreferences = (): Record<string, DataSourcePreference> => {
   try {
