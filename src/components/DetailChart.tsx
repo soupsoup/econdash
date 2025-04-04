@@ -7,12 +7,10 @@ import {
   LineElement,
   Title,
   Tooltip,
-  Legend,
-  ChartOptions
+  Legend
 } from 'chart.js';
 import { Line } from 'react-chartjs-2';
-import { IndicatorData, IndicatorDataPoint } from '../types';
-import { presidents } from '../data/presidents';
+import { IndicatorData } from '../types';
 
 ChartJS.register(
   CategoryScale,
@@ -26,139 +24,50 @@ ChartJS.register(
 
 interface DetailChartProps {
   data: IndicatorData;
-  filteredData: IndicatorDataPoint[];
+  filteredData: any[];
 }
 
 const DetailChart: React.FC<DetailChartProps> = ({ data, filteredData }) => {
-  const { indicator } = data;
-
-  // Get date range from filtered data
-  const dateRange = {
-    start: new Date(filteredData[0]?.date || ''),
-    end: new Date(filteredData[filteredData.length - 1]?.date || '')
-  };
-
-  // Group data by president, but only include presidents who were active during the filtered date range
-  const presidentGroups = presidents
-    .filter(president => {
-      const termStart = new Date(president.term.start);
-      const termEnd = president.term.end ? new Date(president.term.end) : new Date();
-      return termStart <= dateRange.end && termEnd >= dateRange.start;
-    })
-    .map(president => ({
-      president,
-      data: filteredData.filter(point => {
-        const pointDate = new Date(point.date);
-        const startDate = new Date(president.term.start);
-        const endDate = president.term.end ? new Date(president.term.end) : new Date();
-        return pointDate >= startDate && pointDate < endDate;
-      }),
-      presidencyId: `${president.name}-${president.term.start}`
-    }))
-    .filter(group => group.data.length > 0);
-
-  // Prepare chart data
   const chartData = {
-    labels: filteredData.map(point => {
-      const date = new Date(point.date);
-      return date.toLocaleDateString(undefined, { year: 'numeric', month: 'short' });
-    }),
-    datasets: indicator.id === 'sp500' ? [{
-      label: 'S&P 500',
-      data: filteredData.map(point => ({
-        x: point.date,
-        y: point.value
-      })),
-      borderColor: '#2563eb',
-      backgroundColor: '#2563eb33',
-      borderWidth: 2,
-      pointRadius: 2,
-      pointHoverRadius: 6,
-      tension: 0.3,
-      fill: false
-    }] : presidentGroups.map(group => ({
-      label: `${group.president.name} (${group.president.term.start.substring(0, 4)}-${group.president.term.end ? group.president.term.end.substring(0, 4) : 'Present'})`,
-      data: filteredData.map(point => {
-        const pointDate = new Date(point.date);
-        const startDate = new Date(group.president.term.start);
-        const endDate = group.president.term.end ? new Date(group.president.term.end) : new Date();
-        return (pointDate >= startDate && pointDate < endDate) ? point.value : null;
-      }),
-      borderColor: group.president.color,
-      backgroundColor: `${group.president.color}33`,
-      borderWidth: 2,
-      pointRadius: 2,
-      pointHoverRadius: 6,
-      tension: 0.3,
-      spanGaps: true
-    }))
+    labels: filteredData.map(point => new Date(point.date).toLocaleDateString()),
+    datasets: [
+      {
+        label: data.indicator.name,
+        data: filteredData.map(point => point.value),
+        fill: false,
+        borderColor: 'rgb(75, 192, 192)',
+        tension: 0.1
+      }
+    ]
   };
 
-  // Chart options
-  const options: ChartOptions<'line'> = {
+  const options = {
     responsive: true,
     maintainAspectRatio: false,
     plugins: {
       legend: {
-        display: true,
         position: 'top' as const,
-        labels: {
-          boxWidth: 12,
-          usePointStyle: true,
-          pointStyle: 'circle',
-          font: {
-            size: 12
-          }
-        }
       },
       tooltip: {
-        mode: 'index',
+        mode: 'index' as const,
         intersect: false,
-        callbacks: {
-          label: function(context) {
-            let label = context.dataset.label || '';
-            if (label) {
-              label += ': ';
-            }
-            if (context.parsed.y !== null) {
-              label += context.parsed.y.toFixed(2);
-            }
-            return label;
-          }
-        }
       }
     },
     scales: {
       x: {
         display: true,
-        grid: {
-          display: false
-        },
-        ticks: {
-          maxRotation: 45,
-          autoSkip: true,
-          maxTicksLimit: 12,
-          font: {
-            size: 11
-          }
+        title: {
+          display: true,
+          text: 'Date'
         }
       },
       y: {
         display: true,
-        grid: {
-          color: '#f0f0f0'
-        },
-        ticks: {
-          font: {
-            size: 11
-          }
+        title: {
+          display: true,
+          text: data.indicator.unit
         }
       }
-    },
-    interaction: {
-      mode: 'nearest',
-      axis: 'x',
-      intersect: false
     }
   };
 
