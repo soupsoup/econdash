@@ -1,4 +1,3 @@
-
 import { presidents } from '../data/presidents';
 
 export interface LocalDataPoint {
@@ -10,34 +9,26 @@ export async function loadSP500Data(): Promise<LocalDataPoint[]> {
   try {
     const response = await fetch('/attached_assets/SP500_DATA.csv');
     const csvText = await response.text();
-    
+
     const lines = csvText.split('\n').filter(line => line.trim().length > 0);
     const headers = lines[0].split(',');
     const dateIndex = headers.indexOf('Date');
     const valueIndex = headers.indexOf('Close');
-    
-    const dataPoints = lines.slice(1).map(line => {
-      const values = line.split(',');
-      // Parse date in MM/DD/YYYY format to YYYY-MM-DD
-      const [month, day, year] = values[dateIndex].split('/');
-      const formattedDate = `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
-      
-      return {
-        date: formattedDate,
-        value: parseFloat(values[valueIndex]),
-        president: 'Biden' // Add president information if needed
-      };
-    });
-    
+
+    const dataPoints = lines.slice(1)
+      .map(line => {
+        const values = line.split(',');
+        const [month, day, year] = values[dateIndex].split('/');
+        return {
+          date: `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`,
+          value: parseFloat(values[valueIndex]),
+          president: 'Biden' // Since all data is from 2024-2025
+        };
+      })
+      .filter(point => !isNaN(point.value));
+
     // Sort by date in ascending order
     dataPoints.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
-    
-    // Store in localStorage for admin panel
-    localStorage.setItem('indicator-sp500', JSON.stringify({
-      data: dataPoints,
-      lastUpdated: new Date().toISOString()
-    }));
-    
     return dataPoints;
   } catch (error) {
     console.error('Error loading S&P 500 data:', error);
@@ -50,13 +41,13 @@ export async function loadLocalJobCreationData(): Promise<LocalDataPoint[]> {
     // The CSV file is static and included in the build
     const response = await fetch('/attached_assets/NONFARMPAYROLL_FRED.csv');
     const csvText = await response.text();
-    
+
     // Parse CSV
     const lines = csvText.split('\n').filter(line => line.trim().length > 0);
     const headers = lines[0].split(',');
     const dateIndex = headers.indexOf('observation_date');
     const valueIndex = headers.indexOf('PAYEMS');
-    
+
     // Skip header row and parse data
     const dataPoints = lines.slice(1).map(line => {
       const values = line.split(',');
@@ -65,10 +56,10 @@ export async function loadLocalJobCreationData(): Promise<LocalDataPoint[]> {
         value: parseFloat(values[valueIndex])
       };
     });
-    
+
     // Sort by date
     dataPoints.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
-    
+
     // Add president information
     const dataPointsWithPresident = dataPoints.map(point => {
       const date = new Date(point.date);
@@ -77,13 +68,13 @@ export async function loadLocalJobCreationData(): Promise<LocalDataPoint[]> {
         const endDate = p.term.end ? new Date(p.term.end) : new Date();
         return date >= startDate && date <= endDate;
       });
-      
+
       return {
         ...point,
         president: president?.name || 'Unknown'
       };
     });
-    
+
     return dataPointsWithPresident;
   } catch (error) {
     console.error('Error loading local job creation data:', error);
@@ -97,7 +88,7 @@ export const parseNonFarmPayrollCsv = (csvData: string): DataPoint[] => {
   const lines = csvData.trim().split('\n');
   // Skip header
   const dataLines = lines.slice(1);
-  
+
   return dataLines.map(line => {
     const [dateStr, valueStr] = line.split(',');
     return {
