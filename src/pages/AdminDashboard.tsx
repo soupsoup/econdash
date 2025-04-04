@@ -46,7 +46,10 @@ export default function AdminDashboard() {
 
       <div className="mb-8">
         <h2 className="text-xl font-semibold mb-4">Indicator Visibility</h2>
-        <IndicatorVisibilityControl />
+        <IndicatorVisibilityControl onVisibilityChange={() => {
+          // Force a refresh of the dashboard data
+          window.dispatchEvent(new Event('storage'));
+        }} />
       </div>
 
       <div>

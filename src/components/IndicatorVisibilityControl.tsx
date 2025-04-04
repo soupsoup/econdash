@@ -6,14 +6,21 @@ interface IndicatorVisibility {
   [key: string]: boolean;
 }
 
-export default function IndicatorVisibilityControl() {
+interface IndicatorVisibilityControlProps {
+  onVisibilityChange?: () => void;
+}
+
+export default function IndicatorVisibilityControl({ onVisibilityChange }: IndicatorVisibilityControlProps) {
   const [visibilitySettings, setVisibilitySettings] = useState<IndicatorVisibility>({});
+  const [pendingSettings, setPendingSettings] = useState<IndicatorVisibility>({});
 
   useEffect(() => {
     // Load current settings
     const stored = localStorage.getItem('indicator-visibility');
     if (stored) {
-      setVisibilitySettings(JSON.parse(stored));
+      const settings = JSON.parse(stored);
+      setVisibilitySettings(settings);
+      setPendingSettings(settings);
     } else {
       // Initialize all indicators as visible
       const initial = economicIndicators.reduce((acc, indicator) => {
@@ -21,17 +28,24 @@ export default function IndicatorVisibilityControl() {
         return acc;
       }, {} as IndicatorVisibility);
       setVisibilitySettings(initial);
+      setPendingSettings(initial);
       localStorage.setItem('indicator-visibility', JSON.stringify(initial));
     }
   }, []);
 
   const toggleVisibility = (indicatorId: string) => {
-    const newSettings = {
-      ...visibilitySettings,
-      [indicatorId]: !visibilitySettings[indicatorId]
-    };
-    setVisibilitySettings(newSettings);
-    localStorage.setItem('indicator-visibility', JSON.stringify(newSettings));
+    setPendingSettings(prev => ({
+      ...prev,
+      [indicatorId]: !prev[indicatorId]
+    }));
+  };
+
+  const applyChanges = () => {
+    setVisibilitySettings(pendingSettings);
+    localStorage.setItem('indicator-visibility', JSON.stringify(pendingSettings));
+    if (onVisibilityChange) {
+      onVisibilityChange();
+    }
   };
 
   return (
@@ -43,7 +57,7 @@ export default function IndicatorVisibilityControl() {
             <input
               type="checkbox"
               id={indicator.id}
-              checked={visibilitySettings[indicator.id] ?? true}
+              checked={pendingSettings[indicator.id] ?? true}
               onChange={() => toggleVisibility(indicator.id)}
               className="mr-2"
             />
@@ -51,6 +65,12 @@ export default function IndicatorVisibilityControl() {
           </div>
         ))}
       </div>
+      <button
+        onClick={applyChanges}
+        className="mt-4 bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded"
+      >
+        Apply Changes
+      </button>
     </div>
   );
 }
