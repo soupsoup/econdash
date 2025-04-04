@@ -5,6 +5,7 @@ import DataUpload from '../components/DataUpload';
 import AdminDataTable from '../components/AdminDataTable';
 import AdminLogin from '../components/AdminLogin';
 import IndicatorVisibilityControl from '../components/IndicatorVisibilityControl';
+import DetailChart from '../components/DetailChart';
 import { economicIndicators } from '../data/indicators';
 
 export default function AdminDashboard() {
