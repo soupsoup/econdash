@@ -4,6 +4,7 @@ import { Navigate } from 'react-router-dom';
 import DataUpload from '../components/DataUpload';
 import AdminDataTable from '../components/AdminDataTable';
 import AdminLogin from '../components/AdminLogin';
+import IndicatorVisibilityControl from '../components/IndicatorVisibilityControl';
 import { economicIndicators } from '../data/indicators';
 
 export default function AdminDashboard() {
