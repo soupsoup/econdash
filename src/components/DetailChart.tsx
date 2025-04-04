@@ -37,7 +37,11 @@ const DetailChart: React.FC<DetailChartProps> = ({ data, filteredData }) => {
     datasets: [
       {
         label: data.indicator.name,
-        data: sortedData.map(point => point.value),
+        data: sortedData.map(point => ({
+          x: new Date(point.date).toLocaleDateString(),
+          y: point.value,
+          president: point.president
+        })),
         fill: false,
         borderColor: 'rgb(75, 192, 192)',
         tension: 0.1
@@ -55,6 +59,12 @@ const DetailChart: React.FC<DetailChartProps> = ({ data, filteredData }) => {
       tooltip: {
         mode: 'index' as const,
         intersect: false,
+        callbacks: {
+          label: (context) => {
+            const point = context.raw as { y: number; president: string };
+            return `${context.dataset.label}: ${point.y} (President: ${point.president})`;
+          }
+        }
       }
     },
     scales: {
