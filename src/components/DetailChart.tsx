@@ -65,13 +65,17 @@ const DetailChart: React.FC<DetailChartProps> = ({ data, filteredData }) => {
     }),
     datasets: indicator.id === 'sp500' ? [{
       label: 'S&P 500',
-      data: filteredData.map(point => point.value),
+      data: filteredData.map(point => ({
+        x: point.date,
+        y: point.value
+      })),
       borderColor: '#2563eb',
       backgroundColor: '#2563eb33',
       borderWidth: 2,
       pointRadius: 2,
       pointHoverRadius: 6,
-      tension: 0.3
+      tension: 0.3,
+      fill: false
     }] : presidentGroups.map(group => ({
       label: `${group.president.name} (${group.president.term.start.substring(0, 4)}-${group.president.term.end ? group.president.term.end.substring(0, 4) : 'Present'})`,
       data: filteredData.map(point => {
