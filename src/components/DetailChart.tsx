@@ -44,23 +44,19 @@ const DetailChart: React.FC<DetailChartProps> = ({ data, filteredData }) => {
     .filter(president => {
       const termStart = new Date(president.term.start);
       const termEnd = president.term.end ? new Date(president.term.end) : new Date();
-      // A president is considered active if their term overlaps with the data range
-      // AND they have at least one data point in that range
-      return (termStart <= dateRange.end && termEnd >= dateRange.start) && 
-             filteredData.some(point => {
-               const pointDate = new Date(point.date);
-               return pointDate >= termStart && pointDate <= termEnd;
-             });
+      // Only include presidents whose terms overlap with the data range
+      return termStart <= dateRange.end && termEnd >= dateRange.start;
     })
     .map(president => {
       const presidencyId = `${president.name}-${president.term.start}`;
       
-      const presidentData = filteredData.filter(point => {
+      // For each data point, only include it if it falls within this president's term
+      const presidentData = filteredData.map(point => {
         const pointDate = new Date(point.date);
         const startDate = new Date(president.term.start);
         const endDate = president.term.end ? new Date(president.term.end) : new Date();
-        return pointDate >= startDate && pointDate < endDate;
-      });
+        return (pointDate >= startDate && pointDate < endDate) ? point : null;
+      }).filter(point => point !== null);
 
       return {
         president,
