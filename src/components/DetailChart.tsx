@@ -50,16 +50,15 @@ const DetailChart: React.FC<DetailChartProps> = ({ data, filteredData }) => {
     .map(president => {
       const presidencyId = `${president.name}-${president.term.start}`;
 
-      // Create dataset with null values for points outside president's term
-      const presidentData = filteredData.map(point => {
+      // Only include data points that fall within this president's term
+      const presidentData = filteredData.filter(point => {
         const pointDate = new Date(point.date);
         const startDate = new Date(president.term.start);
-        const endDate = new Date(president.term.end || new Date().toISOString());
-        return (pointDate >= startDate && pointDate < endDate) ? point.value : null;
+        const endDate = president.term.end ? new Date(president.term.end) : new Date();
+        return pointDate >= startDate && pointDate < endDate;
       });
 
-      // Only include presidents who have data points within their term
-      if (!presidentData.some(value => value !== null)) {
+      if (presidentData.length === 0) {
         return null;
       }
 
@@ -96,18 +95,14 @@ const DetailChart: React.FC<DetailChartProps> = ({ data, filteredData }) => {
         }
       }
     },
-    datasets: presidentGroups.map(group => {
-      // First filter the data points for this president's term
-      const presidentData = filteredData.filter(point => {
+    datasets: presidentGroups.map(group => ({
+      label: `${group.president.name} (${group.president.term.start.substring(0, 4)}-${group.president.term.end ? group.president.term.end.substring(0, 4) : 'Present'})`,
+      data: filteredData.map(point => {
         const pointDate = new Date(point.date);
         const startDate = new Date(group.president.term.start);
         const endDate = group.president.term.end ? new Date(group.president.term.end) : new Date();
-        return pointDate >= startDate && pointDate < endDate;
-      });
-
-      return {
-        label: `${group.president.name} (${group.president.term.start.substring(0, 4)}-${group.president.term.end ? group.president.term.end.substring(0, 4) : 'Present'})`,
-        data: presidentData.map(point => point.value),
+        return (pointDate >= startDate && pointDate < endDate) ? point.value : null;
+      }),
         borderColor: group.president.color,
         backgroundColor: `${group.president.color}33`,
         borderWidth: 2,
