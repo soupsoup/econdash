@@ -39,12 +39,12 @@ export default function DataUpload({ onUpload }: DataUploadProps) {
     try {
       const lines = csvContent.split('\n').filter(line => line.trim());
       const dataPoints = lines.slice(1).map(line => {
-        const [date, value] = line.split(',');
-        if (!date || !value) throw new Error('Invalid CSV format');
+        const [date, value, president] = line.split(',');
+        if (!date || !value || !president) throw new Error('Invalid CSV format');
         return {
           date: date.trim(),
           value: parseFloat(value.trim()),
-          president: ''
+          president: president.trim()
         };
       }).filter(point => !isNaN(point.value));
 
