@@ -1,11 +1,29 @@
-
 import React, { useState, useEffect } from 'react';
-import { fetchIndicatorData, updateIndicatorData } from '../services/api';
+//import { fetchIndicatorData, updateIndicatorData } from '../services/api'; //Removed as we are not using API anymore
 import { IndicatorDataPoint } from '../types';
 
 interface AdminDataTableProps {
   indicatorId: string;
 }
+
+const getFromLocalStorage = (key: string): any => {
+  try {
+    const item = localStorage.getItem(key);
+    return item ? JSON.parse(item) : null;
+  } catch (error) {
+    console.error("Error getting item from local storage:", error);
+    return null;
+  }
+};
+
+const setToLocalStorage = (key: string, value: any) => {
+  try {
+    localStorage.setItem(key, JSON.stringify(value));
+  } catch (error) {
+    console.error("Error setting item to local storage:", error);
+  }
+};
+
 
 export default function AdminDataTable({ indicatorId }: AdminDataTableProps) {
   const [data, setData] = useState<IndicatorDataPoint[]>([]);
@@ -15,16 +33,18 @@ export default function AdminDataTable({ indicatorId }: AdminDataTableProps) {
     loadData();
   }, [indicatorId]);
 
-  const loadData = async () => {
-    const result = await fetchIndicatorData(indicatorId);
-    if (result) {
-      setData(result.data);
+  const loadData = () => {
+    const localData = getFromLocalStorage(`indicator-${indicatorId}`);
+    if (localData) {
+      setData(localData.data);
+    } else {
+      setData([]); // Initialize with empty array if no data in local storage
     }
   };
 
   const handleDelete = (point: IndicatorDataPoint) => {
     const newData = data.filter(p => p.date !== point.date);
-    updateIndicatorData(indicatorId, newData);
+    setToLocalStorage(`indicator-${indicatorId}`, { data: newData });
     setData(newData);
   };
 
@@ -34,12 +54,12 @@ export default function AdminDataTable({ indicatorId }: AdminDataTableProps) {
 
   const handleSave = () => {
     if (!editingPoint) return;
-    
-    const newData = data.map(p => 
+
+    const newData = data.map(p =>
       p.date === editingPoint.date ? editingPoint : p
     );
-    
-    updateIndicatorData(indicatorId, newData);
+
+    setToLocalStorage(`indicator-${indicatorId}`, { data: newData });
     setData(newData);
     setEditingPoint(null);
   };

@@ -20,10 +20,31 @@ export default function DataUpload({ onUpload }: DataUploadProps) {
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Handle the upload logic here
-    onUpload();
+    if (!selectedIndicator || !csvContent) return;
+    
+    try {
+      const lines = csvContent.split('\n');
+      const dataPoints = lines.slice(1).map(line => {
+        const [date, value] = line.split(',');
+        return {
+          date: date.trim(),
+          value: parseFloat(value.trim()),
+          president: '' // This will be calculated in the data service
+        };
+      }).filter(point => !isNaN(point.value));
+
+      const localStorageKey = `indicator-${selectedIndicator}`;
+      localStorage.setItem(localStorageKey, JSON.stringify({
+        data: dataPoints,
+        lastUpdated: new Date().toISOString()
+      }));
+      
+      onUpload();
+    } catch (error) {
+      console.error('Error processing CSV:', error);
+    }
   };
 
   return (
