@@ -1,11 +1,8 @@
-
 import React, { useState } from 'react';
 import { economicIndicators } from '../data/indicators';
-import { IndicatorDataPoint } from '../types';
-import { setDataSourcePreference } from '../services/api';
 
 interface DataUploadProps {
-  onUpload: (data: IndicatorDataPoint[], indicatorId: string) => void;
+  onUpload: () => void;
 }
 
 export default function DataUpload({ onUpload }: DataUploadProps) {
@@ -14,59 +11,23 @@ export default function DataUpload({ onUpload }: DataUploadProps) {
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (!file) return;
-
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      setCsvContent(event.target?.result as string);
-    };
-    reader.readAsText(file);
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        setCsvContent(event.target?.result as string);
+      };
+      reader.readAsText(file);
+    }
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!selectedIndicator || !csvContent) return;
-
-    const lines = csvContent.trim().split('\n');
-    let data: IndicatorDataPoint[];
-    
-    // Parse based on indicator type
-    if (selectedIndicator === 'inflation' || selectedIndicator === 'unemployment') {
-      data = lines.slice(1).map(line => {
-        const [rawDate, rawValue] = line.split(',');
-        // Parse date from "YYYY-MMM" format to "YYYY-MM-DD"
-        const [year, month] = rawDate.trim().split('-');
-        const monthNum = new Date(Date.parse(month + " 1, " + year)).getMonth() + 1;
-        const formattedDate = `${year}-${monthNum.toString().padStart(2, '0')}-01`;
-        
-        return {
-          date: formattedDate,
-          value: rawValue.trim() ? parseFloat(rawValue.trim()) : null,
-          president: '' // Will be determined by date
-        };
-      }).filter(point => point.value !== null);
-    } else {
-      // Default format for other indicators
-      data = lines.slice(1).map(line => {
-        const [date, value, president] = line.split(',');
-        return {
-          date: date.trim(),
-          value: parseFloat(value.trim()),
-          president: president?.trim() || ''
-        };
-      });
-    }
-
-    // Set preference to use uploaded data
-    setDataSourcePreference(selectedIndicator, { useUploadedData: true });
-    onUpload(data, selectedIndicator);
-    setCsvContent('');
-    setSelectedIndicator('');
+    // Handle the upload logic here
+    onUpload();
   };
 
   return (
     <div className="p-4 bg-white rounded-lg shadow">
-      <h2 className="text-lg font-semibold mb-4">Upload Indicator Data</h2>
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
           <label className="block mb-2">Select Indicator:</label>
