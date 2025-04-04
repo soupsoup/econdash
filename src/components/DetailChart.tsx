@@ -28,12 +28,16 @@ interface DetailChartProps {
 }
 
 const DetailChart: React.FC<DetailChartProps> = ({ data, filteredData }) => {
+  const sortedData = [...filteredData].sort((a, b) => 
+    new Date(a.date).getTime() - new Date(b.date).getTime()
+  );
+
   const chartData = {
-    labels: filteredData.map(point => new Date(point.date).toLocaleDateString()),
+    labels: sortedData.map(point => new Date(point.date).toLocaleDateString()),
     datasets: [
       {
         label: data.indicator.name,
-        data: filteredData.map(point => point.value),
+        data: sortedData.map(point => point.value),
         fill: false,
         borderColor: 'rgb(75, 192, 192)',
         tension: 0.1
