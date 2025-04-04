@@ -33,25 +33,36 @@ interface DetailChartProps {
 const DetailChart: React.FC<DetailChartProps> = ({ data, filteredData }) => {
   const { indicator } = data;
 
-  // Group data by president
-  const presidentGroups = presidents.map(president => {
-    // Create a unique ID for each presidency using the term start date
-    const presidencyId = `${president.name}-${president.term.start}`;
+  // Get date range from filtered data
+  const dateRange = {
+    start: new Date(filteredData[0]?.date || ''),
+    end: new Date(filteredData[filteredData.length - 1]?.date || '')
+  };
 
-    // Filter data points that fall within this president's term
-    const presidentData = filteredData.filter(point => {
-      const pointDate = new Date(point.date);
-      const startDate = new Date(president.term.start);
-      const endDate = president.term.end ? new Date(president.term.end) : new Date();
-      return pointDate >= startDate && pointDate < endDate;
-    });
+  // Group data by president, but only include presidents who were in office during the date range
+  const presidentGroups = presidents
+    .filter(president => {
+      const termStart = new Date(president.term.start);
+      const termEnd = president.term.end ? new Date(president.term.end) : new Date();
+      return termStart <= dateRange.end && termEnd >= dateRange.start;
+    })
+    .map(president => {
+      const presidencyId = `${president.name}-${president.term.start}`;
+      
+      const presidentData = filteredData.filter(point => {
+        const pointDate = new Date(point.date);
+        const startDate = new Date(president.term.start);
+        const endDate = president.term.end ? new Date(president.term.end) : new Date();
+        return pointDate >= startDate && pointDate < endDate;
+      });
 
-    return {
-      president,
-      data: presidentData,
-      presidencyId
-    };
-  }).filter(group => group.data.length > 0);
+      return {
+        president,
+        data: presidentData,
+        presidencyId
+      };
+    })
+    .filter(group => group.data.length > 0);
 
   // Prepare chart data
   const chartData = {
