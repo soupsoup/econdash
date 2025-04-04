@@ -11,7 +11,18 @@ export default function DataUpload({ onUpload }: DataUploadProps) {
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) {
+    if (!file) return;
+
+    if (file.type.startsWith('image/')) {
+      // Handle image file
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const base64Data = event.target?.result as string;
+        localStorage.setItem(`image-${selectedIndicator}`, base64Data);
+      };
+      reader.readAsDataURL(file);
+    } else {
+      // Handle CSV file
       const reader = new FileReader();
       reader.onload = (event) => {
         setCsvContent(event.target?.result as string);
@@ -69,7 +80,7 @@ export default function DataUpload({ onUpload }: DataUploadProps) {
           <label className="block mb-2">Upload CSV (date,value,president):</label>
           <input 
             type="file" 
-            accept=".csv"
+            accept=".csv,image/*"
             onChange={handleFileUpload}
             className="w-full"
           />
