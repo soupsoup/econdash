@@ -91,6 +91,9 @@ const DetailChart: React.FC<DetailChartProps> = ({ data, filteredData }) => {
               `Total: ${Math.round(totalJobs).toLocaleString()} jobs`
             ];
           }
+          if (indicator.id === 'unemployment') {
+            return `${context.dataset.label}: ${Number(dataPoint.value).toFixed(1)}%`;
+          }
           return `${context.dataset.label}: ${context.formattedValue}`;
         }
       }
