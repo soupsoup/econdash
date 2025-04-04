@@ -76,6 +76,16 @@ const DetailChart: React.FC<DetailChartProps> = ({ data, filteredData }) => {
       const date = new Date(point.date);
       return date.toLocaleDateString(undefined, { year: 'numeric', month: 'short' });
     }),
+    datasets: [{
+      label: 'S&P 500',
+      data: filteredData.map(point => point.value),
+      borderColor: '#2563eb',
+      backgroundColor: '#2563eb33',
+      borderWidth: 2,
+      pointRadius: 2,
+      pointHoverRadius: 6,
+      tension: 0.3
+    }],
 
     // Set tooltip callbacks
     tooltip: {
