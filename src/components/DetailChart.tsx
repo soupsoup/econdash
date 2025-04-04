@@ -76,7 +76,7 @@ const DetailChart: React.FC<DetailChartProps> = ({ data, filteredData }) => {
       const date = new Date(point.date);
       return date.toLocaleDateString(undefined, { year: 'numeric', month: 'short' });
     }),
-    datasets: [{
+    datasets: data.indicator.id === 'sp500' ? [{
       label: 'S&P 500',
       data: filteredData.map(point => point.value),
       borderColor: '#2563eb',
@@ -85,7 +85,22 @@ const DetailChart: React.FC<DetailChartProps> = ({ data, filteredData }) => {
       pointRadius: 2,
       pointHoverRadius: 6,
       tension: 0.3
-    }],
+    }] : presidentGroups.map(group => ({
+      label: `${group.president.name} (${group.president.term.start.substring(0, 4)}-${group.president.term.end ? group.president.term.end.substring(0, 4) : 'Present'})`,
+      data: filteredData.map(point => {
+        const pointDate = new Date(point.date);
+        const startDate = new Date(group.president.term.start);
+        const endDate = group.president.term.end ? new Date(group.president.term.end) : new Date();
+        return (pointDate >= startDate && pointDate < endDate) ? point.value : null;
+      }),
+      borderColor: group.president.color,
+      backgroundColor: `${group.president.color}33`,
+      borderWidth: 2,
+      pointRadius: 2,
+      pointHoverRadius: 6,
+      tension: 0.3,
+      spanGaps: true
+    })),
 
     // Set tooltip callbacks
     tooltip: {
