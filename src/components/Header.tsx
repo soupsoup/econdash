@@ -64,9 +64,6 @@ const Header: React.FC<HeaderProps> = ({ lastUpdated, hasNewData, onRefresh }) =
                 <Trash2 className="h-4 w-4" />
               </button>
             </div>
-            <div className="mt-2 text-right">
-                <a href="/admin" className="text-sm text-gray-600 hover:text-blue-600">Admin Login</a>
-              </div>
           </div>
         </div>
 

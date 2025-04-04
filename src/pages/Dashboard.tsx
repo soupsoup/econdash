@@ -9,9 +9,6 @@ import ApiStatusChecker from '../components/ApiStatusChecker';
 import { AlertTriangle } from 'lucide-react';
 import ApiErrorNotice from '../components/MockDataNotice';
 
-import DataUpload from '../components/DataUpload';
-import { updateIndicatorData } from '../services/api';
-
 function Dashboard() {
   const [hasNewData, setHasNewData] = useState(false);
   const [apiErrors, setApiErrors] = useState<Record<string, string>>({});
@@ -173,7 +170,6 @@ function Dashboard() {
         </div>
 
         <div className="mt-6 space-y-6">
-          <DataUpload onUpload={handleDataUpload} />
           <DataSourceInfo />
         </div>
       </main>
