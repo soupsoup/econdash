@@ -52,6 +52,19 @@ export default function AdminDashboard() {
         }} />
       </div>
 
+      <div className="mb-8">
+        <h2 className="text-xl font-semibold mb-4">Data Preview</h2>
+        <div className="h-[400px] bg-white rounded-lg shadow p-4">
+          <DetailChart 
+            data={{
+              indicator: economicIndicators.find(i => i.id === selectedIndicator) || economicIndicators[0],
+              data: JSON.parse(localStorage.getItem(`indicator-${selectedIndicator}`) || '{"data":[]}').data || []
+            }}
+            filteredData={JSON.parse(localStorage.getItem(`indicator-${selectedIndicator}`) || '{"data":[]}').data || []}
+          />
+        </div>
+      </div>
+
       <div>
         <h2 className="text-xl font-semibold mb-4">Manage Data Points</h2>
         <AdminDataTable indicatorId={selectedIndicator} />
