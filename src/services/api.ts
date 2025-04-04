@@ -60,9 +60,15 @@ export const fetchIndicatorData = async (indicatorId: string): Promise<Indicator
 
   const localStorageKey = `indicator-${indicatorId}`;
   const storedData = getFromLocalStorage(localStorageKey);
+  const preferences = getDataSourcePreferences();
+  const useUploaded = preferences[indicatorId]?.useUploadedData;
+
+  if (useUploaded && !storedData) {
+    throw new Error('No uploaded data found. Please upload data first.');
+  }
 
   if (!storedData) {
-    throw new Error('No data found. Please upload data first.');
+    throw new Error('No data available.');
   }
 
   return storedData.data;

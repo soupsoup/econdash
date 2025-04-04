@@ -34,10 +34,10 @@ function Dashboard() {
     refetch,
     error
   } = useQuery('allIndicatorsData', fetchAllIndicatorsData, {
-    refetchOnWindowFocus: false,
-    staleTime: Infinity,
-    retry: 0,
-    enabled: false, // Disable automatic fetching
+    refetchOnWindowFocus: true,
+    staleTime: 0,
+    retry: 1,
+    enabled: true, // Enable automatic fetching
     cacheTime: Infinity,
     onSuccess: () => {
       // Update last updated timestamp
