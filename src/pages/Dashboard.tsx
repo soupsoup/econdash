@@ -70,7 +70,12 @@ function Dashboard() {
     };
     
     window.addEventListener('visibilitychange', handleVisibilityChange);
-    return () => window.removeEventListener('visibilitychange', handleVisibilityChange);
+    window.addEventListener('indicator-visibility-change', handleVisibilityChange);
+    
+    return () => {
+      window.removeEventListener('visibilitychange', handleVisibilityChange);
+      window.removeEventListener('indicator-visibility-change', handleVisibilityChange);
+    };
   }, [refetch]);
 
   useEffect(() => {
