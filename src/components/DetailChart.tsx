@@ -14,7 +14,6 @@ import { Line } from 'react-chartjs-2';
 import { IndicatorData, IndicatorDataPoint } from '../types';
 import { presidents } from '../data/presidents';
 
-// Register ChartJS components
 ChartJS.register(
   CategoryScale,
   LinearScale,
@@ -44,30 +43,18 @@ const DetailChart: React.FC<DetailChartProps> = ({ data, filteredData }) => {
     .filter(president => {
       const termStart = new Date(president.term.start);
       const termEnd = president.term.end ? new Date(president.term.end) : new Date();
-      // Only include presidents whose terms overlap with the data range
       return termStart <= dateRange.end && termEnd >= dateRange.start;
     })
-    .map(president => {
-      const presidencyId = `${president.name}-${president.term.start}`;
-
-      // Only include data points that fall within this president's term
-      const presidentData = filteredData.filter(point => {
+    .map(president => ({
+      president,
+      data: filteredData.filter(point => {
         const pointDate = new Date(point.date);
         const startDate = new Date(president.term.start);
         const endDate = president.term.end ? new Date(president.term.end) : new Date();
         return pointDate >= startDate && pointDate < endDate;
-      });
-
-      if (presidentData.length === 0) {
-        return null;
-      }
-
-      return {
-        president,
-        data: presidentData,
-        presidencyId
-      };
-    })
+      }),
+      presidencyId: `${president.name}-${president.term.start}`
+    }))
     .filter(group => group.data.length > 0);
 
   // Prepare chart data
@@ -76,7 +63,7 @@ const DetailChart: React.FC<DetailChartProps> = ({ data, filteredData }) => {
       const date = new Date(point.date);
       return date.toLocaleDateString(undefined, { year: 'numeric', month: 'short' });
     }),
-    datasets: data.indicator.id === 'sp500' ? [{
+    datasets: indicator.id === 'sp500' ? [{
       label: 'S&P 500',
       data: filteredData.map(point => point.value),
       borderColor: '#2563eb',
@@ -100,45 +87,7 @@ const DetailChart: React.FC<DetailChartProps> = ({ data, filteredData }) => {
       pointHoverRadius: 6,
       tension: 0.3,
       spanGaps: true
-    })),
-
-    // Set tooltip callbacks
-    tooltip: {
-      callbacks: {
-        label: function(context) {
-          const dataPoint = filteredData[context.dataIndex];
-          if (indicator.id === 'job-creation' && 'originalValue' in dataPoint) {
-            const monthlyChange = dataPoint.value;
-            const totalJobs = dataPoint.originalValue;
-            const prefix = monthlyChange > 0 ? '+' : '';
-            return [
-              `${context.dataset.label}: ${prefix}${Math.round(monthlyChange).toLocaleString()} jobs`,
-              `Total: ${Math.round(totalJobs).toLocaleString()} jobs`
-            ];
-          }
-          if (indicator.id === 'unemployment') {
-            return `${context.dataset.label}: ${Number(dataPoint.value).toFixed(1)}%`;
-          }
-          return `${context.dataset.label}: ${context.formattedValue}`;
-        }
-      }
-    },
-    datasets: presidentGroups.map(group => ({
-      label: `${group.president.name} (${group.president.term.start.substring(0, 4)}-${group.president.term.end ? group.president.term.end.substring(0, 4) : 'Present'})`,
-      data: filteredData.map(point => {
-        const pointDate = new Date(point.date);
-        const startDate = new Date(group.president.term.start);
-        const endDate = group.president.term.end ? new Date(group.president.term.end) : new Date();
-        return (pointDate >= startDate && pointDate < endDate) ? point.value : null;
-      }),
-        borderColor: group.president.color,
-        backgroundColor: `${group.president.color}33`,
-        borderWidth: 2,
-        pointRadius: 2,
-        pointHoverRadius: 6,
-        tension: 0.3,
-        spanGaps: true // This allows the line to skip null values
-      }))
+    }))
   };
 
   // Chart options
@@ -168,12 +117,12 @@ const DetailChart: React.FC<DetailChartProps> = ({ data, filteredData }) => {
               label += ': ';
             }
             if (context.parsed.y !== null) {
-              label += context.parsed.y.toFixed(2) + ' ' + indicator.unit;
+              label += context.parsed.y.toFixed(2);
             }
             return label;
           }
         }
-      },
+      }
     },
     scales: {
       x: {
@@ -198,9 +147,6 @@ const DetailChart: React.FC<DetailChartProps> = ({ data, filteredData }) => {
         ticks: {
           font: {
             size: 11
-          },
-          callback: function(value) {
-            return value + ' ' + indicator.unit;
           }
         }
       }
@@ -209,15 +155,6 @@ const DetailChart: React.FC<DetailChartProps> = ({ data, filteredData }) => {
       mode: 'nearest',
       axis: 'x',
       intersect: false
-    },
-    elements: {
-      line: {
-        borderWidth: 2
-      },
-      point: {
-        radius: 2,
-        hoverRadius: 6
-      }
     }
   };
 
