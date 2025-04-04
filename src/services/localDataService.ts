@@ -15,17 +15,29 @@ export async function loadSP500Data(): Promise<LocalDataPoint[]> {
     const dateIndex = headers.indexOf('Date');
     const valueIndex = headers.indexOf('Close');
 
+    if (dateIndex === -1 || valueIndex === -1) {
+      console.error('Required columns not found in CSV:', headers);
+      return [];
+    }
+
     const dataPoints = lines.slice(1)
       .map(line => {
         const values = line.split(',');
-        const [month, day, year] = values[dateIndex].split('/');
+        if (!values[dateIndex] || !values[valueIndex]) return null;
+        
+        const date = new Date(values[dateIndex]);
+        if (isNaN(date.getTime())) return null;
+        
+        const value = parseFloat(values[valueIndex].replace(/[^0-9.-]+/g, ''));
+        if (isNaN(value)) return null;
+
         return {
-          date: `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`,
-          value: parseFloat(values[valueIndex]),
-          president: 'Biden' // Since all data is from 2024-2025
+          date: date.toISOString().split('T')[0],
+          value: value,
+          president: 'Biden'
         };
       })
-      .filter(point => !isNaN(point.value));
+      .filter((point): point is LocalDataPoint => point !== null);
 
     // Sort by date in ascending order
     dataPoints.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
