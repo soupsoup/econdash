@@ -69,12 +69,21 @@ function Dashboard() {
       refetch();
     };
     
+    const handleIndicatorVisibilityChange = (event: Event) => {
+      const customEvent = event as CustomEvent;
+      if (customEvent.detail) {
+        // Force re-render when indicator visibility changes
+        setApiErrors({}); // Clear any errors
+        refetch();
+      }
+    };
+    
     window.addEventListener('visibilitychange', handleVisibilityChange);
-    window.addEventListener('indicator-visibility-change', handleVisibilityChange);
+    window.addEventListener('indicator-visibility-change', handleIndicatorVisibilityChange);
     
     return () => {
       window.removeEventListener('visibilitychange', handleVisibilityChange);
-      window.removeEventListener('indicator-visibility-change', handleVisibilityChange);
+      window.removeEventListener('indicator-visibility-change', handleIndicatorVisibilityChange);
     };
   }, [refetch]);
 
