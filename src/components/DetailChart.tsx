@@ -110,8 +110,7 @@ const DetailChart: React.FC<DetailChartProps> = ({ data, filteredData }) => {
         pointHoverRadius: 6,
         tension: 0.3,
         spanGaps: true // This allows the line to skip null values
-      };
-    })
+      }))
   };
 
   // Chart options
