@@ -18,13 +18,26 @@ export async function loadSP500Data(): Promise<LocalDataPoint[]> {
     
     const dataPoints = lines.slice(1).map(line => {
       const values = line.split(',');
+      // Parse date in MM/DD/YYYY format to YYYY-MM-DD
+      const [month, day, year] = values[dateIndex].split('/');
+      const formattedDate = `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
+      
       return {
-        date: values[dateIndex],
-        value: parseFloat(values[valueIndex])
+        date: formattedDate,
+        value: parseFloat(values[valueIndex]),
+        president: 'Biden' // Add president information if needed
       };
     });
     
+    // Sort by date in ascending order
     dataPoints.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+    
+    // Store in localStorage for admin panel
+    localStorage.setItem('indicator-sp500', JSON.stringify({
+      data: dataPoints,
+      lastUpdated: new Date().toISOString()
+    }));
+    
     return dataPoints;
   } catch (error) {
     console.error('Error loading S&P 500 data:', error);
