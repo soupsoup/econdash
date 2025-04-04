@@ -37,7 +37,10 @@ export default function AdminDashboard() {
 
       <div className="mb-8">
         <h2 className="text-xl font-semibold mb-4">Upload Data</h2>
-        <DataUpload onUpload={() => {}} />
+        <DataUpload onUpload={() => {
+          // Force a re-render of the data table
+          setSelectedIndicator(prev => prev);
+        }} />
       </div>
 
       <div>
