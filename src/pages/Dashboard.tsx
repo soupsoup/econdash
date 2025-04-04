@@ -63,6 +63,16 @@ function Dashboard() {
   });
 
   // Check for data updates every 5 minutes
+  // Listen for visibility changes
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      refetch();
+    };
+    
+    window.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => window.removeEventListener('visibilitychange', handleVisibilityChange);
+  }, [refetch]);
+
   useEffect(() => {
     const checkUpdates = async () => {
       try {
