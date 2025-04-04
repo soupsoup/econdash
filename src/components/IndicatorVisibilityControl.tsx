@@ -13,6 +13,7 @@ interface IndicatorVisibilityControlProps {
 export default function IndicatorVisibilityControl({ onVisibilityChange }: IndicatorVisibilityControlProps) {
   const [visibilitySettings, setVisibilitySettings] = useState<IndicatorVisibility>({});
   const [pendingSettings, setPendingSettings] = useState<IndicatorVisibility>({});
+  const [showSuccess, setShowSuccess] = useState(false);
 
   useEffect(() => {
     // Load current settings
@@ -48,6 +49,8 @@ export default function IndicatorVisibilityControl({ onVisibilityChange }: Indic
     if (onVisibilityChange) {
       onVisibilityChange();
     }
+    setShowSuccess(true);
+    setTimeout(() => setShowSuccess(false), 3000);
   };
 
   return (
@@ -67,12 +70,19 @@ export default function IndicatorVisibilityControl({ onVisibilityChange }: Indic
           </div>
         ))}
       </div>
-      <button
-        onClick={applyChanges}
-        className="mt-4 bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded"
-      >
-        Apply Changes
-      </button>
+      <div className="mt-4 flex items-center gap-4">
+        <button
+          onClick={applyChanges}
+          className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded"
+        >
+          Apply Changes
+        </button>
+        {showSuccess && (
+          <span className="text-green-600 animate-fade-in">
+            Changes applied successfully!
+          </span>
+        )}
+      </div>
     </div>
   );
 }
