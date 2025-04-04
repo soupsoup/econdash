@@ -13,7 +13,7 @@ export interface EconomicIndicator {
   name: string;
   description: string;
   unit: string;
-  source: 'BLS' | 'FederalReserve' | 'EIA';
+  source: 'BLS' | 'FederalReserve' | 'EIA' | 'TradingEconomics';
   sourceUrl: string;
   frequency: 'daily' | 'weekly' | 'monthly' | 'quarterly' | 'yearly';
   higherIsBetter: boolean;

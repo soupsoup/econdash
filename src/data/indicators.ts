@@ -2,6 +2,16 @@ import { EconomicIndicator } from '../types';
 
 export const economicIndicators: EconomicIndicator[] = [
   {
+    id: 'egg-prices',
+    name: 'Egg Prices',
+    description: 'Average price of a dozen Grade A large eggs in U.S. cities',
+    unit: 'USD',
+    source: 'TradingEconomics',
+    sourceUrl: 'https://tradingeconomics.com/united-states/egg-prices',
+    frequency: 'monthly',
+    higherIsBetter: false
+  },
+  {
     id: 'unemployment',
     name: 'Unemployment Rate',
     description: 'Percentage of the labor force that is unemployed and actively seeking employment',

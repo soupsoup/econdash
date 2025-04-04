@@ -3,6 +3,29 @@ import { IndicatorData, IndicatorDataPoint } from '../types';
 import { economicIndicators } from '../data/indicators';
 
 const LOCAL_STORAGE_PREFIX = 'presidential_dashboard_';
+const TRADING_ECONOMICS_BASE_URL = 'https://api.tradingeconomics.com/historical';
+
+async function fetchTradingEconomicsData(series: string): Promise<IndicatorDataPoint[]> {
+  const apiKey = process.env.TRADING_ECONOMICS_KEY;
+  if (!apiKey) {
+    throw new Error('Trading Economics API key not found');
+  }
+
+  const response = await fetch(
+    `${TRADING_ECONOMICS_BASE_URL}/united states/${series}?c=${apiKey}`
+  );
+  
+  if (!response.ok) {
+    throw new Error('Failed to fetch Trading Economics data');
+  }
+
+  const data = await response.json();
+  return data.map((point: any) => ({
+    date: point.DateTime,
+    value: point.Value,
+    president: '' // This will be filled in by the data processing logic
+  }));
+}
 const LAST_UPDATED_KEY = `${LOCAL_STORAGE_PREFIX}last_updated`;
 export const DATA_SOURCE_PREFERENCES_KEY = `${LOCAL_STORAGE_PREFIX}data_source_preferences`;
 
