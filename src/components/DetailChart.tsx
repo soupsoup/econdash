@@ -49,14 +49,19 @@ const DetailChart: React.FC<DetailChartProps> = ({ data, filteredData }) => {
     })
     .map(president => {
       const presidencyId = `${president.name}-${president.term.start}`;
-      
-      // For each data point, only include it if it falls within this president's term
+
+      // Create dataset with null values for points outside president's term
       const presidentData = filteredData.map(point => {
         const pointDate = new Date(point.date);
         const startDate = new Date(president.term.start);
-        const endDate = president.term.end ? new Date(president.term.end) : new Date();
-        return (pointDate >= startDate && pointDate < endDate) ? point : null;
-      }).filter(point => point !== null);
+        const endDate = new Date(president.term.end || new Date().toISOString());
+        return (pointDate >= startDate && pointDate < endDate) ? point.value : null;
+      });
+
+      // Only include presidents who have data points within their term
+      if (!presidentData.some(value => value !== null)) {
+        return null;
+      }
 
       return {
         president,
