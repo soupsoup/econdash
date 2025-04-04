@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery } from 'react-query';
@@ -73,7 +72,7 @@ const IndicatorDetail: React.FC = () => {
     const max = filteredData.length > 0 
       ? Math.max(...filteredData.map(point => point.value)) 
       : 0;
-    
+
     let processed = filteredData;
     if (indicatorData.indicator?.id === 'job-creation') {
       processed = filteredData.map((point, index, array) => {
@@ -311,7 +310,19 @@ const IndicatorDetail: React.FC = () => {
           </div>
 
           <div className={viewMode === 'table' ? 'block' : 'hidden'}>
-            <DataTable data={filteredData} indicator={indicator} />
+            <DataTable 
+              data={filteredData} 
+              indicator={indicator} 
+              onDeleteDataPoint={(point) => {
+                const newData = indicatorData.data.filter(d => d.date !== point.date);
+                refetch();
+                // Update local storage - this part is commented out because it's unclear how local storage is used in the broader application context
+                // localStorage.setItem(`indicator-${indicator.id}`, JSON.stringify({
+                //   indicator,
+                //   data: newData
+                // }));
+              }}
+            />
           </div>
         </div>
 
