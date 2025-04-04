@@ -43,6 +43,11 @@ export default function AdminDashboard() {
         }} />
       </div>
 
+      <div className="mb-8">
+        <h2 className="text-xl font-semibold mb-4">Indicator Visibility</h2>
+        <IndicatorVisibilityControl />
+      </div>
+
       <div>
         <h2 className="text-xl font-semibold mb-4">Manage Data Points</h2>
         <AdminDataTable indicatorId={selectedIndicator} />
