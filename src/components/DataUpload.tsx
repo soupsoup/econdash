@@ -36,15 +36,20 @@ export default function DataUpload({ onUpload }: DataUploadProps) {
     if (!selectedIndicator || !csvContent) return;
     
     try {
-      const lines = csvContent.split('\n');
+      const lines = csvContent.split('\n').filter(line => line.trim());
       const dataPoints = lines.slice(1).map(line => {
         const [date, value] = line.split(',');
+        if (!date || !value) throw new Error('Invalid CSV format');
         return {
           date: date.trim(),
           value: parseFloat(value.trim()),
-          president: '' // This will be calculated in the data service
+          president: ''
         };
       }).filter(point => !isNaN(point.value));
+
+      if (dataPoints.length === 0) {
+        throw new Error('No valid data points found in CSV');
+      }
 
       const localStorageKey = `indicator-${selectedIndicator}`;
       localStorage.setItem(localStorageKey, JSON.stringify({
@@ -52,9 +57,17 @@ export default function DataUpload({ onUpload }: DataUploadProps) {
         lastUpdated: new Date().toISOString()
       }));
       
+      // Clear form after successful upload
+      setCsvContent('');
+      setSelectedIndicator('');
+      
+      // Notify parent component
       onUpload();
+      
+      alert('Data uploaded successfully!');
     } catch (error) {
       console.error('Error processing CSV:', error);
+      alert('Error uploading data: ' + (error instanceof Error ? error.message : 'Invalid data format'));
     }
   };
 
