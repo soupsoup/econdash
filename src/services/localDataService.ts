@@ -6,6 +6,32 @@ export interface LocalDataPoint {
   value: number;
 }
 
+export async function loadSP500Data(): Promise<LocalDataPoint[]> {
+  try {
+    const response = await fetch('/attached_assets/SP500_DATA.csv');
+    const csvText = await response.text();
+    
+    const lines = csvText.split('\n').filter(line => line.trim().length > 0);
+    const headers = lines[0].split(',');
+    const dateIndex = headers.indexOf('Date');
+    const valueIndex = headers.indexOf('Close');
+    
+    const dataPoints = lines.slice(1).map(line => {
+      const values = line.split(',');
+      return {
+        date: values[dateIndex],
+        value: parseFloat(values[valueIndex])
+      };
+    });
+    
+    dataPoints.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+    return dataPoints;
+  } catch (error) {
+    console.error('Error loading S&P 500 data:', error);
+    return [];
+  }
+}
+
 export async function loadLocalJobCreationData(): Promise<LocalDataPoint[]> {
   try {
     // The CSV file is static and included in the build
