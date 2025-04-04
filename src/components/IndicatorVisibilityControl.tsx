@@ -44,8 +44,8 @@ export default function IndicatorVisibilityControl({ onVisibilityChange }: Indic
   const applyChanges = () => {
     setVisibilitySettings(pendingSettings);
     localStorage.setItem('indicator-visibility', JSON.stringify(pendingSettings));
-    // Force a refresh by triggering a custom event
-    window.dispatchEvent(new Event('visibilitychange'));
+    // Force a refresh by triggering storage event
+    window.dispatchEvent(new Event('storage'));
     if (onVisibilityChange) {
       onVisibilityChange();
     }
