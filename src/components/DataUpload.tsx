@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { economicIndicators } from '../data/indicators';
+import { setDataSourcePreference } from '../services/api';
 
 interface DataUploadProps {
   onUpload: () => void;
@@ -57,6 +58,11 @@ export default function DataUpload({ onUpload }: DataUploadProps) {
         lastUpdated: new Date().toISOString()
       }));
       
+      // Set preference to use uploaded data
+      setDataSourcePreference(selectedIndicator, {
+        useUploadedData: true
+      });
+
       // Clear form after successful upload
       setCsvContent('');
       setSelectedIndicator('');
@@ -64,7 +70,7 @@ export default function DataUpload({ onUpload }: DataUploadProps) {
       // Notify parent component
       onUpload();
       
-      alert('Data uploaded successfully!');
+      alert('Data uploaded successfully! The dashboard will now use your uploaded data.');
     } catch (error) {
       console.error('Error processing CSV:', error);
       alert('Error uploading data: ' + (error instanceof Error ? error.message : 'Invalid data format'));
