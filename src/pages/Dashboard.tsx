@@ -172,12 +172,14 @@ function Dashboard() {
 
         {!isLoading && !error && indicatorsData && (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-            {indicatorsData.filter(data => {
+            {indicatorsData.map(data => {
               const visibilitySettings = JSON.parse(localStorage.getItem('indicator-visibility') || '{}');
-              return visibilitySettings[data.indicator.id] ?? true;
-            }).map(data => (
-              <IndicatorCard key={data.indicator.id} data={data} isLoading={false} />
-            ))}
+              const isVisible = visibilitySettings[data.indicator.id];
+              // Only show if explicitly set to true
+              return isVisible ? (
+                <IndicatorCard key={data.indicator.id} data={data} isLoading={false} />
+              ) : null;
+            })}
           </div>
         )}
 
