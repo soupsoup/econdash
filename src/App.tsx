@@ -25,6 +25,7 @@ function App() {
         <Routes>
           <Route path="/" element={<Dashboard />} />
           <Route path="/indicator/:id" element={<IndicatorDetail />} />
+          <Route path="/admin" element={<AdminDashboard />} />
         </Routes>
       </ErrorBoundary>
       {/* Debug information */}
