@@ -19,13 +19,14 @@ const IndicatorChart: React.FC<IndicatorChartProps> = ({ data }) => {
   const options = {
     chart: {
       type: 'area',
-      height: 350,
+      height: 400,
       animations: {
         enabled: true
       },
       toolbar: {
         show: false
-      }
+      },
+      offsetY: 30 // Creates space at the top for labels
     },
     dataLabels: {
       enabled: false
@@ -46,37 +47,49 @@ const IndicatorChart: React.FC<IndicatorChartProps> = ({ data }) => {
     xaxis: {
       type: 'datetime',
       labels: {
-        datetimeFormatter: {
-          year: 'yyyy',
-          month: 'MMM yyyy'
+        rotate: -45,
+        format: 'MMM yyyy',
+        style: {
+          fontSize: '10px'
         }
+      },
+      tooltip: {
+        enabled: true
       }
-    },
-    annotations: {
-      xaxis: presidents.map(president => ({
-        x: new Date(president.term.start).getTime(),
-        x2: president.term.end ? new Date(president.term.end).getTime() : new Date().getTime(),
-        fillColor: president.party === 'Democratic' ? '#1450C41A' : '#C414141A',
-        opacity: 0.1,
-        label: {
-          text: president.name,
-          style: {
-            fontSize: '10px',
-            color: '#666'
-          }
-        }
-      }))
     },
     tooltip: {
       x: {
         format: 'MMM yyyy'
       }
     },
+    annotations: {
+      xaxis: presidents.map((president, index) => ({
+        x: new Date(president.term.start).getTime(),
+        x2: president.term.end
+          ? new Date(president.term.end).getTime()
+          : new Date().getTime(),
+        fillColor: 'transparent',
+        borderColor: president.party === 'Democratic' ? '#1450C4' : '#C41414',
+        strokeDashArray: 5,
+        opacity: 0.1,
+        label: {
+          text: president.name,
+          position: 'top',
+          orientation: 'horizontal',
+          offsetY: -30 - (index % 2) * 15, // staggers the labels vertically
+          style: {
+            fontSize: '10px',
+            color: '#555',
+            background: 'transparent'
+          }
+        }
+      }))
+    },
     colors: ['#3b82f6']
   };
 
   return (
-    <div style={{ height: '400px', position: 'relative' }}>
+    <div style={{ height: '450px', position: 'relative', marginTop: '20px' }}>
       <ReactApexChart 
         options={options}
         series={series}
