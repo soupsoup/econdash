@@ -1,3 +1,4 @@
+
 import React from 'react';
 import ReactApexChart from 'react-apexcharts';
 import { IndicatorData } from '../types';
@@ -25,8 +26,7 @@ const IndicatorChart: React.FC<IndicatorChartProps> = ({ data }) => {
       },
       toolbar: {
         show: false
-      },
-      offsetY: 30 // Creates space at the top for labels
+      }
     },
     dataLabels: {
       enabled: false
@@ -68,15 +68,13 @@ const IndicatorChart: React.FC<IndicatorChartProps> = ({ data }) => {
         x2: president.term.end
           ? new Date(president.term.end).getTime()
           : new Date().getTime(),
-        fillColor: 'transparent',
-        borderColor: president.party === 'Democratic' ? '#1450C4' : '#C41414',
-        strokeDashArray: 5,
+        fillColor: president.party === 'Democratic' ? '#1450C4' : '#C41414',
         opacity: 0.1,
         label: {
           text: president.name,
           position: 'top',
           orientation: 'horizontal',
-          offsetY: -30 - (index % 2) * 15, // staggers the labels vertically
+          offsetY: -30 - (index % 2) * 15,
           style: {
             fontSize: '10px',
             color: '#555',
@@ -89,7 +87,7 @@ const IndicatorChart: React.FC<IndicatorChartProps> = ({ data }) => {
   };
 
   return (
-    <div style={{ height: '450px', position: 'relative', marginTop: '20px' }}>
+    <div style={{ height: '400px', position: 'relative' }}>
       <ReactApexChart 
         options={options}
         series={series}
