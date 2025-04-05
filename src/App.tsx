@@ -9,6 +9,7 @@ import { fetchAllIndicatorsData } from './services/api';
 import ErrorBoundary from './components/ErrorBoundary'; // Assuming ErrorBoundary component exists
 
 function App() {
+  console.log('App component rendering');
   const { error } = useQuery('dataSourceCheck', fetchAllIndicatorsData, {
     refetchOnWindowFocus: false,
     staleTime: Infinity,

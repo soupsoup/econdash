@@ -11,6 +11,7 @@ export default defineConfig({
   server: {
     host: '0.0.0.0',
     port: 3000,
+    strictPort: true,
     hmr: {
       overlay: true,
       host: '0.0.0.0',
@@ -25,7 +26,7 @@ export default defineConfig({
         configure: (proxy) => {
           proxy.on('proxyReq', (proxyReq, req, res) => {
             proxyReq.setHeader('Content-Type', 'application/json');
-            
+
             if (req.method === 'POST' && req.body) {
               const bodyData = typeof req.body === 'string' ? JSON.parse(req.body) : req.body;
               const modifiedBody = JSON.stringify(bodyData);
