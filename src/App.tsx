@@ -10,6 +10,8 @@ import ErrorBoundary from './components/ErrorBoundary'; // Assuming ErrorBoundar
 
 function App() {
   console.log('App component rendering');
+  // Temporary debug element
+  return <div className="p-5">App is loading...</div>;
   const { error } = useQuery('dataSourceCheck', fetchAllIndicatorsData, {
     refetchOnWindowFocus: false,
     staleTime: Infinity,

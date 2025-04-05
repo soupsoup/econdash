@@ -16,7 +16,8 @@ console.log("Root element found:", !!rootElement);
 
 if (rootElement) {
   try {
-    createRoot(rootElement).render(
+    const root = createRoot(rootElement);
+    root.render(
       <StrictMode>
         <BrowserRouter>
           <QueryClientProvider client={queryClient}>
