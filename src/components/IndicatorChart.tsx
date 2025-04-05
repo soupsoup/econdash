@@ -1,114 +1,94 @@
-
-import React from 'react';
-import ReactApexChart from 'react-apexcharts';
-import { IndicatorData } from '../types';
-import { presidents } from '../data/presidents';
-
-interface IndicatorChartProps {
-  data: IndicatorData;
-}
-
-const IndicatorChart: React.FC<IndicatorChartProps> = ({ data }) => {
-  const series = [{
-    name: data.indicator.name,
-    data: data.data.map(point => ([
-      new Date(point.date).getTime(),
-      point.value
-    ]))
-  }];
-
-  const options = {
-    chart: {
-      type: 'area',
-      height: 400,
-      animations: {
-        enabled: true
-      },
-      toolbar: {
-        show: false
-      },
-      fontFamily: 'system-ui, -apple-system, sans-serif'
+const options = {
+  chart: {
+    type: "area",
+    height: 400,
+    animations: {
+      enabled: true,
     },
-    dataLabels: {
-      enabled: false
+    toolbar: {
+      show: false,
     },
-    stroke: {
-      curve: 'smooth',
-      width: 2,
-      colors: ['#2563eb']
+    fontFamily: "system-ui, -apple-system, sans-serif",
+    offsetY: 30,
+  },
+  dataLabels: {
+    enabled: false,
+  },
+  stroke: {
+    curve: "smooth",
+    width: 2,
+    colors: ["#2563eb"],
+  },
+  fill: {
+    type: "gradient",
+    gradient: {
+      shadeIntensity: 0.8,
+      opacityFrom: 0.3,
+      opacityTo: 0.1,
+      stops: [0, 90, 100],
     },
-    fill: {
-      type: 'gradient',
-      gradient: {
-        shadeIntensity: 0.8,
-        opacityFrom: 0.3,
-        opacityTo: 0.1,
-        stops: [0, 90, 100]
-      },
-      colors: ['#2563eb']
-    },
-    grid: {
-      borderColor: '#f1f5f9',
-      strokeDashArray: 4,
-      xaxis: {
-        lines: {
-          show: false
-        }
-      }
-    },
+    colors: ["#2563eb"],
+  },
+  grid: {
+    borderColor: "#f1f5f9",
+    strokeDashArray: 4,
     xaxis: {
-      type: 'datetime',
-      labels: {
-        rotate: -45,
-        format: 'MMM yyyy',
-        style: {
-          fontSize: '10px'
-        }
+      lines: {
+        show: false,
       },
-      tooltip: {
-        enabled: true
-      }
+    },
+  },
+  xaxis: {
+    type: "datetime",
+    labels: {
+      rotate: -45,
+      format: "MMM yyyy",
+      style: {
+        fontSize: "10px",
+      },
     },
     tooltip: {
-      x: {
-        format: 'MMM yyyy'
-      }
+      enabled: true,
     },
-    annotations: {
-      xaxis: presidents.map(president => ({
+  },
+  tooltip: {
+    x: {
+      format: "MMM yyyy",
+    },
+  },
+  annotations: {
+    xaxis: [
+      // Shaded term ranges
+      ...presidents.map((president) => ({
         x: new Date(president.term.start).getTime(),
         x2: president.term.end
           ? new Date(president.term.end).getTime()
           : new Date().getTime(),
-        borderColor: president.party === 'Democratic' ? '#2563eb' : '#dc2626',
-        strokeDashArray: 5,
-        borderWidth: 1,
-        opacity: 0.1,
+        fillColor: president.party === "Democratic" ? "#2563eb20" : "#dc262620",
+        opacity: 0.15,
+        borderWidth: 0,
+        label: { text: "" },
+      })),
+      // Top-positioned name labels
+      ...presidents.map((president, index) => ({
+        x: new Date(president.term.start).getTime(),
         label: {
-          text: `${president.name}\n${new Date(president.term.start).getFullYear()}–${president.term.end ? new Date(president.term.end).getFullYear() : '2025'}`,
-          position: 'bottom',
+          text: president.name,
+          position: "top",
+          orientation: "horizontal",
+          offsetY: -30 - (index % 2) * 15,
           style: {
-            color: president.party === 'Democratic' ? '#2563eb' : '#dc2626',
-            fontSize: '14px',
+            color: president.party === "Democratic" ? "#2563eb" : "#dc2626",
+            fontSize: "12px",
             fontWeight: 600,
-            background: 'transparent'
-          }
-        }
-      }))
-    },
-    colors: ['#3b82f6']
-  };
-
-  return (
-    <div style={{ height: '400px', position: 'relative' }}>
-      <ReactApexChart 
-        options={options}
-        series={series}
-        type="area"
-        height={400}
-      />
-    </div>
-  );
+            background: "transparent",
+          },
+        },
+        borderColor: president.party === "Democratic" ? "#2563eb" : "#dc2626",
+        strokeDashArray: 5,
+        opacity: 0.3,
+      })),
+    ],
+  },
+  colors: ["#3b82f6"],
 };
-
-export default IndicatorChart;
