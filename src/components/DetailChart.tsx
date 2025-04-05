@@ -1,4 +1,3 @@
-
 import React, { useRef } from 'react';
 import {
   Chart as ChartJS,
@@ -50,13 +49,16 @@ const DetailChart: React.FC<DetailChartProps> = ({ data, filteredData }) => {
     datasets: [{
       label: data.indicator.name,
       data: sortedData.map(point => point.value),
-      borderColor: '#2563eb',
-      backgroundColor: '#2563eb20',
-      borderWidth: 2,
+      borderColor: '#3b82f6',
+      backgroundColor: 'rgba(59, 130, 246, 0.1)',
+      borderWidth: 2.5,
       fill: true,
-      tension: 0.4,
-      pointRadius: 0,
+      tension: 0.2,
+      pointRadius: 1,
       pointHoverRadius: 6,
+      pointBackgroundColor: '#3b82f6',
+      pointBorderColor: '#fff',
+      pointBorderWidth: 1,
     }]
   };
 
