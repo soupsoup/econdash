@@ -1,28 +1,7 @@
-import React, { useRef } from 'react';
-import {
-  Chart as ChartJS,
-  CategoryScale,
-  LinearScale,
-  PointElement,
-  LineElement,
-  Title,
-  Tooltip,
-  Legend,
-  Chart
-} from 'chart.js';
-import { Line } from 'react-chartjs-2';
+import React from 'react';
+import ReactApexChart from 'react-apexcharts';
 import { IndicatorData } from '../types';
 import { presidents } from '../data/presidents';
-
-ChartJS.register(
-  CategoryScale,
-  LinearScale,
-  PointElement,
-  LineElement,
-  Title,
-  Tooltip,
-  Legend
-);
 
 interface DetailChartProps {
   data: IndicatorData;
@@ -30,131 +9,88 @@ interface DetailChartProps {
 }
 
 const DetailChart: React.FC<DetailChartProps> = ({ data, filteredData }) => {
-  const chartRef = useRef<Chart<"line">>(null);
   const sortedData = [...filteredData].sort((a, b) => 
     new Date(a.date).getTime() - new Date(b.date).getTime()
   );
 
-  // Format dates for labels
-  const labels = sortedData.map(point => {
-    const date = new Date(point.date);
-    return date.toLocaleDateString('en-US', { 
-      year: 'numeric',
-      month: 'short'
-    });
-  });
-
-  const chartData = {
-    labels,
-    datasets: [{
-      label: data.indicator.name,
-      data: sortedData.map(point => point.value),
-      borderColor: '#3b82f6',
-      backgroundColor: 'rgba(59, 130, 246, 0.1)',
-      borderWidth: 2.5,
-      fill: true,
-      tension: 0.2,
-      pointRadius: 1,
-      pointHoverRadius: 6,
-      pointBackgroundColor: '#3b82f6',
-      pointBorderColor: '#fff',
-      pointBorderWidth: 1,
-    }]
-  };
-
-  // Custom plugin to draw presidential terms
-  const presidentialTermsPlugin = {
-    id: 'presidentialTerms',
-    beforeDraw(chart: Chart) {
-      const { ctx, chartArea, scales } = chart;
-      if (!chartArea) return;
-
-      // Draw presidential terms
-      presidents.forEach(president => {
-        const startDate = new Date(president.term.start);
-        const endDate = president.term.end ? new Date(president.term.end) : new Date();
-
-        // Find corresponding pixels on chart
-        const startPixel = scales.x.getPixelForValue(
-          startDate.toLocaleDateString('en-US', { year: 'numeric', month: 'short' })
-        );
-        const endPixel = scales.x.getPixelForValue(
-          endDate.toLocaleDateString('en-US', { year: 'numeric', month: 'short' })
-        );
-
-        if (startPixel && endPixel) {
-          // Draw background
-          ctx.fillStyle = president.party === 'Democratic' ? '#1450C41A' : '#C414141A';
-          ctx.fillRect(startPixel, chartArea.top, endPixel - startPixel, chartArea.height);
-
-          // Draw president name
-          ctx.save();
-          ctx.textAlign = 'center';
-          ctx.fillStyle = '#666';
-          ctx.font = '10px Arial';
-          ctx.fillText(president.name, startPixel + (endPixel - startPixel) / 2, chartArea.top + 12);
-          ctx.restore();
-        }
-      });
-    }
-  };
+  const series = [{
+    name: data.indicator.name,
+    data: sortedData.map(point => ([
+      new Date(point.date).getTime(),
+      point.value
+    ]))
+  }];
 
   const options = {
-    responsive: true,
-    maintainAspectRatio: false,
-    plugins: {
-      legend: {
-        display: false
+    chart: {
+      type: 'area',
+      height: 350,
+      animations: {
+        enabled: true
       },
-      tooltip: {
-        mode: 'index' as const,
-        intersect: false,
-        callbacks: {
-          afterTitle: (items: any[]) => {
-            if (items.length > 0) {
-              const date = new Date(sortedData[items[0].dataIndex].date);
-              const president = presidents.find(p => {
-                const startDate = new Date(p.term.start);
-                const endDate = p.term.end ? new Date(p.term.end) : new Date();
-                return date >= startDate && date < endDate;
-              });
-              return president ? `President: ${president.name}` : '';
-            }
-            return '';
-          }
+      toolbar: {
+        show: true
+      }
+    },
+    dataLabels: {
+      enabled: false
+    },
+    stroke: {
+      curve: 'smooth',
+      width: 2.5
+    },
+    fill: {
+      type: 'gradient',
+      gradient: {
+        shadeIntensity: 1,
+        opacityFrom: 0.3,
+        opacityTo: 0.1,
+        stops: [0, 100]
+      }
+    },
+    xaxis: {
+      type: 'datetime',
+      labels: {
+        datetimeFormatter: {
+          year: 'yyyy',
+          month: 'MMM yyyy'
         }
       }
     },
-    scales: {
-      x: {
-        grid: {
-          display: false
-        },
-        ticks: {
-          maxRotation: 45,
-          autoSkip: true,
-          maxTicksLimit: 12
-        }
-      },
-      y: {
-        beginAtZero: false,
-        grid: {
-          color: '#f0f0f0'
-        },
-        title: {
-          display: true,
-          text: data.indicator.unit
-        }
+    yaxis: {
+      title: {
+        text: data.indicator.unit
       }
-    }
+    },
+    annotations: {
+      xaxis: presidents.map(president => ({
+        x: new Date(president.term.start).getTime(),
+        x2: president.term.end ? new Date(president.term.end).getTime() : new Date().getTime(),
+        fillColor: president.party === 'Democratic' ? '#1450C41A' : '#C414141A',
+        opacity: 0.1,
+        label: {
+          text: president.name,
+          style: {
+            fontSize: '10px',
+            color: '#666'
+          }
+        }
+      }))
+    },
+    tooltip: {
+      x: {
+        format: 'MMM yyyy'
+      }
+    },
+    colors: ['#3b82f6']
   };
 
   return (
-    <Line
-      ref={chartRef}
-      data={chartData}
+    <ReactApexChart 
       options={options}
-      plugins={[presidentialTermsPlugin]}
+      series={series}
+      type="area"
+      height={350}
     />
   );
 };
