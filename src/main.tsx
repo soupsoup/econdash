@@ -14,10 +14,12 @@ console.log("Main.tsx is executing");
 const rootElement = document.getElementById('root');
 console.log("Root element found:", !!rootElement);
 
-if (rootElement) {
-  try {
-    const root = createRoot(rootElement);
-    root.render(
+if (!rootElement) {
+  throw new Error('Root element not found');
+}
+try {
+  const root = createRoot(rootElement);
+  root.render(
       <StrictMode>
         <BrowserRouter>
           <QueryClientProvider client={queryClient}>

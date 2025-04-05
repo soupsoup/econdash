@@ -9,11 +9,11 @@ export default defineConfig({
     exclude: ['lucide-react'],
   },
   server: {
-    host: '0.0.0.0',
+    host: true,
     port: 4000,
     strictPort: true,
     hmr: {
-      overlay: true,
+      clientPort: 443,
       host: '0.0.0.0',
     },
     proxy: {
