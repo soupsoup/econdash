@@ -10,8 +10,6 @@ import ErrorBoundary from './components/ErrorBoundary'; // Assuming ErrorBoundar
 
 function App() {
   console.log('App component rendering');
-  // Temporary debug element
-  return <div className="p-5">App is loading...</div>;
   const { error } = useQuery('dataSourceCheck', fetchAllIndicatorsData, {
     refetchOnWindowFocus: false,
     staleTime: Infinity,
@@ -32,7 +30,7 @@ function App() {
           <Route path="/admin" element={<AdminDashboard />} />
         </Routes>
       </ErrorBoundary>
-      {/* Debug information */}
+      <DebugInfo />
       <div className="p-5 m-5 bg-white border border-gray-200 rounded shadow">
         <h1 className="text-2xl font-bold mb-4">Presidential Economic Dashboard</h1>
         <p className="mb-4">This dashboard is loading. If you see this message, React is working but there might be issues with the components.</p>
