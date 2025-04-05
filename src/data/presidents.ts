@@ -1,4 +1,3 @@
-
 import { President } from '../types';
 
 export const presidents: President[] = [
@@ -39,7 +38,7 @@ export const presidents: President[] = [
     color: '#2471A3'
   },
   {
-    name: 'Donald J. Trump',
+    name: 'Donald Trump',
     party: 'Republican',
     term: {
       start: '2017-01-20',
@@ -57,7 +56,7 @@ export const presidents: President[] = [
     color: '#1A5276'
   },
   {
-    name: 'Donald J. Trump',
+    name: 'Donald Trump',
     party: 'Republican',
     term: {
       start: '2025-01-20',
@@ -74,23 +73,10 @@ export const getCurrentPresident = (): President => {
 
 export const getPresidentByDate = (date: string): President | undefined => {
   const dateObj = new Date(date);
-  
+
   return presidents.find(president => {
     const startDate = new Date(president.term.start);
     const endDate = president.term.end ? new Date(president.term.end) : new Date();
-    
-    if (date.endsWith('-01-01')) {
-      const year = parseInt(date.substring(0, 4));
-      const startYear = startDate.getFullYear();
-      const endYear = endDate.getFullYear();
-      
-      if (startDate.getMonth() <= 5) {
-        return year >= startYear && year < (president.term.end ? endYear + 1 : new Date().getFullYear() + 1);
-      } else {
-        return year > startYear && year < (president.term.end ? endYear + 1 : new Date().getFullYear() + 1);
-      }
-    }
-    
     return dateObj >= startDate && dateObj < endDate;
   });
 };
