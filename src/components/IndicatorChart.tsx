@@ -106,8 +106,67 @@ const IndicatorChart: React.FC<IndicatorChartProps> = ({ data }) => {
       tooltip: {
         mode: 'index',
         intersect: false,
+        callbacks: {
+          afterTitle: (items) => {
+            if (items.length > 0) {
+              const date = new Date(filteredData[items[0].dataIndex].date);
+              const president = presidents.find(p => {
+                const startDate = new Date(p.term.start);
+                const endDate = p.term.end ? new Date(p.term.end) : new Date();
+                return date >= startDate && date < endDate;
+              });
+              return president ? `President: ${president.name}` : '';
+            }
+            return '';
+          }
+        }
       },
     },
+    plugins: [{
+      id: 'presidentalTerms',
+      beforeDraw: (chart) => {
+        const ctx = chart.ctx;
+        const chartArea = chart.chartArea;
+        const meta = chart.getDatasetMeta(0);
+        
+        presidents.forEach(president => {
+          const startDate = new Date(president.term.start);
+          const endDate = president.term.end ? new Date(president.term.end) : new Date();
+          
+          // Find start and end pixels
+          const startPixel = chart.scales.x.getPixelForValue(
+            startDate.toLocaleDateString(undefined, { year: '2-digit', month: 'short' })
+          );
+          const endPixel = chart.scales.x.getPixelForValue(
+            endDate.toLocaleDateString(undefined, { year: '2-digit', month: 'short' })
+          );
+          
+          if (!isNaN(startPixel) && !isNaN(endPixel)) {
+            // Draw background
+            ctx.fillStyle = `${president.color}15`;
+            ctx.fillRect(
+              startPixel,
+              chartArea.top,
+              endPixel - startPixel,
+              chartArea.height
+            );
+            
+            // Draw president name
+            ctx.save();
+            ctx.fillStyle = president.color;
+            ctx.font = '10px Arial';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'top';
+            ctx.fillText(
+              president.name,
+              startPixel + (endPixel - startPixel) / 2,
+              chartArea.top + 5
+            );
+            ctx.restore();
+          }
+        });
+      }
+    }],
     scales: {
       x: {
         display: true,
