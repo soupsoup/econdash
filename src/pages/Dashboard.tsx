@@ -172,8 +172,7 @@ function Dashboard() {
           <ApiStatusChecker />
         </div>
 
-        <div className="mt-6 space-y-6">
-          <DataUpload onUpload={handleDataUpload} />
+        <div className="mt-6">
           <DataSourceInfo />
         </div>
       </main>

@@ -6,6 +6,7 @@ import IndicatorDetail from './pages/IndicatorDetail';
 import ApiStatusBanner from './components/ApiStatusBanner';
 import { fetchAllIndicatorsData } from './services/api';
 import ErrorBoundary from './components/ErrorBoundary'; // Assuming ErrorBoundary component exists
+import AdminDashboard from './pages/AdminDashboard'; // Added import for AdminDashboard
 
 function App() {
   const { error } = useQuery('dataSourceCheck', fetchAllIndicatorsData, {
@@ -25,6 +26,7 @@ function App() {
         <Routes>
           <Route path="/" element={<Dashboard />} />
           <Route path="/indicator/:id" element={<IndicatorDetail />} />
+          <Route path="/admin" element={<AdminDashboard />} />
         </Routes>
       </ErrorBoundary>
       {/* Debug information */}
