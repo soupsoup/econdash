@@ -1,9 +1,11 @@
+
 import React, { useState } from 'react';
 import { economicIndicators } from '../data/indicators';
+import { IndicatorDataPoint } from '../types';
 import { setDataSourcePreference } from '../services/api';
 
 interface DataUploadProps {
-  onUpload: () => void;
+  onUpload: (data: IndicatorDataPoint[], indicatorId: string) => void;
 }
 
 export default function DataUpload({ onUpload }: DataUploadProps) {
@@ -14,71 +16,57 @@ export default function DataUpload({ onUpload }: DataUploadProps) {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    if (file.type.startsWith('image/')) {
-      // Handle image file
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        const base64Data = event.target?.result as string;
-        localStorage.setItem(`image-${selectedIndicator}`, base64Data);
-      };
-      reader.readAsDataURL(file);
-    } else {
-      // Handle CSV file
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        setCsvContent(event.target?.result as string);
-      };
-      reader.readAsText(file);
-    }
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      setCsvContent(event.target?.result as string);
+    };
+    reader.readAsText(file);
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedIndicator || !csvContent) return;
+
+    const lines = csvContent.trim().split('\n');
+    let data: IndicatorDataPoint[];
     
-    try {
-      const lines = csvContent.split('\n').filter(line => line.trim());
-      const dataPoints = lines.slice(1).map(line => {
+    // Parse based on indicator type
+    if (selectedIndicator === 'inflation' || selectedIndicator === 'unemployment') {
+      data = lines.slice(1).map(line => {
+        const [rawDate, rawValue] = line.split(',');
+        // Parse date from "YYYY-MMM" format to "YYYY-MM-DD"
+        const [year, month] = rawDate.trim().split('-');
+        const monthNum = new Date(Date.parse(month + " 1, " + year)).getMonth() + 1;
+        const formattedDate = `${year}-${monthNum.toString().padStart(2, '0')}-01`;
+        
+        return {
+          date: formattedDate,
+          value: rawValue.trim() ? parseFloat(rawValue.trim()) : null,
+          president: '' // Will be determined by date
+        };
+      }).filter(point => point.value !== null);
+    } else {
+      // Default format for other indicators
+      data = lines.slice(1).map(line => {
         const [date, value, president] = line.split(',');
-        if (!date || !value || !president) throw new Error('Invalid CSV format');
         return {
           date: date.trim(),
           value: parseFloat(value.trim()),
-          president: president.trim()
+          president: president?.trim() || ''
         };
-      }).filter(point => !isNaN(point.value));
-
-      if (dataPoints.length === 0) {
-        throw new Error('No valid data points found in CSV');
-      }
-
-      const localStorageKey = `indicator-${selectedIndicator}`;
-      localStorage.setItem(localStorageKey, JSON.stringify({
-        data: dataPoints,
-        lastUpdated: new Date().toISOString()
-      }));
-      
-      // Set preference to use uploaded data
-      setDataSourcePreference(selectedIndicator, {
-        useUploadedData: true
       });
-
-      // Clear form after successful upload
-      setCsvContent('');
-      setSelectedIndicator('');
-      
-      // Notify parent component
-      onUpload();
-      
-      alert('Data uploaded successfully! The dashboard will now use your uploaded data.');
-    } catch (error) {
-      console.error('Error processing CSV:', error);
-      alert('Error uploading data: ' + (error instanceof Error ? error.message : 'Invalid data format'));
     }
+
+    // Set preference to use uploaded data
+    setDataSourcePreference(selectedIndicator, { useUploadedData: true });
+    onUpload(data, selectedIndicator);
+    setCsvContent('');
+    setSelectedIndicator('');
   };
 
   return (
     <div className="p-4 bg-white rounded-lg shadow">
+      <h2 className="text-lg font-semibold mb-4">Upload Indicator Data</h2>
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
           <label className="block mb-2">Select Indicator:</label>
@@ -99,7 +87,7 @@ export default function DataUpload({ onUpload }: DataUploadProps) {
           <label className="block mb-2">Upload CSV (date,value,president):</label>
           <input 
             type="file" 
-            accept=".csv,image/*"
+            accept=".csv"
             onChange={handleFileUpload}
             className="w-full"
           />

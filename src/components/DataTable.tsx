@@ -6,7 +6,6 @@ import { ChevronUp, ChevronDown } from 'lucide-react';
 interface DataTableProps {
   data: IndicatorDataPoint[];
   indicator: EconomicIndicator;
-  onDeleteDataPoint: (point: IndicatorDataPoint) => void;
 }
 
 type SortField = 'date' | 'value' | 'president';
@@ -106,12 +105,6 @@ const DataTable: React.FC<DataTableProps> = ({ data, indicator }) => {
                   President {renderSortIcon('president')}
                 </span>
               </th>
-              <th 
-                scope="col" 
-                className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider"
-              >
-                Actions
-              </th>
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
@@ -125,14 +118,6 @@ const DataTable: React.FC<DataTableProps> = ({ data, indicator }) => {
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                   {point.president}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-center">
-                  <button
-                    onClick={() => props.onDeleteDataPoint(point)}
-                    className="text-red-600 hover:text-red-800"
-                  >
-                    Delete
-                  </button>
                 </td>
               </tr>
             ))}

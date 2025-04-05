@@ -1,115 +1,199 @@
 import React from 'react';
-import ReactApexChart from 'react-apexcharts';
-import { IndicatorData } from '../types';
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  Title,
+  Tooltip,
+  Legend,
+  ChartOptions
+} from 'chart.js';
+import { Line } from 'react-chartjs-2';
+import { IndicatorData, IndicatorDataPoint } from '../types';
 import { presidents } from '../data/presidents';
+
+// Register ChartJS components
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  Title,
+  Tooltip,
+  Legend
+);
 
 interface DetailChartProps {
   data: IndicatorData;
-  filteredData: any[];
+  filteredData: IndicatorDataPoint[];
 }
 
 const DetailChart: React.FC<DetailChartProps> = ({ data, filteredData }) => {
-  const sortedData = [...filteredData].sort((a, b) => 
-    new Date(a.date).getTime() - new Date(b.date).getTime()
-  );
+  const { indicator } = data;
 
-  const series = [{
-    name: data.indicator.name,
-    data: sortedData.map(point => ([
-      new Date(point.date).getTime(),
-      point.value
-    ]))
-  }];
-
-  const options = {
-    chart: {
-      type: 'area',
-      height: 350,
-      animations: {
-        enabled: true
-      },
-      toolbar: {
-        show: false
-      },
-      fontFamily: 'system-ui, -apple-system, sans-serif'
-    },
-    dataLabels: {
-      enabled: false
-    },
-    stroke: {
-      curve: 'smooth',
-      width: 2,
-      colors: ['#2563eb']
-    },
-    fill: {
-      type: 'gradient',
-      gradient: {
-        shadeIntensity: 0.8,
-        opacityFrom: 0.3,
-        opacityTo: 0.1,
-        stops: [0, 90, 100]
-      },
-      colors: ['#2563eb']
-    },
-    grid: {
-      borderColor: '#f1f5f9',
-      strokeDashArray: 4,
-      xaxis: {
-        lines: {
-          show: false
-        }
-      }
-    },
-    xaxis: {
-      type: 'datetime',
-      labels: {
-        datetimeFormatter: {
-          year: 'yyyy',
-          month: 'MMM yyyy'
-        }
-      }
-    },
-    yaxis: {
-      title: {
-        text: data.indicator.unit
-      }
-    },
-    annotations: {
-      xaxis: presidents.map(president => ({
-        x: new Date(president.term.start).getTime(),
-        x2: president.term.end ? new Date(president.term.end).getTime() : new Date().getTime(),
-        borderColor: president.party === 'Democratic' ? '#2563eb' : '#dc2626',
-        strokeDashArray: 5,
-        borderWidth: 1,
-        opacity: 0.1,
-        label: {
-          text: `${president.name}\n${new Date(president.term.start).getFullYear()}–${president.term.end ? new Date(president.term.end).getFullYear() : '2025'}`,
-          position: 'bottom',
-          style: {
-            color: president.party === 'Democratic' ? '#2563eb' : '#dc2626',
-            fontSize: '14px',
-            fontWeight: 600,
-            background: 'transparent'
-          }
-        }
-      }))
-    },
-    tooltip: {
-      x: {
-        format: 'MMM yyyy'
-      }
-    },
-    colors: ['#3b82f6']
+  // Get date range from filtered data
+  const dateRange = {
+    start: new Date(filteredData[0]?.date || ''),
+    end: new Date(filteredData[filteredData.length - 1]?.date || '')
   };
 
-  return (
-    <ReactApexChart 
-      options={options}
-      series={series}
-      type="area"
-      height={350}
-    />
-  );
+  // Group data by president, but only include presidents who were active during the filtered date range
+  const presidentGroups = presidents
+    .filter(president => {
+      const termStart = new Date(president.term.start);
+      const termEnd = president.term.end ? new Date(president.term.end) : new Date();
+      // Only include presidents whose terms overlap with the data range
+      return termStart <= dateRange.end && termEnd >= dateRange.start;
+    })
+    .map(president => {
+      const presidencyId = `${president.name}-${president.term.start}`;
+
+      // Only include data points that fall within this president's term
+      const presidentData = filteredData.filter(point => {
+        const pointDate = new Date(point.date);
+        const startDate = new Date(president.term.start);
+        const endDate = president.term.end ? new Date(president.term.end) : new Date();
+        return pointDate >= startDate && pointDate < endDate;
+      });
+
+      if (presidentData.length === 0) {
+        return null;
+      }
+
+      return {
+        president,
+        data: presidentData,
+        presidencyId
+      };
+    })
+    .filter(group => group.data.length > 0);
+
+  // Prepare chart data
+  const chartData = {
+    labels: filteredData.map(point => {
+      const date = new Date(point.date);
+      return date.toLocaleDateString(undefined, { year: 'numeric', month: 'short' });
+    }),
+
+    // Set tooltip callbacks
+    tooltip: {
+      callbacks: {
+        label: function(context) {
+          const dataPoint = filteredData[context.dataIndex];
+          if (indicator.id === 'job-creation' && 'originalValue' in dataPoint) {
+            const monthlyChange = dataPoint.value;
+            const totalJobs = dataPoint.originalValue;
+            const prefix = monthlyChange > 0 ? '+' : '';
+            return [
+              `${context.dataset.label}: ${prefix}${Math.round(monthlyChange).toLocaleString()} jobs`,
+              `Total: ${Math.round(totalJobs).toLocaleString()} jobs`
+            ];
+          }
+          return `${context.dataset.label}: ${context.formattedValue}`;
+        }
+      }
+    },
+    datasets: presidentGroups.map(group => ({
+      label: `${group.president.name} (${group.president.term.start.substring(0, 4)}-${group.president.term.end ? group.president.term.end.substring(0, 4) : 'Present'})`,
+      data: filteredData.map(point => {
+        const pointDate = new Date(point.date);
+        const startDate = new Date(group.president.term.start);
+        const endDate = group.president.term.end ? new Date(group.president.term.end) : new Date();
+        return (pointDate >= startDate && pointDate < endDate) ? point.value : null;
+      }),
+        borderColor: group.president.color,
+        backgroundColor: `${group.president.color}33`,
+        borderWidth: 2,
+        pointRadius: 2,
+        pointHoverRadius: 6,
+        tension: 0.3,
+        spanGaps: true // This allows the line to skip null values
+      }))
+  };
+
+  // Chart options
+  const options: ChartOptions<'line'> = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: {
+        display: true,
+        position: 'top' as const,
+        labels: {
+          boxWidth: 12,
+          usePointStyle: true,
+          pointStyle: 'circle',
+          font: {
+            size: 12
+          }
+        }
+      },
+      tooltip: {
+        mode: 'index',
+        intersect: false,
+        callbacks: {
+          label: function(context) {
+            let label = context.dataset.label || '';
+            if (label) {
+              label += ': ';
+            }
+            if (context.parsed.y !== null) {
+              label += context.parsed.y.toFixed(2) + ' ' + indicator.unit;
+            }
+            return label;
+          }
+        }
+      },
+    },
+    scales: {
+      x: {
+        display: true,
+        grid: {
+          display: false
+        },
+        ticks: {
+          maxRotation: 45,
+          autoSkip: true,
+          maxTicksLimit: 12,
+          font: {
+            size: 11
+          }
+        }
+      },
+      y: {
+        display: true,
+        grid: {
+          color: '#f0f0f0'
+        },
+        ticks: {
+          font: {
+            size: 11
+          },
+          callback: function(value) {
+            return value + ' ' + indicator.unit;
+          }
+        }
+      }
+    },
+    interaction: {
+      mode: 'nearest',
+      axis: 'x',
+      intersect: false
+    },
+    elements: {
+      line: {
+        borderWidth: 2
+      },
+      point: {
+        radius: 2,
+        hoverRadius: 6
+      }
+    }
+  };
+
+  return <Line data={chartData} options={options} />;
 };
 
 export default DetailChart;

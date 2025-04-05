@@ -9,6 +9,9 @@ import ApiStatusChecker from '../components/ApiStatusChecker';
 import { AlertTriangle } from 'lucide-react';
 import ApiErrorNotice from '../components/MockDataNotice';
 
+import DataUpload from '../components/DataUpload';
+import { updateIndicatorData } from '../services/api';
+
 function Dashboard() {
   const [hasNewData, setHasNewData] = useState(false);
   const [apiErrors, setApiErrors] = useState<Record<string, string>>({});
@@ -34,10 +37,10 @@ function Dashboard() {
     refetch,
     error
   } = useQuery('allIndicatorsData', fetchAllIndicatorsData, {
-    refetchOnWindowFocus: true,
-    staleTime: 0,
-    retry: 1,
-    enabled: true, // Enable automatic fetching
+    refetchOnWindowFocus: false,
+    staleTime: Infinity,
+    retry: 0,
+    enabled: false, // Disable automatic fetching
     cacheTime: Infinity,
     onSuccess: () => {
       // Update last updated timestamp
@@ -63,30 +66,6 @@ function Dashboard() {
   });
 
   // Check for data updates every 5 minutes
-  // Listen for visibility changes
-  useEffect(() => {
-    const handleVisibilityChange = () => {
-      refetch();
-    };
-    
-    const handleIndicatorVisibilityChange = (event: Event) => {
-      const customEvent = event as CustomEvent;
-      if (customEvent.detail) {
-        // Force re-render when indicator visibility changes
-        setApiErrors({}); // Clear any errors
-        refetch();
-      }
-    };
-    
-    window.addEventListener('visibilitychange', handleVisibilityChange);
-    window.addEventListener('indicator-visibility-change', handleIndicatorVisibilityChange);
-    
-    return () => {
-      window.removeEventListener('visibilitychange', handleVisibilityChange);
-      window.removeEventListener('indicator-visibility-change', handleIndicatorVisibilityChange);
-    };
-  }, [refetch]);
-
   useEffect(() => {
     const checkUpdates = async () => {
       try {
@@ -131,8 +110,7 @@ function Dashboard() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 p-4">
-      <h1 className="text-2xl font-bold mb-4">Presidential Economic Dashboard</h1>
+    <div className="min-h-screen bg-gray-50">
       <Header 
         lastUpdated={lastUpdated} 
         hasNewData={hasNewData} 
@@ -173,14 +151,9 @@ function Dashboard() {
 
         {!isLoading && !error && indicatorsData && (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-            {indicatorsData.map(data => {
-              const visibilitySettings = JSON.parse(localStorage.getItem('indicator-visibility') || '{}');
-              const isVisible = visibilitySettings[data.indicator.id];
-              // Only show if explicitly set to true
-              return isVisible ? (
-                <IndicatorCard key={data.indicator.id} data={data} isLoading={false} />
-              ) : null;
-            })}
+            {indicatorsData.map(data => (
+              <IndicatorCard key={data.indicator.id} data={data} isLoading={false} />
+            ))}
           </div>
         )}
 
@@ -200,6 +173,7 @@ function Dashboard() {
         </div>
 
         <div className="mt-6 space-y-6">
+          <DataUpload onUpload={handleDataUpload} />
           <DataSourceInfo />
         </div>
       </main>
