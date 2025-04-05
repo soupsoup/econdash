@@ -10,9 +10,10 @@ export default defineConfig({
   },
   server: {
     host: '0.0.0.0',
-    port: 3000,
+    port: 5000,
     hmr: {
       overlay: true,
+      host: '0.0.0.0',
     },
     proxy: {
       // BLS API proxy
