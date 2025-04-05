@@ -31,17 +31,17 @@ interface IndicatorChartProps {
 
 const IndicatorChart: React.FC<IndicatorChartProps> = ({ data }) => {
   const { indicator, data: dataPoints } = data;
-  
+
   // Filter data to show only the last 10 years
   const tenYearsAgo = new Date();
   tenYearsAgo.setFullYear(tenYearsAgo.getFullYear() - 10);
   const filteredData = dataPoints.filter(point => new Date(point.date) >= tenYearsAgo);
-  
+
   // Group data by president
   const presidentGroups = presidents.map(president => {
     // Create a unique ID for each presidency using the term start date
     const presidencyId = `${president.name}-${president.term.start}`;
-    
+
     // Filter data points that fall within this president's term
     const presidentData = filteredData.filter(point => {
       const pointDate = new Date(point.date);
@@ -49,14 +49,14 @@ const IndicatorChart: React.FC<IndicatorChartProps> = ({ data }) => {
       const endDate = president.term.end ? new Date(president.term.end) : new Date();
       return pointDate >= startDate && pointDate < endDate;
     });
-    
+
     return {
       president,
       data: presidentData,
       presidencyId
     };
   }).filter(group => group.data.length > 0);
-  
+
   // Prepare chart data
   const chartData = {
     labels: filteredData.map(point => {
@@ -69,7 +69,7 @@ const IndicatorChart: React.FC<IndicatorChartProps> = ({ data }) => {
         const pointDate = new Date(point.date);
         const startDate = new Date(group.president.term.start);
         const endDate = group.president.term.end ? new Date(group.president.term.end) : new Date();
-        
+
         // Only include data points that fall within this president's term
         if (pointDate >= startDate && pointDate < endDate) {
           return point.value;
@@ -85,7 +85,7 @@ const IndicatorChart: React.FC<IndicatorChartProps> = ({ data }) => {
       spanGaps: true, // This allows the line to skip null values
     }))
   };
-  
+
   // Chart options
   const options: ChartOptions<'line'> = {
     responsive: true,
@@ -128,11 +128,11 @@ const IndicatorChart: React.FC<IndicatorChartProps> = ({ data }) => {
         const ctx = chart.ctx;
         const chartArea = chart.chartArea;
         const meta = chart.getDatasetMeta(0);
-        
+
         presidents.forEach(president => {
           const startDate = new Date(president.term.start);
           const endDate = president.term.end ? new Date(president.term.end) : new Date();
-          
+
           // Find start and end pixels
           const startPixel = chart.scales.x.getPixelForValue(
             startDate.toLocaleDateString(undefined, { year: '2-digit', month: 'short' })
@@ -140,7 +140,7 @@ const IndicatorChart: React.FC<IndicatorChartProps> = ({ data }) => {
           const endPixel = chart.scales.x.getPixelForValue(
             endDate.toLocaleDateString(undefined, { year: '2-digit', month: 'short' })
           );
-          
+
           if (!isNaN(startPixel) && !isNaN(endPixel)) {
             // Draw background
             ctx.fillStyle = `${president.color}15`;
@@ -150,7 +150,7 @@ const IndicatorChart: React.FC<IndicatorChartProps> = ({ data }) => {
               endPixel - startPixel,
               chartArea.height
             );
-            
+
             // Draw president name
             ctx.save();
             ctx.fillStyle = president.color;
@@ -209,7 +209,7 @@ const IndicatorChart: React.FC<IndicatorChartProps> = ({ data }) => {
       }
     }
   };
-  
+
   return <Line data={chartData} options={options} />;
 };
 
