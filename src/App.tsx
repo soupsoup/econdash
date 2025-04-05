@@ -6,7 +6,8 @@ import IndicatorDetail from './pages/IndicatorDetail';
 import AdminDashboard from './pages/AdminDashboard';
 import ApiStatusBanner from './components/ApiStatusBanner';
 import { fetchAllIndicatorsData } from './services/api';
-import ErrorBoundary from './components/ErrorBoundary'; // Assuming ErrorBoundary component exists
+import ErrorBoundary from './components/ErrorBoundary';
+import DebugInfo from './components/DebugInfo'; // Assuming ErrorBoundary component exists
 
 function App() {
   console.log('App component rendering');
@@ -21,7 +22,7 @@ function App() {
   const hasApiErrors = !!error;
 
   return (
-    <>
+    <div className="min-h-screen bg-gray-50">
       {hasApiErrors && <ApiStatusBanner />}
       <ErrorBoundary>
         <Routes>
@@ -31,17 +32,7 @@ function App() {
         </Routes>
       </ErrorBoundary>
       <DebugInfo />
-      <div className="p-5 m-5 bg-white border border-gray-200 rounded shadow">
-        <h1 className="text-2xl font-bold mb-4">Presidential Economic Dashboard</h1>
-        <p className="mb-4">This dashboard is loading. If you see this message, React is working but there might be issues with the components.</p>
-        <button 
-          className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
-          onClick={() => console.log('Button clicked!')}
-        >
-          Test Button
-        </button>
-      </div>
-    </>
+    </div>
   );
 }
 
