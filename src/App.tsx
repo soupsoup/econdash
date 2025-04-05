@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Routes, Route } from 'react-router-dom';
 import { useQuery } from 'react-query';
@@ -7,15 +8,16 @@ import AdminDashboard from './pages/AdminDashboard';
 import ApiStatusBanner from './components/ApiStatusBanner';
 import { fetchAllIndicatorsData } from './services/api';
 import ErrorBoundary from './components/ErrorBoundary';
-import DebugInfo from './components/DebugInfo'; // Assuming ErrorBoundary component exists
+import DebugInfo from './components/DebugInfo';
 
 function App() {
   console.log('App component rendering');
+  
   const { error } = useQuery('dataSourceCheck', fetchAllIndicatorsData, {
     refetchOnWindowFocus: false,
     staleTime: Infinity,
     retry: 0,
-    enabled: false,
+    enabled: true,
     cacheTime: Infinity
   });
 
