@@ -50,7 +50,10 @@ const DetailChart: React.FC<DetailChartProps> = ({ data, filteredData }) => {
     }),
     datasets: [{
       label: data.indicator.name,
-      data: sortedData.map(point => point?.value ?? 0),
+      data: sortedData.map(point => {
+        const value = point?.value;
+        return value === null || value === undefined || isNaN(value) ? 0 : value;
+      }),
       segment: {
         borderColor: (ctx) => segments[ctx.p0DataIndex]?.borderColor || '#999999'
       },
@@ -80,8 +83,11 @@ const DetailChart: React.FC<DetailChartProps> = ({ data, filteredData }) => {
             return `${date.toLocaleDateString()} (${president?.name || 'Unknown'})`;
           },
           label: function(context) {
-            const value = context.parsed.y;
-            return `${data.indicator.name}: ${value != null ? value.toFixed(2) : 'N/A'}${data.indicator.unit}`;
+            const value = context?.parsed?.y;
+            if (value === null || value === undefined || isNaN(value)) {
+              return `${data.indicator.name}: N/A ${data.indicator.unit}`;
+            }
+            return `${data.indicator.name}: ${value.toFixed(2)}${data.indicator.unit}`;
           }
         }
       }
