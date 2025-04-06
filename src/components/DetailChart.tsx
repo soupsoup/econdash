@@ -70,7 +70,13 @@ const DetailChart: React.FC<DetailChartProps> = ({ data, filteredData }) => {
 
   // Sort data chronologically with validated data
   const sortedData = transformData([...(filteredData || [])])
+    .filter(point => point.value !== null && point.value !== undefined && !isNaN(point.value))
     .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+
+  // Early return if no valid data
+  if (sortedData.length === 0) {
+    return <div className="h-full flex items-center justify-center text-gray-500">No valid data available</div>;
+  }
 
   if (!data?.indicator || !sortedData.length) {
     return <div className="h-full flex items-center justify-center text-gray-500">No data available</div>;
@@ -123,10 +129,10 @@ const DetailChart: React.FC<DetailChartProps> = ({ data, filteredData }) => {
             return `${date.toLocaleDateString()} (${president?.name || 'Unknown'})`;
           },
           label: function(context) {
-            if (!context || !context.parsed || context.parsed.y === null || context.parsed.y === undefined || isNaN(context.parsed.y)) {
+            if (!context?.parsed?.y) {
               return `${data.indicator.name}: N/A ${data.indicator.unit}`;
             }
-            const value = context.parsed.y;
+            const value = Number(context.parsed.y) || 0;
             return `${data.indicator.name}: ${value.toFixed(2)}${data.indicator.unit}`;
           }
         }
