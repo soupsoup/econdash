@@ -76,25 +76,42 @@ const DetailChart: React.FC<DetailChartProps> = ({ data, filteredData }) => {
       const date = new Date(point.date);
       return date.toLocaleDateString(undefined, { year: 'numeric', month: 'short' });
     }),
-    datasets: presidents.map(president => {
-      const startDate = new Date(president.term.start);
-      const endDate = president.term.end ? new Date(president.term.end) : new Date();
-      
-      return {
-        label: `${president.name} (${president.term.start.substring(0, 4)}-${president.term.end ? president.term.end.substring(0, 4) : 'Present'})`,
-        data: filteredData.map(point => {
-          const pointDate = new Date(point.date);
-          return (pointDate >= startDate && pointDate < endDate) ? point.value : null;
-        }),
-        borderColor: president.color,
-        backgroundColor: 'transparent',
-        borderWidth: 2,
-        pointRadius: 2,
-        pointHoverRadius: 6,
-        tension: 0.3,
-        spanGaps: true
-      };
-    })
+    datasets: [{
+      label: indicator.name,
+      data: filteredData.map(point => point.value),
+      borderColor: filteredData.map(point => {
+        const date = new Date(point.date);
+        const president = presidents.find(p => {
+          const startDate = new Date(p.term.start);
+          const endDate = p.term.end ? new Date(p.term.end) : new Date();
+          return date >= startDate && date < endDate;
+        });
+        return president?.color || '#999999';
+      }),
+      segment: {
+        borderColor: (ctx) => {
+          if (!ctx.p0.parsed || !ctx.p1.parsed) return '#999999';
+          const date0 = new Date(filteredData[ctx.p0.index].date);
+          const date1 = new Date(filteredData[ctx.p1.index].date);
+          const president0 = presidents.find(p => {
+            const startDate = new Date(p.term.start);
+            const endDate = p.term.end ? new Date(p.term.end) : new Date();
+            return date0 >= startDate && date0 < endDate;
+          });
+          const president1 = presidents.find(p => {
+            const startDate = new Date(p.term.start);
+            const endDate = p.term.end ? new Date(p.term.end) : new Date();
+            return date1 >= startDate && date1 < endDate;
+          });
+          return president0 === president1 ? president0?.color : 'transparent';
+        }
+      },
+      backgroundColor: 'transparent',
+      borderWidth: 2,
+      pointRadius: 2,
+      pointHoverRadius: 6,
+      tension: 0.3
+    }]
   };
 
   // Chart options
