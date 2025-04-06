@@ -107,15 +107,14 @@ const DetailChart: React.FC<DetailChartProps> = ({ data, filteredData }) => {
         }
         return null;
       }),
-        borderColor: group.president.color,
-        backgroundColor: `${group.president.color}33`,
-        borderWidth: 2,
-        pointRadius: 2,
-        pointHoverRadius: 6,
-        tension: 0.3,
-        spanGaps: true // This allows the line to skip null values
-      };
-    })
+      borderColor: group.president.color,
+      backgroundColor: `${group.president.color}33`,
+      borderWidth: 2,
+      pointRadius: 2,
+      pointHoverRadius: 6,
+      tension: 0.3,
+      spanGaps: true // This allows the line to skip null values
+    }))
   };
 
   // Chart options
