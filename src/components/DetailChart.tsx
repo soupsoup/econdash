@@ -29,6 +29,28 @@ interface DetailChartProps {
   filteredData: IndicatorDataPoint[];
 }
 
+class DetailChartErrorBoundary extends React.Component<{ children: React.ReactNode }, { hasError: boolean }> {
+  constructor(props: { children: React.ReactNode }) {
+    super(props);
+    this.state = { hasError: false };
+  }
+
+  static getDerivedStateFromError() {
+    return { hasError: true };
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="p-4 text-center">
+          <p className="text-red-600">Unable to display chart due to invalid data</p>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
+
 const DetailChart: React.FC<DetailChartProps> = ({ data, filteredData }) => {
   // Transform and validate data
   const transformData = (rawData: any[]) => {
@@ -126,7 +148,11 @@ const DetailChart: React.FC<DetailChartProps> = ({ data, filteredData }) => {
     }
   };
 
-  return <Line data={chartData} options={options} />;
+  return (
+    <DetailChartErrorBoundary>
+      <Line data={chartData} options={options} />
+    </DetailChartErrorBoundary>
+  );
 };
 
 export default DetailChart;
