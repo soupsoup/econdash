@@ -63,10 +63,16 @@ const DetailChart: React.FC<DetailChartProps> = ({ data, filteredData }) => {
     return num.toString();
   };
 
-  const transformData = (rawData: any[]): { value: string; date: string }[] => {
+  const transformData = (rawData: any[]): { value: number; date: string }[] => {
     if (!Array.isArray(rawData)) return [];
-
+    
     return rawData
+      .filter(point => point && typeof point.value !== 'undefined' && point.value !== null)
+      .map(point => ({
+        ...point,
+        value: Number(point.value),
+        date: new Date(point.date).toISOString()
+      }))
       .filter(point => {
         if (!point?.value || !point?.date) return false;
         const numValue = Number(point.value);
@@ -123,10 +129,7 @@ const DetailChart: React.FC<DetailChartProps> = ({ data, filteredData }) => {
     }),
     datasets: [{
       label: data.indicator.name,
-      data: sortedData.map(point => {
-        const val = Number(point.value);
-        return isNaN(val) ? 0 : val;
-      }),
+      data: sortedData.map(point => point.value),
       segment: {
         borderColor: (ctx) => segments[ctx.p0DataIndex]?.borderColor || '#999999'
       },
