@@ -1,4 +1,3 @@
-
 import React from 'react';
 import {
   Chart as ChartJS,
@@ -31,9 +30,31 @@ interface DetailChartProps {
 }
 
 const DetailChart: React.FC<DetailChartProps> = ({ data, filteredData }) => {
-  // Sort data chronologically
-  const sortedData = [...filteredData].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
-  
+  // Transform and validate data
+  const transformData = (rawData: any[]) => {
+    return rawData
+      .filter(point => {
+        return point && 
+               typeof point.value === 'number' && 
+               !isNaN(point.value) &&
+               point.date;
+      })
+      .map(point => ({
+        ...point,
+        value: Number(point.value),
+        date: new Date(point.date).toISOString()
+      }));
+  };
+
+  // Sort data chronologically with validated data
+  const sortedData = transformData([...(filteredData || [])])
+    .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+
+  if (!data?.indicator || !sortedData.length) {
+    return <div className="h-full flex items-center justify-center text-gray-500">No data available</div>;
+  }
+
+
   // Create segments based on presidential terms
   const segments = sortedData.map((point, index) => {
     const president = getPresidentByDate(point.date);
@@ -50,12 +71,7 @@ const DetailChart: React.FC<DetailChartProps> = ({ data, filteredData }) => {
     }),
     datasets: [{
       label: data.indicator.name,
-      data: sortedData.map(point => {
-        if (!point || point.value === null || point.value === undefined || isNaN(point.value)) {
-          return 0;
-        }
-        return point.value;
-      }),
+      data: sortedData.map(point => point.value),
       segment: {
         borderColor: (ctx) => segments[ctx.p0DataIndex]?.borderColor || '#999999'
       },
