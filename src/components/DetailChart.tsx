@@ -52,17 +52,21 @@ class DetailChartErrorBoundary extends React.Component<{ children: React.ReactNo
 }
 
 const DetailChart: React.FC<DetailChartProps> = ({ data, filteredData }) => {
+  if (!data?.indicator?.name || !Array.isArray(filteredData)) {
+    return <div className="h-full flex items-center justify-center text-gray-500">Invalid data format</div>;
+  }
+
   // Transform and validate data with safe defaults
   const transformData = (rawData: any[]) => {
     if (!Array.isArray(rawData)) return [];
     
     return rawData
       .filter(point => {
-        const isValidPoint = point && 
-                           typeof point.value === 'number' && 
-                           !isNaN(point.value) &&
-                           point.date;
-        return isValidPoint;
+        const value = Number(point?.value);
+        return point && 
+               !isNaN(value) &&
+               isFinite(value) &&
+               point.date;
       })
       .map(point => {
         const value = Number(point.value);
@@ -136,12 +140,23 @@ const DetailChart: React.FC<DetailChartProps> = ({ data, filteredData }) => {
             return `${date.toLocaleDateString()} (${president?.name || 'Unknown'})`;
           },
           label: function(context) {
-            if (!context || !context.parsed || typeof context.parsed.y !== 'number' || isNaN(context.parsed.y)) {
-              return `${data.indicator.name}: N/A ${data.indicator.unit}`;
-            }
-            const value = Number(context.parsed.y);
-            const formattedValue = isFinite(value) ? value.toFixed(2) : '0.00';
-            return `${data.indicator.name}: ${formattedValue}${data.indicator.unit}`;
+            const formatValue = (val: any): string => {
+              if (val === null || val === undefined) return 'N/A';
+              const num = Number(val);
+              if (isNaN(num) || !isFinite(num)) return 'N/A';
+              try {
+                return num.toFixed(2);
+              } catch (e) {
+                return 'N/A';
+              }
+            };
+
+            const yValue = context?.parsed?.y;
+            const formattedValue = formatValue(yValue);
+            const unit = data?.indicator?.unit || '';
+            const name = data?.indicator?.name || 'Value';
+            
+            return `${name}: ${formattedValue}${formattedValue === 'N/A' ? '' : unit}`;
           }
         }
       }
