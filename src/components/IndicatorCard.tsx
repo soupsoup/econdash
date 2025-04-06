@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowUpRight, ArrowDownRight, ExternalLink, Maximize2, AlertTriangle } from 'lucide-react';
 import { IndicatorData } from '../types';
-import IndicatorChart from './IndicatorChart';
+import DetailChart from './DetailChart'; // Changed import
 
 import DataSourceSelector from './DataSourceSelector';
 
@@ -10,7 +10,7 @@ import DataSourceSelector from './DataSourceSelector';
 interface IndicatorCardProps {
   data: IndicatorData | null;
   isLoading: boolean;
-  refetch: () => void; // Added refetch function
+  refetch: () => void; 
 }
 
 const IndicatorCard: React.FC<IndicatorCardProps> = ({ data, isLoading, refetch }) => {
@@ -139,7 +139,7 @@ const IndicatorCard: React.FC<IndicatorCardProps> = ({ data, isLoading, refetch 
           </a>
         </div>
       </div>
-      <DataSourceSelector indicatorId={indicator.id} onPreferenceChange={refetch} /> {/* Added data source selector */}
+      <DataSourceSelector indicatorId={indicator.id} onPreferenceChange={refetch} /> 
       <div className="flex items-baseline mb-6">
         <span className="text-3xl font-bold mr-2">
           {formatValue(currentValue)} {indicator.unit}
@@ -157,8 +157,8 @@ const IndicatorCard: React.FC<IndicatorCardProps> = ({ data, isLoading, refetch 
         )}
       </div>
 
-      <div className="h-40">
-        <IndicatorChart data={data} />
+      <div className="h-32"> {/* Height adjusted to 32 */}
+        <DetailChart data={data} filteredData={data?.data} /> {/* Added filteredData prop */}
       </div>
 
       <div className="mt-4 text-xs text-gray-500 flex justify-between items-center">
