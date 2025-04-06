@@ -27,6 +27,27 @@ export default function AdminDashboard() {
   // Ensure we have valid data before rendering chart
   const validChartData = selectedData && selectedData.indicator && selectedData.data ? selectedData : null;
 
+  const handleEditDataPoint = (updatedPoint: IndicatorDataPoint) => {
+    if (!selectedData) return;
+    
+    const updatedData = selectedData.data.map(point => 
+      point.date === updatedPoint.date ? updatedPoint : point
+    );
+    
+    updateIndicatorData(selectedData.indicator.id, updatedData);
+    refetch();
+  };
+
+  const handleDeleteDataPoint = (pointToDelete: IndicatorDataPoint) => {
+    if (!selectedData) return;
+    
+    if (confirm('Are you sure you want to delete this data point?')) {
+      const updatedData = selectedData.data.filter(point => point.date !== pointToDelete.date);
+      updateIndicatorData(selectedData.indicator.id, updatedData);
+      refetch();
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 p-8">
       <div className="max-w-7xl mx-auto">
@@ -70,7 +91,10 @@ export default function AdminDashboard() {
                   </div>
                   <DataTable 
                     data={validChartData.data} 
-                    indicator={validChartData.indicator} 
+                    indicator={validChartData.indicator}
+                    isAdmin={true}
+                    onEdit={handleEditDataPoint}
+                    onDelete={handleDeleteDataPoint}
                   />
                 </>
               ) : (
