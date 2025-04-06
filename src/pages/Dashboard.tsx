@@ -55,8 +55,8 @@ function Dashboard() {
     },
     refetchOnWindowFocus: false,
     staleTime: Infinity,
-    retry: 0,
-    enabled: false, // Disable automatic fetching
+    retry: 2,
+    enabled: true,
     cacheTime: Infinity,
     onSuccess: () => {
       // Update last updated timestamp
