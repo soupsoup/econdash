@@ -74,7 +74,7 @@ const DetailChart: React.FC<DetailChartProps> = ({ data, filteredData }) => {
         intersect: false,
         callbacks: {
           title: function(context) {
-            const point = filteredData[context[0].dataIndex];
+            const point = sortedData[context[0].dataIndex];
             const date = new Date(point.date);
             const president = getPresidentByDate(point.date);
             return `${date.toLocaleDateString()} (${president?.name || 'Unknown'})`;
