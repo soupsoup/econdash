@@ -6,9 +6,13 @@ import IndicatorChart from '../components/IndicatorChart';
 import DataTable from '../components/DataTable';
 import { useQuery } from 'react-query';
 import { fetchAllIndicatorsData } from '../services/api';
+import ChartVisibilityControl from '../components/ChartVisibilityControl';
+import { useLocalStorage } from '../hooks/useLocalStorage';
 
 export default function AdminDashboard() {
   const [selectedIndicator, setSelectedIndicator] = useState('');
+  const [visibleCharts, setVisibleCharts] = useLocalStorage<string[]>('visibleCharts', 
+    economicIndicators.map(i => i.id));
   
   const { data: indicatorsData, refetch } = useQuery('allIndicatorsData', fetchAllIndicatorsData, {
     refetchOnWindowFocus: false
@@ -29,9 +33,18 @@ export default function AdminDashboard() {
         <h1 className="text-2xl font-bold mb-8">Admin Dashboard</h1>
         
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          <div className="bg-white p-6 rounded-lg shadow">
-            <h2 className="text-lg font-semibold mb-4">Data Upload</h2>
-            <DataUpload onUpload={handleDataUpload} />
+          <div className="space-y-6">
+            <div className="bg-white p-6 rounded-lg shadow">
+              <h2 className="text-lg font-semibold mb-4">Data Upload</h2>
+              <DataUpload onUpload={handleDataUpload} />
+            </div>
+            
+            <div className="bg-white p-6 rounded-lg shadow">
+              <ChartVisibilityControl 
+                visibleCharts={visibleCharts}
+                onVisibilityChange={setVisibleCharts}
+              />
+            </div>
           </div>
 
           <div className="bg-white p-6 rounded-lg shadow">
