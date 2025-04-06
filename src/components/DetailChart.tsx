@@ -52,13 +52,18 @@ class DetailChartErrorBoundary extends React.Component<{ children: React.ReactNo
 }
 
 const DetailChart: React.FC<DetailChartProps> = ({ data, filteredData }) => {
-  // Validate required data properties
-  if (!data?.indicator?.name || !Array.isArray(filteredData) || filteredData.length === 0) {
+  if (!data?.indicator?.name || !Array.isArray(filteredData)) {
     return <div className="h-full flex items-center justify-center text-gray-500">No valid data available</div>;
   }
 
-  // Transform and validate data with strict type checking
-  const transformData = (rawData: any[]): { value: number; date: string }[] => {
+  const safeNumberFormat = (value: any): string => {
+    if (value === null || value === undefined) return '0';
+    const num = Number(value);
+    if (isNaN(num) || !isFinite(num)) return '0';
+    return num.toString();
+  };
+
+  const transformData = (rawData: any[]): { value: string; date: string }[] => {
     if (!Array.isArray(rawData)) return [];
 
     return rawData
@@ -118,7 +123,10 @@ const DetailChart: React.FC<DetailChartProps> = ({ data, filteredData }) => {
     }),
     datasets: [{
       label: data.indicator.name,
-      data: sortedData.map(point => point.value),
+      data: sortedData.map(point => {
+        const val = Number(point.value);
+        return isNaN(val) ? 0 : val;
+      }),
       segment: {
         borderColor: (ctx) => segments[ctx.p0DataIndex]?.borderColor || '#999999'
       },
