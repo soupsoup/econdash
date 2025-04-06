@@ -52,13 +52,21 @@ class DetailChartErrorBoundary extends React.Component<{ children: React.ReactNo
 }
 
 const DetailChart: React.FC<DetailChartProps> = ({ data, filteredData }) => {
-  if (!data?.indicator?.name || !Array.isArray(filteredData)) {
-    return <div className="h-full flex items-center justify-center text-gray-500">Invalid data format</div>;
+  // Validate required data properties
+  if (!data?.indicator?.name || !Array.isArray(filteredData) || filteredData.length === 0) {
+    return <div className="h-full flex items-center justify-center text-gray-500">No valid data available</div>;
   }
 
-  // Transform and validate data with safe defaults
-  const transformData = (rawData: any[]) => {
+  // Transform and validate data with strict type checking
+  const transformData = (rawData: any[]): { value: number; date: string }[] => {
     if (!Array.isArray(rawData)) return [];
+
+    return rawData
+      .filter(point => {
+        if (!point?.value || !point?.date) return false;
+        const numValue = Number(point.value);
+        return !isNaN(numValue) && isFinite(numValue) && numValue !== null;
+      })
     
     return rawData
       .filter(point => {
@@ -140,23 +148,25 @@ const DetailChart: React.FC<DetailChartProps> = ({ data, filteredData }) => {
             return `${date.toLocaleDateString()} (${president?.name || 'Unknown'})`;
           },
           label: function(context) {
-            const formatValue = (val: any): string => {
-              if (val === null || val === undefined) return 'N/A';
-              const num = Number(val);
-              if (isNaN(num) || !isFinite(num)) return 'N/A';
-              try {
-                return num.toFixed(2);
-              } catch (e) {
-                return 'N/A';
-              }
-            };
+            if (!context?.parsed?.y || typeof context.parsed.y !== 'number') {
+              return `${data.indicator.name || 'Value'}: N/A`;
+            }
 
-            const yValue = context?.parsed?.y;
-            const formattedValue = formatValue(yValue);
-            const unit = data?.indicator?.unit || '';
-            const name = data?.indicator?.name || 'Value';
-            
-            return `${name}: ${formattedValue}${formattedValue === 'N/A' ? '' : unit}`;
+            try {
+              const value = Number(context.parsed.y);
+              if (isNaN(value) || !isFinite(value)) {
+                return `${data.indicator.name}: N/A`;
+              }
+              
+              const formattedValue = Math.abs(value) < 0.01 ? 
+                value.toExponential(2) : 
+                value.toFixed(2);
+                
+              return `${data.indicator.name}: ${formattedValue}${data.indicator.unit || ''}`;
+            } catch (error) {
+              console.error('Error formatting tooltip value:', error);
+              return `${data.indicator.name}: N/A`;
+            }
           }
         }
       }
