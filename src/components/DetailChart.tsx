@@ -1,3 +1,4 @@
+
 import React from 'react';
 import {
   Chart as ChartJS,
@@ -14,7 +15,6 @@ import { Line } from 'react-chartjs-2';
 import { IndicatorData, IndicatorDataPoint } from '../types';
 import { getPresidentByDate } from '../data/presidents';
 
-// Register ChartJS components
 ChartJS.register(
   CategoryScale,
   LinearScale,
