@@ -52,20 +52,27 @@ class DetailChartErrorBoundary extends React.Component<{ children: React.ReactNo
 }
 
 const DetailChart: React.FC<DetailChartProps> = ({ data, filteredData }) => {
-  // Transform and validate data
+  // Transform and validate data with safe defaults
   const transformData = (rawData: any[]) => {
+    if (!Array.isArray(rawData)) return [];
+    
     return rawData
       .filter(point => {
-        return point && 
-               typeof point.value === 'number' && 
-               !isNaN(point.value) &&
-               point.date;
+        const isValidPoint = point && 
+                           typeof point.value === 'number' && 
+                           !isNaN(point.value) &&
+                           point.date;
+        return isValidPoint;
       })
-      .map(point => ({
-        ...point,
-        value: Number(point.value),
-        date: new Date(point.date).toISOString()
-      }));
+      .map(point => {
+        const value = Number(point.value);
+        return {
+          ...point,
+          value: isNaN(value) ? 0 : value,
+          date: new Date(point.date).toISOString()
+        };
+      })
+      .filter(point => !isNaN(new Date(point.date).getTime()));
   };
 
   // Sort data chronologically with validated data
@@ -129,11 +136,12 @@ const DetailChart: React.FC<DetailChartProps> = ({ data, filteredData }) => {
             return `${date.toLocaleDateString()} (${president?.name || 'Unknown'})`;
           },
           label: function(context) {
-            if (!context?.parsed?.y) {
+            if (!context || !context.parsed || typeof context.parsed.y !== 'number' || isNaN(context.parsed.y)) {
               return `${data.indicator.name}: N/A ${data.indicator.unit}`;
             }
-            const value = Number(context.parsed.y) || 0;
-            return `${data.indicator.name}: ${value.toFixed(2)}${data.indicator.unit}`;
+            const value = Number(context.parsed.y);
+            const formattedValue = isFinite(value) ? value.toFixed(2) : '0.00';
+            return `${data.indicator.name}: ${formattedValue}${data.indicator.unit}`;
           }
         }
       }
