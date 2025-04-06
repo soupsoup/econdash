@@ -31,8 +31,11 @@ interface DetailChartProps {
 }
 
 const DetailChart: React.FC<DetailChartProps> = ({ data, filteredData }) => {
+  // Sort data chronologically
+  const sortedData = [...filteredData].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+  
   // Create segments based on presidential terms
-  const segments = filteredData.map((point, index) => {
+  const segments = sortedData.map((point, index) => {
     const president = getPresidentByDate(point.date);
     return {
       value: point.value,
@@ -41,13 +44,13 @@ const DetailChart: React.FC<DetailChartProps> = ({ data, filteredData }) => {
   });
 
   const chartData = {
-    labels: filteredData.map(point => {
+    labels: sortedData.map(point => {
       const date = new Date(point.date);
       return date.toLocaleDateString(undefined, { year: 'numeric', month: 'short' });
     }),
     datasets: [{
       label: data.indicator.name,
-      data: filteredData.map(point => point.value),
+      data: sortedData.map(point => point.value),
       segment: {
         borderColor: (ctx) => segments[ctx.p0DataIndex]?.borderColor || '#999999'
       },
