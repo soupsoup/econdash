@@ -76,45 +76,42 @@ const DetailChart: React.FC<DetailChartProps> = ({ data, filteredData }) => {
       const date = new Date(point.date);
       return date.toLocaleDateString(undefined, { year: 'numeric', month: 'short' });
     }),
-
-    // Set tooltip callbacks
-    tooltip: {
-      callbacks: {
-        label: function(context) {
-          const dataPoint = filteredData[context.dataIndex];
-          if (indicator.id === 'job-creation' && 'originalValue' in dataPoint) {
-            const monthlyChange = dataPoint.value;
-            const totalJobs = dataPoint.originalValue;
-            const prefix = monthlyChange > 0 ? '+' : '';
-            return [
-              `${context.dataset.label}: ${prefix}${Math.round(monthlyChange).toLocaleString()} jobs`,
-              `Total: ${Math.round(totalJobs).toLocaleString()} jobs`
-            ];
-          }
-          return `${context.dataset.label}: ${context.formattedValue}`;
-        }
-      }
-    },
-    datasets: presidentGroups.map(group => ({
-      label: `${group.president.name} (${group.president.term.start.substring(0, 4)}-${group.president.term.end ? group.president.term.end.substring(0, 4) : 'Present'})`,
-      data: filteredData.map(point => {
-        const pointDate = new Date(point.date);
-        const startDate = new Date(group.president.term.start);
-        const endDate = new Date(group.president.term.end || new Date());
-        
-        if (pointDate >= startDate && pointDate <= endDate) {
-          return point.value;
-        }
-        return null;
+    datasets: [{
+      label: indicator.name,
+      data: filteredData.map(point => point.value),
+      borderColor: filteredData.map(point => {
+        const date = new Date(point.date);
+        const president = presidents.find(p => {
+          const startDate = new Date(p.term.start);
+          const endDate = p.term.end ? new Date(p.term.end) : new Date();
+          return date >= startDate && date < endDate;
+        });
+        return president?.color || '#999999';
       }),
-      borderColor: group.president.color,
-      backgroundColor: `${group.president.color}33`,
+      segment: {
+        borderColor: (ctx) => {
+          if (!ctx.p0.parsed || !ctx.p1.parsed) return '#999999';
+          const date0 = new Date(filteredData[ctx.p0.index].date);
+          const date1 = new Date(filteredData[ctx.p1.index].date);
+          const president0 = presidents.find(p => {
+            const startDate = new Date(p.term.start);
+            const endDate = p.term.end ? new Date(p.term.end) : new Date();
+            return date0 >= startDate && date0 < endDate;
+          });
+          const president1 = presidents.find(p => {
+            const startDate = new Date(p.term.start);
+            const endDate = p.term.end ? new Date(p.term.end) : new Date();
+            return date1 >= startDate && date1 < endDate;
+          });
+          return president0 === president1 ? president0?.color : 'transparent';
+        }
+      },
+      backgroundColor: 'transparent',
       borderWidth: 2,
       pointRadius: 2,
       pointHoverRadius: 6,
-      tension: 0.3,
-      spanGaps: true // This allows the line to skip null values
-    }))
+      tension: 0.3
+    }]
   };
 
   // Chart options
@@ -123,30 +120,23 @@ const DetailChart: React.FC<DetailChartProps> = ({ data, filteredData }) => {
     maintainAspectRatio: false,
     plugins: {
       legend: {
-        display: true,
-        position: 'top' as const,
-        labels: {
-          boxWidth: 12,
-          usePointStyle: true,
-          pointStyle: 'circle',
-          font: {
-            size: 12
-          }
-        }
+        display: false
       },
       tooltip: {
         mode: 'index',
         intersect: false,
         callbacks: {
+          title: function(context) {
+            const date = new Date(filteredData[context[0].dataIndex].date);
+            const president = presidents.find(p => {
+              const startDate = new Date(p.term.start);
+              const endDate = p.term.end ? new Date(p.term.end) : new Date();
+              return date >= startDate && date < endDate;
+            });
+            return `${date.toLocaleDateString()} (${president?.name || 'Unknown'})`;
+          },
           label: function(context) {
-            let label = context.dataset.label || '';
-            if (label) {
-              label += ': ';
-            }
-            if (context.parsed.y !== null) {
-              label += context.parsed.y.toFixed(2) + ' ' + indicator.unit;
-            }
-            return label;
+            return `${indicator.name}: ${context.parsed.y.toFixed(2)}${indicator.unit}`;
           }
         }
       },
