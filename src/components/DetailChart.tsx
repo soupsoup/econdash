@@ -156,24 +156,27 @@ const DetailChart: React.FC<DetailChartProps> = ({ data, filteredData }) => {
             return `${date.toLocaleDateString()} (${president?.name || 'Unknown'})`;
           },
           label: function(context) {
-            if (!context?.parsed?.y || typeof context.parsed.y !== 'number') {
-              return `${data.indicator.name || 'Value'}: N/A`;
+            if (!context?.parsed?.y || context.parsed.y === null) {
+              return `${data?.indicator?.name || 'Value'}: N/A`;
             }
 
             try {
               const value = Number(context.parsed.y);
               if (isNaN(value) || !isFinite(value)) {
-                return `${data.indicator.name}: N/A`;
+                return `${data?.indicator?.name || 'Value'}: N/A`;
               }
               
-              const formattedValue = Math.abs(value) < 0.01 ? 
-                value.toExponential(2) : 
-                value.toFixed(2);
-                
-              return `${data.indicator.name}: ${formattedValue}${data.indicator.unit || ''}`;
+              let formattedValue;
+              if (Math.abs(value) < 0.01) {
+                formattedValue = value === 0 ? '0.00' : value.toExponential(2);
+              } else {
+                formattedValue = Number(value).toFixed(2);
+              }
+              
+              return `${data?.indicator?.name || 'Value'}: ${formattedValue}${data?.indicator?.unit || ''}`;
             } catch (error) {
               console.error('Error formatting tooltip value:', error);
-              return `${data.indicator.name}: N/A`;
+              return `${data?.indicator?.name || 'Value'}: N/A`;
             }
           }
         }
