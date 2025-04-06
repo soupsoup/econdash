@@ -156,21 +156,21 @@ const DetailChart: React.FC<DetailChartProps> = ({ data, filteredData }) => {
             return `${date.toLocaleDateString()} (${president?.name || 'Unknown'})`;
           },
           label: function(context) {
-            if (!context?.parsed?.y || context.parsed.y === null) {
-              return `${data?.indicator?.name || 'Value'}: N/A`;
-            }
-
             try {
+              if (!context?.parsed?.y && context.parsed.y !== 0) {
+                return `${data?.indicator?.name || 'Value'}: N/A`;
+              }
+
               const value = Number(context.parsed.y);
               if (isNaN(value) || !isFinite(value)) {
                 return `${data?.indicator?.name || 'Value'}: N/A`;
               }
               
               let formattedValue;
-              if (Math.abs(value) < 0.01) {
-                formattedValue = value === 0 ? '0.00' : value.toExponential(2);
+              if (Math.abs(value) < 0.01 && value !== 0) {
+                formattedValue = value.toExponential(2);
               } else {
-                formattedValue = Number(value).toFixed(2);
+                formattedValue = value.toFixed(2);
               }
               
               return `${data?.indicator?.name || 'Value'}: ${formattedValue}${data?.indicator?.unit || ''}`;
