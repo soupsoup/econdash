@@ -46,13 +46,23 @@ export default function AdminDashboard() {
               ))}
             </select>
 
-            {selectedData && (
-              <>
-                <div className="h-64 mb-4">
-                  <IndicatorChart data={selectedData} />
+            {selectedIndicator ? (
+              selectedData ? (
+                <>
+                  <div className="h-64 mb-4">
+                    <IndicatorChart data={selectedData} />
+                  </div>
+                  <DataTable data={selectedData.data} />
+                </>
+              ) : (
+                <div className="text-gray-500 text-center py-8">
+                  Loading data...
                 </div>
-                <DataTable data={selectedData.data} />
-              </>
+              )
+            ) : (
+              <div className="text-gray-500 text-center py-8">
+                Select an indicator to view its data
+              </div>
             )}
           </div>
         </div>
