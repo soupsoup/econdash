@@ -11,7 +11,7 @@ import {
   ChartOptions
 } from 'chart.js';
 import { Line } from 'react-chartjs-2';
-import { IndicatorData, IndicatorDataPoint } from '../types';
+import { IndicatorData } from '../types';
 import { getPresidentByDate } from '../data/presidents';
 
 ChartJS.register(
@@ -26,117 +26,43 @@ ChartJS.register(
 
 interface DetailChartProps {
   data: IndicatorData;
-  filteredData: IndicatorDataPoint[];
-}
-
-class DetailChartErrorBoundary extends React.Component<{ children: React.ReactNode }, { hasError: boolean }> {
-  constructor(props: { children: React.ReactNode }) {
-    super(props);
-    this.state = { hasError: false };
-  }
-
-  static getDerivedStateFromError() {
-    return { hasError: true };
-  }
-
-  render() {
-    if (this.state.hasError) {
-      return (
-        <div className="p-4 text-center">
-          <p className="text-red-600">Unable to display chart due to invalid data</p>
-        </div>
-      );
-    }
-    return this.props.children;
-  }
+  filteredData: any[];
 }
 
 const DetailChart: React.FC<DetailChartProps> = ({ data, filteredData }) => {
-  if (!data?.indicator?.name || !Array.isArray(filteredData)) {
-    return <div className="h-full flex items-center justify-center text-gray-500">No valid data available</div>;
-  }
-
-  const safeNumberFormat = (value: any): string => {
-    if (value === null || value === undefined) return '0';
-    const num = Number(value);
-    if (isNaN(num) || !isFinite(num)) return '0';
-    return num.toString();
-  };
-
-  const transformData = (rawData: any[]): { value: number; date: string }[] => {
-    if (!Array.isArray(rawData)) return [];
-    
-    return rawData
-      .filter(point => point && typeof point.value !== 'undefined' && point.value !== null)
-      .map(point => ({
-        ...point,
-        value: Number(point.value),
-        date: new Date(point.date).toISOString()
-      }))
-      .filter(point => {
-        if (!point?.value || !point?.date) return false;
-        const numValue = Number(point.value);
-        return !isNaN(numValue) && isFinite(numValue) && numValue !== null;
-      })
-    
-    return rawData
-      .filter(point => {
-        const value = Number(point?.value);
-        return point && 
-               !isNaN(value) &&
-               isFinite(value) &&
-               point.date;
-      })
-      .map(point => {
-        const value = Number(point.value);
-        return {
-          ...point,
-          value: isNaN(value) ? 0 : value,
-          date: new Date(point.date).toISOString()
-        };
-      })
-      .filter(point => !isNaN(new Date(point.date).getTime()));
-  };
-
-  // Sort data chronologically with validated data
-  const sortedData = transformData([...(filteredData || [])])
-    .filter(point => point.value !== null && point.value !== undefined && !isNaN(point.value))
-    .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
-
-  // Early return if no valid data
-  if (sortedData.length === 0) {
-    return <div className="h-full flex items-center justify-center text-gray-500">No valid data available</div>;
-  }
-
-  if (!data?.indicator || !sortedData.length) {
+  if (!data?.indicator || !Array.isArray(filteredData) || filteredData.length === 0) {
     return <div className="h-full flex items-center justify-center text-gray-500">No data available</div>;
   }
 
+  // Process data points
+  const validDataPoints = filteredData
+    .filter(point => point && typeof point.value === 'number' && point.date)
+    .map(point => ({
+      date: new Date(point.date),
+      value: Number(point.value)
+    }))
+    .sort((a, b) => a.date.getTime() - b.date.getTime());
 
-  // Create segments based on presidential terms
-  const segments = sortedData.map((point, index) => {
-    const president = getPresidentByDate(point.date);
-    return {
-      value: point.value,
-      borderColor: president?.color || '#999999'
-    };
-  });
+  if (validDataPoints.length === 0) {
+    return <div className="h-full flex items-center justify-center text-gray-500">No valid data points</div>;
+  }
 
+  // Create chart data
   const chartData = {
-    labels: sortedData.map(point => {
-      const date = new Date(point.date);
-      return date.toLocaleDateString(undefined, { year: 'numeric', month: 'short' });
-    }),
+    labels: validDataPoints.map(point => 
+      point.date.toLocaleDateString(undefined, { 
+        year: 'numeric',
+        month: 'short'
+      })
+    ),
     datasets: [{
       label: data.indicator.name,
-      data: sortedData.map(point => point.value),
-      segment: {
-        borderColor: (ctx) => segments[ctx.p0DataIndex]?.borderColor || '#999999'
-      },
-      backgroundColor: 'transparent',
+      data: validDataPoints.map(point => point.value),
+      borderColor: '#2563eb',
+      backgroundColor: 'rgba(37, 99, 235, 0.1)',
       borderWidth: 2,
       pointRadius: 1,
-      pointHoverRadius: 6,
+      pointHoverRadius: 5,
       tension: 0.3
     }]
   };
@@ -152,35 +78,23 @@ const DetailChart: React.FC<DetailChartProps> = ({ data, filteredData }) => {
         mode: 'index',
         intersect: false,
         callbacks: {
-          title: function(context) {
-            const point = sortedData[context[0].dataIndex];
-            const date = new Date(point.date);
-            const president = getPresidentByDate(point.date);
-            return `${date.toLocaleDateString()} (${president?.name || 'Unknown'})`;
-          },
-          label: function(context) {
-            try {
-              if (!context?.parsed?.y && context.parsed.y !== 0) {
-                return `${data?.indicator?.name || 'Value'}: N/A`;
-              }
-
-              const value = Number(context.parsed.y);
-              if (isNaN(value) || !isFinite(value)) {
-                return `${data?.indicator?.name || 'Value'}: N/A`;
-              }
-              
-              let formattedValue;
-              if (Math.abs(value) < 0.01 && value !== 0) {
-                formattedValue = value.toExponential(2);
-              } else {
-                formattedValue = value.toFixed(2);
-              }
-              
-              return `${data?.indicator?.name || 'Value'}: ${formattedValue}${data?.indicator?.unit || ''}`;
-            } catch (error) {
-              console.error('Error formatting tooltip value:', error);
-              return `${data?.indicator?.name || 'Value'}: N/A`;
+          title: (context) => {
+            if (context[0]) {
+              const date = validDataPoints[context[0].dataIndex].date;
+              const president = getPresidentByDate(date.toISOString());
+              return `${date.toLocaleDateString()} (${president?.name || 'Unknown'})`;
             }
+            return '';
+          },
+          label: (context) => {
+            if (typeof context.raw === 'number') {
+              const value = context.raw;
+              const formattedValue = Math.abs(value) < 0.01 ? 
+                value.toExponential(2) : 
+                value.toFixed(2);
+              return `${data.indicator.name}: ${formattedValue}${data.indicator.unit || ''}`;
+            }
+            return `${data.indicator.name}: N/A`;
           }
         }
       }
@@ -190,21 +104,35 @@ const DetailChart: React.FC<DetailChartProps> = ({ data, filteredData }) => {
         display: true,
         grid: {
           display: false
+        },
+        ticks: {
+          maxRotation: 45,
+          minRotation: 45
         }
       },
       y: {
         display: true,
         grid: {
           color: '#f0f0f0'
+        },
+        ticks: {
+          callback: (value) => {
+            if (typeof value === 'number') {
+              return Math.abs(value) < 0.01 ? 
+                value.toExponential(2) : 
+                value.toFixed(2);
+            }
+            return '';
+          }
         }
       }
     }
   };
 
   return (
-    <DetailChartErrorBoundary>
+    <div className="w-full h-full">
       <Line data={chartData} options={options} />
-    </DetailChartErrorBoundary>
+    </div>
   );
 };
 
