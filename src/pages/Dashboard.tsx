@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useLocalStorage } from '../hooks/useLocalStorage';
 import { useQuery } from 'react-query';
 import { fetchAllIndicatorsData, checkForDataUpdates, getLastUpdatedTimestamp } from '../services/api';
 import Header from '../components/Header';
