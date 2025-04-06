@@ -153,10 +153,19 @@ function Dashboard() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
             {indicatorsData
               .filter(data => {
-                if (!data.indicator) return false;
-                const defaultCharts = economicIndicators.map(i => i.id);
-                const visibleCharts = JSON.parse(localStorage.getItem('visibleCharts') || JSON.stringify(defaultCharts));
-                return Array.isArray(visibleCharts) && visibleCharts.includes(data.indicator.id);
+                if (!data?.indicator?.id) return false;
+                try {
+                  const storedCharts = localStorage.getItem('visibleCharts');
+                  if (!storedCharts) {
+                    // If no charts are stored, show all charts by default
+                    return true;
+                  }
+                  const visibleCharts = JSON.parse(storedCharts);
+                  return Array.isArray(visibleCharts) && visibleCharts.includes(data.indicator.id);
+                } catch (error) {
+                  console.error('Error parsing visible charts:', error);
+                  return true; // Show all charts if there's an error
+                }
               })
               .map(data => (
               <IndicatorCard key={data.indicator.id} data={data} isLoading={false} />
