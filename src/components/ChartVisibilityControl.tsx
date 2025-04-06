@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { economicIndicators } from '../data/indicators';
 
 interface ChartVisibilityControlProps {
@@ -11,11 +11,21 @@ const ChartVisibilityControl: React.FC<ChartVisibilityControlProps> = ({
   visibleCharts,
   onVisibilityChange,
 }) => {
+  const [saved, setSaved] = useState(false);
+  const [selectedCharts, setSelectedCharts] = useState(visibleCharts);
+
   const handleToggleChart = (indicatorId: string) => {
-    const newVisibleCharts = visibleCharts.includes(indicatorId)
-      ? visibleCharts.filter(id => id !== indicatorId)
-      : [...visibleCharts, indicatorId];
-    onVisibilityChange(newVisibleCharts);
+    const newSelection = selectedCharts.includes(indicatorId)
+      ? selectedCharts.filter(id => id !== indicatorId)
+      : [...selectedCharts, indicatorId];
+    setSelectedCharts(newSelection);
+    setSaved(false);
+  };
+
+  const handleSave = () => {
+    onVisibilityChange(selectedCharts);
+    setSaved(true);
+    setTimeout(() => setSaved(false), 2000);
   };
 
   return (
@@ -27,7 +37,7 @@ const ChartVisibilityControl: React.FC<ChartVisibilityControlProps> = ({
             <input
               type="checkbox"
               id={`chart-${indicator.id}`}
-              checked={visibleCharts.includes(indicator.id)}
+              checked={selectedCharts.includes(indicator.id)}
               onChange={() => handleToggleChart(indicator.id)}
               className="h-4 w-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500"
             />
@@ -36,6 +46,19 @@ const ChartVisibilityControl: React.FC<ChartVisibilityControlProps> = ({
             </label>
           </div>
         ))}
+      </div>
+      <div className="flex items-center space-x-3">
+        <button
+          onClick={handleSave}
+          className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
+        >
+          Save Changes
+        </button>
+        {saved && (
+          <span className="text-green-600 text-sm">
+            Changes saved successfully!
+          </span>
+        )}
       </div>
     </div>
   );
