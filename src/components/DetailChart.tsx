@@ -95,21 +95,18 @@ const DetailChart: React.FC<DetailChartProps> = ({ data, filteredData }) => {
         }
       }
     },
-    datasets: presidentGroups.map(group => {
-      // Filter data points for this president's term only
-      const presidentData = filteredData.filter(point => {
+    datasets: presidentGroups.map(group => ({
+      label: `${group.president.name} (${group.president.term.start.substring(0, 4)}-${group.president.term.end ? group.president.term.end.substring(0, 4) : 'Present'})`,
+      data: filteredData.map(point => {
         const pointDate = new Date(point.date);
         const startDate = new Date(group.president.term.start);
-        const endDate = group.president.term.end ? new Date(group.president.term.end) : new Date();
-        return pointDate >= startDate && pointDate < endDate;
-      });
-
-      return {
-        label: `${group.president.name} (${group.president.term.start.substring(0, 4)}-${group.president.term.end ? group.president.term.end.substring(0, 4) : 'Present'})`,
-        data: filteredData.map(point => {
-          const matchingPoint = presidentData.find(pd => pd.date === point.date);
-          return matchingPoint ? matchingPoint.value : null;
-        }),
+        const endDate = new Date(group.president.term.end || new Date());
+        
+        if (pointDate >= startDate && pointDate <= endDate) {
+          return point.value;
+        }
+        return null;
+      }),
         borderColor: group.president.color,
         backgroundColor: `${group.president.color}33`,
         borderWidth: 2,
