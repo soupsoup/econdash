@@ -16,18 +16,8 @@ function Dashboard() {
   const [hasNewData, setHasNewData] = useState(false);
   const [apiErrors, setApiErrors] = useState<Record<string, string>>({});
   const [lastUpdated, setLastUpdated] = useState<string | null>(getLastUpdatedTimestamp());
-  const [visibleCharts, setVisibleCharts] = useState<string[]>([]); // Added state for visible charts
-
-  useEffect(() => {
-    const storedCharts = localStorage.getItem('visibleCharts');
-    if (storedCharts) {
-      try {
-        setVisibleCharts(JSON.parse(storedCharts));
-      } catch (error) {
-        console.error('Error parsing visible charts:', error);
-      }
-    }
-  }, []);
+  const [visibleCharts, setVisibleCharts] = useLocalStorage<string[]>('visibleCharts', 
+    economicIndicators.map(i => i.id));
 
 
   const handleDataUpload = (data: IndicatorDataPoint[], indicatorId: string) => {
