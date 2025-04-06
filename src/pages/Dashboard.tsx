@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useLocalStorage } from '../hooks/useLocalStorage';
 import { useQuery } from 'react-query';
+import { economicIndicators } from '../data/indicators';
 import { fetchAllIndicatorsData, checkForDataUpdates, getLastUpdatedTimestamp } from '../services/api';
 import Header from '../components/Header';
 import IndicatorCard from '../components/IndicatorCard';
