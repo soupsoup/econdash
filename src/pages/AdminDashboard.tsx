@@ -14,11 +14,14 @@ export default function AdminDashboard() {
     refetchOnWindowFocus: false
   });
 
-  const selectedData = indicatorsData?.find(d => d.indicator.id === selectedIndicator);
+  const selectedData = indicatorsData?.find(d => d.indicator?.id === selectedIndicator) || null;
 
   const handleDataUpload = () => {
     refetch();
   };
+
+  // Ensure we have valid data before rendering chart
+  const validChartData = selectedData && selectedData.indicator && selectedData.data ? selectedData : null;
 
   return (
     <div className="min-h-screen bg-gray-50 p-8">
@@ -47,12 +50,15 @@ export default function AdminDashboard() {
             </select>
 
             {selectedIndicator ? (
-              selectedData ? (
+              validChartData ? (
                 <>
                   <div className="h-64 mb-4">
-                    <IndicatorChart data={selectedData} />
+                    <IndicatorChart data={validChartData} />
                   </div>
-                  <DataTable data={selectedData.data} />
+                  <DataTable 
+                    data={validChartData.data} 
+                    indicator={validChartData.indicator} 
+                  />
                 </>
               ) : (
                 <div className="text-gray-500 text-center py-8">
