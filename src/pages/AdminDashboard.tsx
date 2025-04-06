@@ -12,7 +12,7 @@ import { useLocalStorage } from '../hooks/useLocalStorage';
 export default function AdminDashboard() {
   const [selectedIndicator, setSelectedIndicator] = useState('');
   const [visibleCharts, setVisibleCharts] = useLocalStorage<string[]>('visibleCharts', 
-    economicIndicators.map(i => i.id));
+    () => economicIndicators.map(i => i.id));
   
   const { data: indicatorsData, refetch } = useQuery('allIndicatorsData', fetchAllIndicatorsData, {
     refetchOnWindowFocus: false
