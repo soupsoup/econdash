@@ -19,7 +19,14 @@ function Dashboard() {
   const [apiErrors, setApiErrors] = useState<Record<string, string>>({});
   const [lastUpdated, setLastUpdated] = useState<string | null>(getLastUpdatedTimestamp());
   const [visibleCharts, setVisibleCharts] = useLocalStorage<string[]>('visibleCharts', 
-    economicIndicators.map(i => i.id));
+    economicIndicators.map(i => i.id)
+  );
+
+  useEffect(() => {
+    if (!visibleCharts?.length) {
+      setVisibleCharts(economicIndicators.map(i => i.id));
+    }
+  }, []);
 
 
   const handleDataUpload = (data: IndicatorDataPoint[], indicatorId: string) => {
@@ -42,6 +49,10 @@ function Dashboard() {
     refetch,
     error
   } = useQuery('allIndicatorsData', fetchAllIndicatorsData, {
+    onSuccess: (data) => {
+      console.log('Loaded indicators:', data?.length);
+      console.log('Visible charts:', visibleCharts);
+    },
     refetchOnWindowFocus: false,
     staleTime: Infinity,
     retry: 0,
@@ -157,7 +168,10 @@ function Dashboard() {
         {!isLoading && !error && indicatorsData && (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
             {indicatorsData
-              .filter(data => data?.indicator?.id && visibleCharts.includes(data.indicator.id))
+              .filter(data => {
+                if (!data?.indicator?.id) return false;
+                return visibleCharts.length === 0 || visibleCharts.includes(data.indicator.id);
+              })
               .map(data => (
               <IndicatorCard key={data.indicator.id} data={data} isLoading={false} />
             ))}
