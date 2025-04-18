@@ -14,7 +14,9 @@ function App() {
     refetchOnWindowFocus: false,
     staleTime: Infinity,
     retry: 2,
-    enabled: false
+    enabled: true,
+    onSuccess: () => console.log('Initial data fetch successful'),
+    onError: (err) => console.error('Initial data fetch failed:', err)
   });
 
   const hasApiErrors = !!error;

@@ -15,6 +15,7 @@ import DataUpload from '../components/DataUpload';
 import { updateIndicatorData } from '../services/api';
 
 function Dashboard() {
+  console.log('Dashboard rendering...');
   const [hasNewData, setHasNewData] = useState(false);
   const [apiErrors, setApiErrors] = useState<Record<string, string>>({});
   const [lastUpdated, setLastUpdated] = useState<string | null>(getLastUpdatedTimestamp());
@@ -57,7 +58,6 @@ function Dashboard() {
     refetchOnWindowFocus: false,
     staleTime: 1000 * 60 * 5, // 5 minutes
     retry: 2,
-    enabled: true,
     enabled: true,
     cacheTime: Infinity,
     onError: (err) => {
