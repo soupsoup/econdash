@@ -1,13 +1,15 @@
 
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { CheckCircle, XCircle, AlertTriangle, Clock, Database } from 'lucide-react';
+import { CheckCircle, XCircle, AlertTriangle, Clock, Database, RefreshCw, ExternalLink } from 'lucide-react';
 
 interface ApiStatus {
   name: string;
   url: string;
   status: 'checking' | 'up' | 'down' | 'rate-limited' | 'error';
   message?: string;
+  errorCode?: string;
+  lastChecked?: Date;
 }
 
 const ApiStatusChecker: React.FC = () => {
@@ -34,6 +36,8 @@ const ApiStatusChecker: React.FC = () => {
     total: 0,
     items: 0
   });
+
+  const [selectedApi, setSelectedApi] = useState<string | null>(null);
   
   const checkLocalStorage = () => {
     try {
@@ -76,34 +80,47 @@ const ApiStatusChecker: React.FC = () => {
       
       setApiStatuses(prev => {
         const updated = [...prev];
-        updated[index] = { ...api, status: 'up' };
+        updated[index] = { 
+          ...api, 
+          status: 'up',
+          lastChecked: new Date()
+        };
         return updated;
       });
     } catch (error) {
       if (axios.isAxiosError(error)) {
         const status = error.response?.status;
-        if (status === 429) {
-          setApiStatuses(prev => {
-            const updated = [...prev];
-            updated[index] = { 
-              ...api, 
-              status: 'rate-limited',
-              message: 'API rate limit reached'
-            };
-            return updated;
-          });
-        } else {
-          setApiStatuses(prev => {
-            const updated = [...prev];
-            updated[index] = { 
-              ...api, 
-              status: 'down',
-              message: error.message
-            };
-            return updated;
-          });
-        }
+        const errorMessage = error.response?.data?.message || error.message;
+        
+        setApiStatuses(prev => {
+          const updated = [...prev];
+          updated[index] = { 
+            ...api, 
+            status: status === 429 ? 'rate-limited' : 'down',
+            message: errorMessage,
+            errorCode: status?.toString(),
+            lastChecked: new Date()
+          };
+          return updated;
+        });
       }
+    }
+  };
+
+  const getFixSuggestion = (api: ApiStatus) => {
+    switch (api.errorCode) {
+      case '429':
+        return 'Wait until rate limit resets (usually midnight ET) or request a higher quota';
+      case '401':
+        return 'Check API key validity and permissions';
+      case '403':
+        return 'Verify API key and authentication headers';
+      case '404':
+        return 'Verify the API endpoint URL and parameters';
+      case '500':
+        return 'API service issue - check service status page or try again later';
+      default:
+        return 'Check network connection and API configuration';
     }
   };
   
@@ -112,6 +129,14 @@ const ApiStatusChecker: React.FC = () => {
       checkApiStatus(api, index);
     });
     checkLocalStorage();
+    
+    const interval = setInterval(() => {
+      apiStatuses.forEach((api, index) => {
+        checkApiStatus(api, index);
+      });
+    }, 300000); // Check every 5 minutes
+    
+    return () => clearInterval(interval);
   }, []);
   
   const getStatusIcon = (status: string) => {
@@ -123,68 +148,110 @@ const ApiStatusChecker: React.FC = () => {
       case 'rate-limited':
         return <Clock className="h-5 w-5 text-amber-500" />;
       case 'checking':
-        return <div className="h-5 w-5 rounded-full border-2 border-blue-500 border-t-transparent animate-spin"></div>;
+        return <RefreshCw className="h-5 w-5 text-blue-500 animate-spin" />;
       default:
         return <AlertTriangle className="h-5 w-5 text-yellow-500" />;
     }
   };
-  
-  const getStatusText = (status: string) => {
-    switch (status) {
-      case 'up':
-        return <span className="text-xs text-green-600 font-medium">Available</span>;
-      case 'down':
-        return <span className="text-xs text-red-600 font-medium">Unavailable</span>;
-      case 'rate-limited':
-        return <span className="text-xs text-amber-600 font-medium">Rate Limited</span>;
-      case 'checking':
-        return <span className="text-xs text-blue-600 font-medium">Checking...</span>;
-      default:
-        return <span className="text-xs text-yellow-600 font-medium">Error</span>;
-    }
+
+  const handleRefreshStatus = (index: number) => {
+    const api = apiStatuses[index];
+    setApiStatuses(prev => {
+      const updated = [...prev];
+      updated[index] = { ...api, status: 'checking' };
+      return updated;
+    });
+    checkApiStatus(api, index);
   };
-  
+
   return (
     <div className="space-y-4">
-      {apiStatuses.map((api, index) => (
-        <div key={index} className="flex items-start">
-          <div className="mt-0.5 mr-3">{getStatusIcon(api.status)}</div>
-          <div className="flex-1">
-            <div className="flex justify-between items-center">
-              <h3 className="font-medium text-gray-800">{api.name}</h3>
-              {getStatusText(api.status)}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {apiStatuses.map((api, index) => (
+          <div 
+            key={index} 
+            className={`p-4 rounded-lg border ${
+              api.status === 'up' ? 'border-green-200 bg-green-50' :
+              api.status === 'down' ? 'border-red-200 bg-red-50' :
+              api.status === 'rate-limited' ? 'border-amber-200 bg-amber-50' :
+              'border-gray-200 bg-gray-50'
+            }`}
+          >
+            <div className="flex justify-between items-start">
+              <div className="flex items-start space-x-3">
+                <div className="mt-0.5">{getStatusIcon(api.status)}</div>
+                <div>
+                  <h3 className="font-medium text-gray-800">{api.name}</h3>
+                  <button 
+                    onClick={() => setSelectedApi(selectedApi === api.name ? null : api.name)}
+                    className="text-sm text-blue-600 hover:text-blue-800"
+                  >
+                    {selectedApi === api.name ? 'Hide Details' : 'View Details'}
+                  </button>
+                </div>
+              </div>
+              <button 
+                onClick={() => handleRefreshStatus(index)}
+                className="text-gray-500 hover:text-gray-700"
+              >
+                <RefreshCw className="h-4 w-4" />
+              </button>
             </div>
-            <p className="text-sm text-gray-600">{api.url}</p>
-            {api.message && (
-              <p className="text-xs text-gray-500 mt-1">{api.message}</p>
+
+            {selectedApi === api.name && (
+              <div className="mt-4 space-y-3 text-sm">
+                <div>
+                  <p className="font-medium">Endpoint:</p>
+                  <p className="text-gray-600 break-all">{api.url}</p>
+                </div>
+                
+                {api.status !== 'up' && (
+                  <>
+                    <div>
+                      <p className="font-medium">Error:</p>
+                      <p className="text-red-600">{api.message}</p>
+                      {api.errorCode && (
+                        <p className="text-gray-500">Code: {api.errorCode}</p>
+                      )}
+                    </div>
+                    <div>
+                      <p className="font-medium">How to fix:</p>
+                      <p className="text-gray-600">{getFixSuggestion(api)}</p>
+                    </div>
+                  </>
+                )}
+                
+                {api.lastChecked && (
+                  <p className="text-gray-500">
+                    Last checked: {api.lastChecked.toLocaleTimeString()}
+                  </p>
+                )}
+              </div>
             )}
           </div>
-        </div>
-      ))}
-      
-      <div className="flex items-start pt-4 border-t border-gray-100">
-        <div className="mt-0.5 mr-3">
-          <Database className="h-5 w-5 text-blue-500" />
-        </div>
-        <div className="flex-1">
-          <div className="flex justify-between items-center">
-            <h3 className="font-medium text-gray-800">Local Storage</h3>
-            <span className="text-xs text-blue-600 font-medium">
+        ))}
+      </div>
+
+      <div className="mt-8 p-4 rounded-lg border border-blue-200 bg-blue-50">
+        <div className="flex items-start space-x-3">
+          <Database className="h-5 w-5 text-blue-500 mt-0.5" />
+          <div className="flex-1">
+            <h3 className="font-medium text-gray-800">Local Storage Status</h3>
+            <p className="text-sm text-gray-600 mt-1">
               {localStorageInfo.items} items stored
-            </span>
-          </div>
-          <p className="text-sm text-gray-600">Browser local storage for offline data</p>
-          
-          <div className="mt-2">
-            <div className="w-full bg-gray-200 rounded-full h-2.5">
-              <div 
-                className="bg-blue-600 h-2.5 rounded-full" 
-                style={{ width: `${(localStorageInfo.used / localStorageInfo.total) * 100}%` }}
-              ></div>
-            </div>
-            <p className="text-xs text-gray-500 mt-1">
-              {localStorageInfo.used} KB used of {localStorageInfo.total} KB available
             </p>
+            
+            <div className="mt-3">
+              <div className="w-full bg-blue-200 rounded-full h-2">
+                <div 
+                  className="bg-blue-600 h-2 rounded-full transition-all duration-300" 
+                  style={{ width: `${(localStorageInfo.used / localStorageInfo.total) * 100}%` }}
+                />
+              </div>
+              <p className="text-sm text-gray-600 mt-1">
+                {localStorageInfo.used} KB used of {localStorageInfo.total} KB available
+              </p>
+            </div>
           </div>
         </div>
       </div>
