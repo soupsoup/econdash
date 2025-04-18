@@ -52,10 +52,12 @@ function Dashboard() {
     onSuccess: (data) => {
       console.log('Loaded indicators:', data?.length);
       console.log('Visible charts:', visibleCharts);
+      setLastUpdated(getLastUpdatedTimestamp());
     },
     refetchOnWindowFocus: false,
-    staleTime: Infinity,
+    staleTime: 1000 * 60 * 5, // 5 minutes
     retry: 2,
+    enabled: true,
     enabled: true,
     cacheTime: Infinity,
     onError: (err) => {
