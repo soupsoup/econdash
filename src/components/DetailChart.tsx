@@ -93,17 +93,17 @@ const DetailChart: React.FC<DetailChartProps> = ({ data, filteredData }) => {
           },
           label: function(context) {
             if (!context?.raw?.y || typeof context.raw.y !== 'number') {
-              return `${data.indicator.name}: N/A`;
+              return `${data?.indicator?.name || 'Value'}: N/A`;
             }
 
             const value = Number(context.raw.y);
             if (isNaN(value) || !isFinite(value)) {
-              return `${data.indicator.name}: N/A`;
+              return `${data?.indicator?.name || 'Value'}: N/A`;
             }
 
-            const formattedValue = Math.abs(value) < 0.01 ? 
-              value.toExponential(2) : 
-              value.toFixed(2);
+            const formattedValue = value !== null ? 
+              (Math.abs(value) < 0.01 ? value.toExponential(2) : value.toFixed(2)) : 
+              'N/A';
             return `${data.indicator.name}: ${formattedValue}${data.indicator.unit || ''}`;
           }
         }
