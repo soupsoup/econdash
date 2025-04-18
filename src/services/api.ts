@@ -23,20 +23,20 @@ async function fetchFredData(series: string): Promise<IndicatorDataPoint[]> {
   const BLS_API_BASE_URL = 'https://api.bls.gov/publicAPI/v2/timeseries/data';
   const currentYear = new Date().getFullYear().toString();
   
-  const response = await axios.post(
-    BLS_API_BASE_URL,
-    {
+  const response = await axios({
+    method: 'post',
+    url: BLS_API_BASE_URL,
+    headers: {
+      'Content-Type': 'application/json',
+      'registrationKey': import.meta.env.VITE_BLS_API_KEY || 'ce15238949e14526b9b13c2ff4beabfc'
+    },
+    data: {
       seriesid: ['LNS14000000'],
       startyear: '1950',
-      endyear: currentYear
-    },
-    {
-      headers: {
-        'Content-Type': 'application/json',
-        'registrationKey': import.meta.env.VITE_BLS_API_KEY || 'ce15238949e14526b9b13c2ff4beabfc'
-      }
+      endyear: currentYear,
+      registrationkey: import.meta.env.VITE_BLS_API_KEY || 'ce15238949e14526b9b13c2ff4beabfc'
     }
-  );
+  });
 
   if (!response.ok) {
     console.warn(`API request failed (${response.status}), falling back to local storage`);
