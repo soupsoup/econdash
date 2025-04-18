@@ -28,14 +28,6 @@ async function fetchFredData(series: string): Promise<IndicatorDataPoint[]> {
   return data.observations.map((point: any) => ({
     date: point.date,
     value: parseFloat(point.value),
-    president: ''
-  }));
-}
-
-  const data = await response.json();
-  return data.observations.map((point: any) => ({
-    date: point.date,
-    value: parseFloat(point.value),
     president: '' // Will be filled by data processing logic
   }));
 }
