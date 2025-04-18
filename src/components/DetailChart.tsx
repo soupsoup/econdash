@@ -1,4 +1,3 @@
-
 import React from 'react';
 import {
   Chart as ChartJS,
@@ -50,7 +49,7 @@ const DetailChart: React.FC<DetailChartProps> = ({ data, filteredData }) => {
 
   // Sort data chronologically
   const sortedData = [...filteredData].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
-  
+
   const chartData = {
     labels: sortedData.map(point => {
       const date = new Date(point.date);
@@ -92,15 +91,22 @@ const DetailChart: React.FC<DetailChartProps> = ({ data, filteredData }) => {
             return `${date.toLocaleDateString()} (${president?.name || 'Unknown'})`;
           },
           label: function(context) {
-            const value = context?.raw;
-            if (value === null || value === undefined || typeof value !== 'number') {
+            if (!context || !context.raw) {
+              return `${data?.indicator?.name || 'Value'}: N/A`;
+            }
+
+            const value = typeof context.raw === 'number' ? 
+              context.raw : 
+              (typeof context.raw === 'object' && context.raw.y ? Number(context.raw.y) : null);
+
+            if (value === null || isNaN(value)) {
               return `${data?.indicator?.name || 'Value'}: N/A`;
             }
 
             const formattedValue = Math.abs(value) < 0.01 ? 
               value.toExponential(2) : 
               value.toFixed(2);
-            return `${data.indicator.name}: ${formattedValue}${data.indicator.unit || ''}`;
+            return `${data?.indicator?.name || 'Value'}: ${formattedValue}${data?.indicator?.unit || ''}`;
           }
         }
       }
