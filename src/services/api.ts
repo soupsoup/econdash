@@ -23,8 +23,14 @@ async function fetchFredData(series: string): Promise<IndicatorDataPoint[]> {
     const errorText = await response.text();
     throw new Error(`FRED API Error (${response.status}): ${errorText}`);
   }
-    throw new Error('Failed to fetch FRED data');
-  }
+
+  const data = await response.json();
+  return data.observations.map((point: any) => ({
+    date: point.date,
+    value: parseFloat(point.value),
+    president: ''
+  }));
+}
 
   const data = await response.json();
   return data.observations.map((point: any) => ({
