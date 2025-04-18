@@ -135,12 +135,7 @@ export const fetchAllIndicatorsData = async (): Promise<IndicatorData[]> => {
   }
 
   if (results.length === 0) {
-    const mockData = economicIndicators.map(indicator => ({
-      indicator,
-      data: [],
-      lastUpdated: new Date().toISOString()
-    }));
-    return mockData;
+    throw new Error('No data found. Please upload data for at least one indicator.');
   }
 
   return results;
