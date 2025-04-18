@@ -36,13 +36,11 @@ export default defineConfig({
         }
       },
       // FRED API proxy
-      '/api/fred': {
+      '/fred': {
         target: 'https://api.stlouisfed.org',
         changeOrigin: true,
-        rewrite: (path) => {
-          const url = new URL(path.replace(/^\/api\/fred/, ''), 'https://api.stlouisfed.org');
-          return url.pathname + url.search;
-        },
+        secure: true,
+        rewrite: (path) => path,
         configure: (proxy) => {
           proxy.on('error', (err) => console.error('FRED Proxy Error:', err));
         }
