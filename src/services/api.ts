@@ -3,12 +3,11 @@ import { IndicatorData, IndicatorDataPoint } from '../types';
 import { economicIndicators } from '../data/indicators';
 
 const LOCAL_STORAGE_PREFIX = 'presidential_dashboard_';
-const FRED_API_BASE_URL = 'https://api.stlouisfed.org/fred/series/observations';
-const FRED_API_KEY = '08baf631b4523fb0d66722ab2d546a88';
+const FRED_API_BASE_URL = '/api/fred/series/observations';
 
 async function fetchFredData(series: string): Promise<IndicatorDataPoint[]> {
   const response = await fetch(
-    `${FRED_API_BASE_URL}?series_id=${series}&api_key=${FRED_API_KEY}&file_type=json`
+    `${FRED_API_BASE_URL}?series_id=${series}&file_type=json`
   );
   
   if (!response.ok) {

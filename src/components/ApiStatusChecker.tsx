@@ -16,7 +16,7 @@ const ApiStatusChecker: React.FC = () => {
   const [apiStatuses, setApiStatuses] = useState<ApiStatus[]>([
     {
       name: 'FRED API',
-      url: 'https://api.stlouisfed.org/fred/series?series_id=CPIAUCSL&api_key=08baf631b4523fb0d66722ab2d546a88',
+      url: '/api/fred/series?series_id=CPIAUCSL',
       status: 'checking'
     },
     {
