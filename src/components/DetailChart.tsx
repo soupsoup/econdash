@@ -58,7 +58,10 @@ const DetailChart: React.FC<DetailChartProps> = ({ data, filteredData }) => {
     }),
     datasets: [{
       label: data.indicator.name,
-      data: sortedData.map(point => Number(point.value) || 0),
+      data: sortedData.map(point => ({
+        x: new Date(point.date).getTime(),
+        y: Number(point.value) || 0
+      })),
       borderColor: '#2563eb',
       backgroundColor: 'transparent',
       borderWidth: 2,
@@ -83,10 +86,9 @@ const DetailChart: React.FC<DetailChartProps> = ({ data, filteredData }) => {
         intersect: false,
         callbacks: {
           title: function(context) {
-            if (!context?.[0]?.dataIndex) return 'Unknown Date';
-            const point = filteredData[context[0].dataIndex];
-            const date = new Date(point.date);
-            const president = getPresidentByDate(point.date);
+            if (!context?.[0]?.raw?.x) return 'Unknown Date';
+            const date = new Date(context[0].raw.x);
+            const president = getPresidentByDate(date.toISOString());
             return `${date.toLocaleDateString()} (${president?.name || 'Unknown'})`;
           },
           label: function(context) {
