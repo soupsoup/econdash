@@ -3,7 +3,7 @@ import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { QueryClient, QueryClientProvider } from 'react-query';
 import { BrowserRouter } from 'react-router-dom';
-import TestApp from './TestApp.tsx';
+import App from './App.tsx';
 import './index.css';
 
 // Create a client
@@ -27,7 +27,7 @@ if (rootElement) {
       <StrictMode>
         <BrowserRouter>
           <QueryClientProvider client={queryClient}>
-            <TestApp />
+            <App />
           </QueryClientProvider>
         </BrowserRouter>
       </StrictMode>
