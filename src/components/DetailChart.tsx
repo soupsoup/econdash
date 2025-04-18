@@ -101,9 +101,12 @@ const DetailChart: React.FC<DetailChartProps> = ({ data, filteredData }) => {
               return `${data?.indicator?.name || 'Value'}: N/A`;
             }
 
-            const formattedValue = value !== null ? 
-              (Math.abs(value) < 0.01 ? value.toExponential(2) : value.toFixed(2)) : 
-              'N/A';
+            let formattedValue = 'N/A';
+            if (value !== null && !isNaN(value)) {
+              formattedValue = Math.abs(value) < 0.01 ? 
+                value.toExponential(2) : 
+                value.toFixed(2);
+            }
             return `${data.indicator.name}: ${formattedValue}${data.indicator.unit || ''}`;
           }
         }
