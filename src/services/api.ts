@@ -18,13 +18,33 @@ async function fetchFredData(series: string): Promise<IndicatorDataPoint[]> {
 
   console.log('Fetching FRED data:', `${FRED_API_BASE_URL}?${params.toString()}`);
   
+  // BLS API request for unemployment data
+  const BLS_API_BASE_URL = 'https://api.bls.gov/publicAPI/v2/timeseries/data';
+  const BLS_PARAMS = {
+    seriesid: ['LNS14000000'],
+    startyear: '1950',
+    endyear: new Date().getFullYear().toString(),
+    registrationkey: 'ce15238949e14526b9b13c2ff4beabfc'
+  };
+
   const response = await fetch(
-    `${FRED_API_BASE_URL}?${params.toString()}`
+    `${BLS_API_BASE_URL}/${BLS_PARAMS.seriesid[0]}?start_year=${BLS_PARAMS.startyear}&end_year=${BLS_PARAMS.endyear}&registrationkey=${BLS_PARAMS.registrationkey}`,
+    {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    }
   );
   
   if (!response.ok) {
+    console.warn(`API request failed (${response.status}), falling back to local storage`);
+    const localData = getFromLocalStorage(`indicator-${indicatorId}`);
+    if (localData) {
+      return localData.data;
+    }
     const errorText = await response.text();
-    throw new Error(`FRED API Error (${response.status}): ${errorText}`);
+    throw new Error(`API Error (${response.status}): ${errorText}`);
   }
 
   const data = await response.json();

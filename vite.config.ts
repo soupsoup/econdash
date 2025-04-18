@@ -19,18 +19,12 @@ export default defineConfig({
       '/api/bls': {
         target: 'https://api.bls.gov',
         changeOrigin: true,
-        secure: false,
+        secure: true,
         rewrite: (path) => path.replace(/^\/api\/bls/, ''),
         configure: (proxy) => {
           proxy.on('proxyReq', (proxyReq, req, res) => {
             proxyReq.setHeader('Content-Type', 'application/json');
-            
-            if (req.method === 'POST' && req.body) {
-              const bodyData = typeof req.body === 'string' ? JSON.parse(req.body) : req.body;
-              const modifiedBody = JSON.stringify(bodyData);
-              proxyReq.setHeader('Content-Length', Buffer.byteLength(modifiedBody));
-              proxyReq.write(modifiedBody);
-            }
+            proxyReq.setHeader('Registrationkey', 'ce15238949e14526b9b13c2ff4beabfc');
           });
           proxy.on('error', (err) => console.error('BLS Proxy Error:', err));
         }
