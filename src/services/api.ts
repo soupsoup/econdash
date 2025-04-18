@@ -17,30 +17,21 @@ async function fetchFredData(series: string): Promise<IndicatorDataPoint[]> {
   });
 
   console.log('Fetching FRED data:', `${FRED_API_BASE_URL}?${params.toString()}`);
-  
-  // BLS API request for unemployment data
-  const BLS_API_BASE_URL = 'https://api.bls.gov/publicAPI/v2/timeseries/data';
-  const blsParams = new URLSearchParams({
-    seriesid: 'LNS14000000',
-    startyear: '1950',
-    endyear: new Date().getFullYear().toString(),
-    registrationkey: 'ce15238949e14526b9b13c2ff4beabfc',
-    catalog: 'false',
-    calculations: 'false',
-    annualaverage: 'false'
-  });
+
+  // BLS API request for unemployment data using v2 endpoint
+  const BLS_API_BASE_URL = 'https://api.bls.gov/publicAPI/v2/timeseries/data/';
+  const currentYear = new Date().getFullYear().toString();
 
   const response = await fetch(
-    `${BLS_API_BASE_URL}?${blsParams.toString()}`,
+    `${BLS_API_BASE_URL}LNS14000000?startyear=1950&endyear=${currentYear}&registrationkey=ce15238949e14526b9b13c2ff4beabfc`,
     {
       method: 'GET',
       headers: {
-        'Content-Type': 'application/json',
         'Accept': 'application/json'
       }
     }
   );
-  
+
   if (!response.ok) {
     console.warn(`API request failed (${response.status}), falling back to local storage`);
     const localData = getFromLocalStorage(`indicator-${indicatorId}`);
@@ -63,7 +54,7 @@ async function fetchTradingEconomicsData(series: string): Promise<IndicatorDataP
   const response = await fetch(
     `${TRADING_ECONOMICS_BASE_URL}/united states/${series}`
   );
-  
+
   if (!response.ok) {
     throw new Error('Failed to fetch Trading Economics data');
   }
@@ -104,7 +95,7 @@ export const setDataSourcePreference = (indicatorId: string, preference: DataSou
 
 export const fetchIndicatorData = async (indicatorId: string): Promise<IndicatorData> => {
   console.log('fetchIndicatorData called with ID:', indicatorId);
-  
+
   if (!indicatorId) {
     console.error('Missing indicatorId');
     throw new Error('Indicator ID is required');
@@ -115,7 +106,7 @@ export const fetchIndicatorData = async (indicatorId: string): Promise<Indicator
       const data = await fetchFredData('CPIAUCSL');
       const indicator = economicIndicators.find(i => i.id === indicatorId);
       if (!indicator) throw new Error('Indicator not found');
-      
+
       return {
         indicator,
         data,
@@ -129,7 +120,7 @@ export const fetchIndicatorData = async (indicatorId: string): Promise<Indicator
 
   const localStorageKey = `indicator-${indicatorId}`;
   console.log('Checking localStorage key:', LOCAL_STORAGE_PREFIX + localStorageKey);
-  
+
   const storedData = getFromLocalStorage(localStorageKey);
   console.log('Retrieved stored data:', {
     exists: !!storedData,
@@ -220,7 +211,7 @@ export const updateIndicatorData = (indicatorId: string, newData: IndicatorDataP
     timestamp: Date.now()
   }));
   localStorage.setItem(LAST_UPDATED_KEY, Date.now().toString());
-  
+
   // Store data source information
   localStorage.setItem(`${LOCAL_STORAGE_PREFIX}data_source_${indicatorId}`, source);
   if (source === 'api') {
