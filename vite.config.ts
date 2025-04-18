@@ -41,7 +41,7 @@ export default defineConfig({
         changeOrigin: true,
         rewrite: (path) => {
           const url = new URL(path.replace(/^\/api\/fred/, ''), 'https://api.stlouisfed.org');
-          url.searchParams.append('api_key', process.env.VITE_FRED_API_KEY);
+          url.searchParams.append('api_key', import.meta.env.VITE_FRED_API_KEY);
           return url.pathname + url.search;
         },
         configure: (proxy) => {
