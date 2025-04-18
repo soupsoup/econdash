@@ -22,15 +22,7 @@ async function fetchFredData(series: string): Promise<IndicatorDataPoint[]> {
   // BLS API request for unemployment data using v2 endpoint
   const BLS_API_BASE_URL = 'https://api.bls.gov/publicAPI/v2/timeseries/data';
   const currentYear = new Date().getFullYear().toString();
-  const requestBody = {
-    seriesid: ['LNS14000000'],
-    startyear: '1950',
-    endyear: currentYear,
-    registrationkey: 'ce15238949e14526b9b13c2ff4beabfc',
-    calculations: false,
-    annualaverage: false
-  };
-
+  
   const response = await axios.post(
     BLS_API_BASE_URL,
     {
@@ -41,7 +33,7 @@ async function fetchFredData(series: string): Promise<IndicatorDataPoint[]> {
     {
       headers: {
         'Content-Type': 'application/json',
-        'registrationKey': 'ce15238949e14526b9b13c2ff4beabfc'
+        'registrationKey': import.meta.env.VITE_BLS_API_KEY || 'ce15238949e14526b9b13c2ff4beabfc'
       }
     }
   );
