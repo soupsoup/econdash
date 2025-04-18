@@ -3,16 +3,29 @@ import { IndicatorData, IndicatorDataPoint } from '../types';
 import { economicIndicators } from '../data/indicators';
 
 const LOCAL_STORAGE_PREFIX = 'presidential_dashboard_';
-const TRADING_ECONOMICS_BASE_URL = 'https://api.tradingeconomics.com/historical';
+const FRED_API_BASE_URL = 'https://api.stlouisfed.org/fred/series/observations';
+const FRED_API_KEY = '08baf631b4523fb0d66722ab2d546a88';
 
-async function fetchTradingEconomicsData(series: string): Promise<IndicatorDataPoint[]> {
-  const apiKey = process.env.TRADING_ECONOMICS_KEY;
-  if (!apiKey) {
-    throw new Error('Trading Economics API key not found');
+async function fetchFredData(series: string): Promise<IndicatorDataPoint[]> {
+  const response = await fetch(
+    `${FRED_API_BASE_URL}?series_id=${series}&api_key=${FRED_API_KEY}&file_type=json`
+  );
+  
+  if (!response.ok) {
+    throw new Error('Failed to fetch FRED data');
   }
 
+  const data = await response.json();
+  return data.observations.map((point: any) => ({
+    date: point.date,
+    value: parseFloat(point.value),
+    president: '' // Will be filled by data processing logic
+  }));
+}
+
+async function fetchTradingEconomicsData(series: string): Promise<IndicatorDataPoint[]> {
   const response = await fetch(
-    `${TRADING_ECONOMICS_BASE_URL}/united states/${series}?c=${apiKey}`
+    `${TRADING_ECONOMICS_BASE_URL}/united states/${series}`
   );
   
   if (!response.ok) {
@@ -59,6 +72,23 @@ export const fetchIndicatorData = async (indicatorId: string): Promise<Indicator
   if (!indicatorId) {
     console.error('Missing indicatorId');
     throw new Error('Indicator ID is required');
+  }
+
+  if (indicatorId === 'inflation') {
+    try {
+      const data = await fetchFredData('CPIAUCSL');
+      const indicator = economicIndicators.find(i => i.id === indicatorId);
+      if (!indicator) throw new Error('Indicator not found');
+      
+      return {
+        indicator,
+        data,
+        lastUpdated: new Date().toISOString()
+      };
+    } catch (error) {
+      console.error('Error fetching FRED data:', error);
+      throw error;
+    }
   }
 
   const localStorageKey = `indicator-${indicatorId}`;
