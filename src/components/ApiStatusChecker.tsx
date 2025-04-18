@@ -1,91 +1,51 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
-import { AlertCircle, CheckCircle, Clock, Database, ExternalLink, RefreshCw } from "lucide-react";
-
-interface ApiEndpoint {
-  name: string;
-  url: string;
-  method: 'get' | 'post';
-  headers?: Record<string, string>;
-  body?: Record<string, any>;
-}
+import { AlertCircle, CheckCircle, Clock, RefreshCw } from "lucide-react";
 
 export function ApiStatusChecker() {
   const [status, setStatus] = useState<"ok" | "rate_limited" | "error" | "loading">("loading");
   const [details, setDetails] = useState<string | null>(null);
-  const [endpoints] = useState<ApiEndpoint[]>([
-    {
-      name: "FRED API",
-      url: "https://api.stlouisfed.org/fred/series/observations",
-      method: "get",
-      headers: {
-        "Content-Type": "application/json"
-      }
-    },
-    {
-      name: "BLS API",
-      url: "https://api.bls.gov/publicAPI/v2/timeseries/data",
-      method: "post",
-      headers: {
-        "Content-Type": "application/json",
-        "registrationKey": import.meta.env.VITE_BLS_API_KEY || "ce15238949e14526b9b13c2ff4beabfc"
-      },
-      body: {
-        seriesid: ["LNS14000000"],
-        startyear: "2023",
-        endyear: "2025"
-      }
-    }
-  ]);
 
   const checkApiStatus = async () => {
-    setStatus("loading");
-    setDetails(null);
-
     try {
-      const results = await Promise.all(
-        endpoints.map(async (endpoint) => {
-          try {
-            const response = await axios({
-              method: endpoint.method,
-              url: endpoint.url,
-              headers: endpoint.headers,
-              data: endpoint.body,
-              timeout: 5000
-            });
-            return { name: endpoint.name, success: true, response };
-          } catch (error) {
-            if (axios.isAxiosError(error)) {
-              return {
-                name: endpoint.name,
-                success: false,
-                status: error.response?.status,
-                message: error.message,
-                details: error.response?.data
-              };
-            }
-            throw error;
+      const res = await axios.post(
+        "https://api.bls.gov/publicAPI/v2/timeseries/data",
+        {
+          seriesid: ["LNS14000000"],
+          startyear: "2023",
+          endyear: "2023"
+        },
+        {
+          headers: {
+            "Content-Type": "application/json",
+            "registrationKey": import.meta.env.VITE_BLS_API_KEY || "ce15238949e14526b9b13c2ff4beabfc"
           }
-        })
+        }
       );
 
-      const hasErrors = results.some(result => !result.success);
-      const hasRateLimits = results.some(
-        result => !result.success && result.status === 429
-      );
-
-      if (hasRateLimits) {
-        setStatus("rate_limited");
-      } else if (hasErrors) {
-        setStatus("error");
+      if (res?.data?.status === "REQUEST_NOT_PROCESSED") {
+        const msg = res.data.message?.[0] || "";
+        if (/threshold|rate limit/i.test(msg)) {
+          setStatus("rate_limited");
+          setDetails("Rate limit hit: " + msg);
+        } else {
+          setStatus("error");
+          setDetails("Unprocessed: " + msg);
+        }
       } else {
         setStatus("ok");
+        setDetails(null);
       }
-
-      setDetails(JSON.stringify(results, null, 2));
-    } catch (error) {
-      setStatus("error");
-      setDetails(error instanceof Error ? error.message : "Unknown error occurred");
+    } catch (err: any) {
+      const msg = err.response?.data?.message?.[0] || err.message;
+      const code = err.response?.status;
+      if (/threshold|rate limit/i.test(msg)) {
+        setStatus("rate_limited");
+        setDetails(`Rate limit error (code ${code}): ${msg}`);
+      } else {
+        setStatus("error");
+        setDetails(`General error (code ${code}): ${msg}`);
+      }
     }
   };
 
@@ -95,38 +55,51 @@ export function ApiStatusChecker() {
     return () => clearInterval(interval);
   }, []);
 
-  const getStatusIcon = () => {
-    switch (status) {
-      case "ok":
-        return <CheckCircle className="h-5 w-5 text-green-500" />;
-      case "error":
-        return <AlertCircle className="h-5 w-5 text-red-500" />;
-      case "rate_limited":
-        return <Clock className="h-5 w-5 text-amber-500" />;
-      case "loading":
-        return <RefreshCw className="h-5 w-5 text-blue-500 animate-spin" />;
+  if (status === "loading") {
+    return (
+      <div className="flex items-center space-x-2 text-blue-600 p-4">
+        <RefreshCw className="h-5 w-5 animate-spin" />
+        <p>Checking API status...</p>
+      </div>
+    );
+  }
+
+  if (status === "ok") return null;
+
+  const statusConfig = {
+    rate_limited: {
+      icon: <Clock className="h-5 w-5 text-amber-500" />,
+      bgColor: "bg-amber-50",
+      borderColor: "border-amber-200",
+      textColor: "text-amber-800"
+    },
+    error: {
+      icon: <AlertCircle className="h-5 w-5 text-red-500" />,
+      bgColor: "bg-red-50",
+      borderColor: "border-red-200",
+      textColor: "text-red-800"
     }
   };
 
-  return (
-    <div className="space-y-4">
-      <div className="p-4 rounded-lg border border-gray-200 bg-white">
-        <div className="flex items-center space-x-2 mb-4">
-          {getStatusIcon()}
-          <h2 className="text-lg font-semibold">API Status</h2>
-          <button
-            onClick={checkApiStatus}
-            className="ml-auto p-2 text-gray-500 hover:text-gray-700"
-          >
-            <RefreshCw className="h-4 w-4" />
-          </button>
-        </div>
+  const config = statusConfig[status];
 
-        {status !== "loading" && details && (
-          <pre className="mt-4 p-3 bg-gray-50 rounded-md text-sm overflow-auto max-h-96">
-            {details}
-          </pre>
-        )}
+  return (
+    <div className={`p-4 rounded-lg border ${config.bgColor} ${config.borderColor} ${config.textColor}`}>
+      <div className="flex items-start space-x-3">
+        {config.icon}
+        <div className="flex-1">
+          <p className="font-medium">
+            {status === "rate_limited" ? "BLS API Rate Limit Reached" : "BLS API Error"}
+          </p>
+          {details && <p className="mt-1 text-sm">{details}</p>}
+        </div>
+        <button
+          onClick={checkApiStatus}
+          className="p-1 hover:bg-white/50 rounded-full transition-colors"
+          title="Retry API check"
+        >
+          <RefreshCw className="h-4 w-4" />
+        </button>
       </div>
     </div>
   );
