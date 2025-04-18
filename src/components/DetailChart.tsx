@@ -92,11 +92,11 @@ const DetailChart: React.FC<DetailChartProps> = ({ data, filteredData }) => {
             return `${date.toLocaleDateString()} (${president?.name || 'Unknown'})`;
           },
           label: function(context) {
-            if (typeof context.raw !== 'number') {
+            if (!context?.raw?.y || typeof context.raw.y !== 'number') {
               return `${data.indicator.name}: N/A`;
             }
 
-            const value = Number(context.raw);
+            const value = Number(context.raw.y);
             if (isNaN(value) || !isFinite(value)) {
               return `${data.indicator.name}: N/A`;
             }
