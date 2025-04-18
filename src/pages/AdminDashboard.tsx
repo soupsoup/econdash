@@ -1,6 +1,7 @@
 
 import React, { useState } from 'react';
 import { economicIndicators } from '../data/indicators';
+import ApiStatusChecker from '../components/ApiStatusChecker';
 import DataUpload from '../components/DataUpload';
 import IndicatorChart from '../components/IndicatorChart';
 import DataTable from '../components/DataTable';
@@ -55,6 +56,10 @@ export default function AdminDashboard() {
         
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           <div className="space-y-6">
+            <div className="bg-white p-6 rounded-lg shadow">
+              <h2 className="text-lg font-semibold mb-4">API Status</h2>
+              <ApiStatusChecker />
+            </div>
             <div className="bg-white p-6 rounded-lg shadow">
               <h2 className="text-lg font-semibold mb-4">Data Upload</h2>
               <DataUpload onUpload={handleDataUpload} />
