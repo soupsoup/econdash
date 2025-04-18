@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Routes, Route } from 'react-router-dom';
 import { useQuery } from 'react-query';
@@ -8,23 +7,10 @@ import ApiStatusBanner from './components/ApiStatusBanner';
 import ErrorBoundary from './components/ErrorBoundary';
 import AdminDashboard from './pages/AdminDashboard';
 import DebugInfo from './components/DebugInfo';
-import ErrorDisplay from './components/ErrorDisplay';
 import { fetchAllIndicatorsData } from './services/api';
 
 function App() {
-  const { error, isLoading } = useQuery('dataSourceCheck', fetchAllIndicatorsData, {
-    refetchOnWindowFocus: false,
-    staleTime: 0,
-    retry: 2,
-    enabled: true,
-    onError: (err) => {
-      console.error('Initial data fetch failed:', {
-        message: err instanceof Error ? err.message : String(err),
-        timestamp: new Date().toISOString(),
-        url: window.location.href
-      });
-    }
-  });
+  const { error, isLoading } = useQuery('dataSourceCheck', fetchAllIndicatorsData);
 
   if (isLoading) {
     return <div className="flex items-center justify-center min-h-screen">Loading...</div>;
@@ -32,16 +18,7 @@ function App() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {error && (
-        <>
-          <ApiStatusBanner />
-          <ErrorDisplay
-            title="Data Loading Error"
-            message="Failed to load initial application data"
-            details={error instanceof Error ? error.message : String(error)}
-          />
-        </>
-      )}
+      {error && <ApiStatusBanner />}
       <ErrorBoundary>
         <Routes>
           <Route path="/" element={<Dashboard />} />
