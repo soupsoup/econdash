@@ -58,10 +58,7 @@ const DetailChart: React.FC<DetailChartProps> = ({ data, filteredData }) => {
     }),
     datasets: [{
       label: data.indicator.name,
-      data: sortedData.map(point => ({
-        x: new Date(point.date).toLocaleDateString(undefined, { year: 'numeric', month: 'short' }),
-        y: Number(point.value) || 0
-      })),
+      data: sortedData.map(point => Number(point.value) || 0),
       borderColor: '#2563eb',
       backgroundColor: 'transparent',
       borderWidth: 2,
