@@ -57,10 +57,10 @@ const DetailChart: React.FC<DetailChartProps> = ({ data, filteredData }) => {
     }),
     datasets: [{
       label: data.indicator.name,
-      data: sortedData.map(point => ({
-        x: new Date(point.date).getTime(),
-        y: Number(point.value) || 0
-      })),
+      data: sortedData.map(point => {
+        const value = Number(point.value);
+        return isNaN(value) ? null : value;
+      }),
       borderColor: '#2563eb',
       backgroundColor: 'transparent',
       borderWidth: 2,
@@ -85,24 +85,17 @@ const DetailChart: React.FC<DetailChartProps> = ({ data, filteredData }) => {
         intersect: false,
         callbacks: {
           title: function(context) {
-            if (!context?.[0]?.raw?.x) return 'Unknown Date';
-            const date = new Date(context[0].raw.x);
+            const index = context?.[0]?.dataIndex;
+            if (index === undefined) return 'Unknown Date';
+            const date = new Date(sortedData[index].date);
             const president = getPresidentByDate(date.toISOString());
             return `${date.toLocaleDateString()} (${president?.name || 'Unknown'})`;
           },
           label: function(context) {
-            if (!context || !context.raw) {
+            if (context.parsed.y === null) {
               return `${data?.indicator?.name || 'Value'}: N/A`;
             }
-
-            const value = typeof context.raw === 'number' ? 
-              context.raw : 
-              (typeof context.raw === 'object' && context.raw.y ? Number(context.raw.y) : null);
-
-            if (value === null || isNaN(value)) {
-              return `${data?.indicator?.name || 'Value'}: N/A`;
-            }
-
+            const value = context.parsed.y;
             const formattedValue = Math.abs(value) < 0.01 ? 
               value.toExponential(2) : 
               value.toFixed(2);
