@@ -57,10 +57,10 @@ const DetailChart: React.FC<DetailChartProps> = ({ data, filteredData }) => {
     }),
     datasets: [{
       label: data.indicator.name,
-      data: sortedData.map(point => {
-        const value = Number(point.value);
-        return isNaN(value) ? null : value;
-      }),
+      data: sortedData.map(point => ({
+        x: new Date(point.date),
+        y: Number(point.value) || null
+      })),
       borderColor: '#2563eb',
       backgroundColor: 'transparent',
       borderWidth: 2,
@@ -85,19 +85,14 @@ const DetailChart: React.FC<DetailChartProps> = ({ data, filteredData }) => {
         intersect: false,
         callbacks: {
           title: function(context) {
-            const index = context?.[0]?.dataIndex;
-            if (index === undefined) return 'Unknown Date';
-            const date = new Date(sortedData[index].date);
+            if (!context?.[0]?.raw?.x) return 'Unknown Date';
+            const date = new Date(context[0].raw.x);
             const president = getPresidentByDate(date.toISOString());
             return `${date.toLocaleDateString()} (${president?.name || 'Unknown'})`;
           },
           label: function(context) {
-            if (!context?.raw && typeof context?.parsed?.y !== 'number') {
-              return `${data?.indicator?.name || 'Value'}: N/A`;
-            }
-            
-            const value = Number(context.raw ?? context.parsed.y);
-            if (isNaN(value)) {
+            const value = context?.raw?.y;
+            if (value === null || value === undefined || isNaN(value)) {
               return `${data?.indicator?.name || 'Value'}: N/A`;
             }
 
