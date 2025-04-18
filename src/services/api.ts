@@ -1,6 +1,7 @@
 import { format } from 'date-fns';
 import { IndicatorData, IndicatorDataPoint } from '../types';
 import { economicIndicators } from '../data/indicators';
+import axios from 'axios'; // Import axios if using the axios method
 
 const LOCAL_STORAGE_PREFIX = 'presidential_dashboard_';
 const FRED_API_BASE_URL = 'https://api.stlouisfed.org/fred/series/observations';
@@ -23,12 +24,19 @@ async function fetchFredData(series: string): Promise<IndicatorDataPoint[]> {
   const currentYear = new Date().getFullYear().toString();
 
   const response = await fetch(
-    `${BLS_API_BASE_URL}LNS14000000?startyear=1950&endyear=${currentYear}&registrationkey=ce15238949e14526b9b13c2ff4beabfc`,
+    BLS_API_BASE_URL,
     {
-      method: 'GET',
+      method: 'POST',
       headers: {
-        'Accept': 'application/json'
-      }
+        'Content-Type': 'application/json',
+        'Registrationkey': 'ce15238949e14526b9b13c2ff4beabfc'
+      },
+      body: JSON.stringify({
+        seriesid: ['LNS14000000'],
+        startyear: '1950',
+        endyear: currentYear,
+        registrationkey: 'ce15238949e14526b9b13c2ff4beabfc'
+      })
     }
   );
 
