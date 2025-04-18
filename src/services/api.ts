@@ -3,14 +3,26 @@ import { IndicatorData, IndicatorDataPoint } from '../types';
 import { economicIndicators } from '../data/indicators';
 
 const LOCAL_STORAGE_PREFIX = 'presidential_dashboard_';
-const FRED_API_BASE_URL = '/api/fred/series';
+const FRED_API_BASE_URL = '/api/fred/series/observations';
 
 async function fetchFredData(series: string): Promise<IndicatorDataPoint[]> {
+  const params = new URLSearchParams({
+    series_id: series,
+    file_type: 'json',
+    observation_start: '1950-01-01',
+    frequency: 'm',
+    aggregation_method: 'avg',
+    sort_order: 'desc'
+  });
+
   const response = await fetch(
-    `${FRED_API_BASE_URL}?series_id=${series}&file_type=json`
+    `${FRED_API_BASE_URL}?${params.toString()}`
   );
   
   if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(`FRED API Error (${response.status}): ${errorText}`);
+  }
     throw new Error('Failed to fetch FRED data');
   }
 
