@@ -27,7 +27,7 @@ if (rootElement) {
       <StrictMode>
         <BrowserRouter>
           <QueryClientProvider client={queryClient}>
-            <App />
+            <TestApp />
           </QueryClientProvider>
         </BrowserRouter>
       </StrictMode>
