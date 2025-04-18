@@ -9,6 +9,7 @@ import { fetchAllIndicatorsData } from './services/api';
 import ErrorBoundary from './components/ErrorBoundary';
 import AdminDashboard from './pages/AdminDashboard';
 import DebugInfo from './components/DebugInfo';
+import ErrorDisplay from './components/ErrorDisplay';
 
 function App() {
   const { error, isLoading } = useQuery('dataSourceCheck', fetchAllIndicatorsData, {
@@ -16,7 +17,14 @@ function App() {
     staleTime: 0,
     retry: 2,
     enabled: true,
-    onError: (err) => console.error('Initial data fetch failed:', err)
+    onError: (err) => {
+      console.error('Initial data fetch failed:', {
+        message: err.message,
+        stack: err.stack,
+        timestamp: new Date().toISOString(),
+        url: window.location.href
+      });
+    }
   });
 
   if (isLoading) {
@@ -25,7 +33,16 @@ function App() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {error && <ApiStatusBanner />}
+      {error && (
+        <>
+          <ApiStatusBanner />
+          <ErrorDisplay
+            title="Data Loading Error"
+            message="Failed to load initial application data"
+            details={error instanceof Error ? error.message : String(error)}
+          />
+        </>
+      )}
       <ErrorBoundary>
         <Routes>
           <Route path="/" element={<Dashboard />} />
