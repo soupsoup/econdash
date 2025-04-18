@@ -20,7 +20,7 @@ async function fetchFredData(series: string): Promise<IndicatorDataPoint[]> {
   
   // BLS API request for unemployment data
   const BLS_API_BASE_URL = 'https://api.bls.gov/publicAPI/v2/timeseries/data';
-  const params = new URLSearchParams({
+  const blsParams = new URLSearchParams({
     seriesid: 'LNS14000000',
     startyear: '1950',
     endyear: new Date().getFullYear().toString(),
@@ -31,7 +31,7 @@ async function fetchFredData(series: string): Promise<IndicatorDataPoint[]> {
   });
 
   const response = await fetch(
-    `${BLS_API_BASE_URL}?${params.toString()}`,
+    `${BLS_API_BASE_URL}?${blsParams.toString()}`,
     {
       method: 'GET',
       headers: {
