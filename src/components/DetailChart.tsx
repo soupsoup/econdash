@@ -38,6 +38,9 @@ const DetailChart: React.FC<DetailChartProps> = ({ data, filteredData }) => {
     );
   }
 
+  console.log('DetailChart data:', data);
+  console.log('DetailChart filteredData:', filteredData);
+
   // Create segments based on presidential terms
   const segments = filteredData.map((point, index) => {
     const president = getPresidentByDate(point.date);
