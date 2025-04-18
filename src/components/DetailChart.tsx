@@ -92,17 +92,23 @@ const DetailChart: React.FC<DetailChartProps> = ({ data, filteredData }) => {
             return `${date.toLocaleDateString()} (${president?.name || 'Unknown'})`;
           },
           label: function(context) {
+            if (!context?.raw && typeof context?.parsed?.y !== 'number') {
+              return `${data?.indicator?.name || 'Value'}: N/A`;
+            }
+            
+            const value = Number(context.raw ?? context.parsed.y);
+            if (isNaN(value)) {
+              return `${data?.indicator?.name || 'Value'}: N/A`;
+            }
+
             try {
-              const value = context?.raw?.y ?? context?.parsed?.y ?? null;
-              if (value === null || value === undefined || isNaN(value)) {
-                return `${data?.indicator?.name || 'Value'}: N/A`;
-              }
               const formattedValue = Math.abs(value) < 0.01 ? 
                 value.toExponential(2) : 
                 value.toFixed(2);
               return `${data?.indicator?.name || 'Value'}: ${formattedValue}${data?.indicator?.unit || ''}`;
             } catch (error) {
-              return "Error displaying value";
+              console.error('Error formatting value:', error);
+              return `${data?.indicator?.name || 'Value'}: ${value}${data?.indicator?.unit || ''}`;
             }
           }
         }
