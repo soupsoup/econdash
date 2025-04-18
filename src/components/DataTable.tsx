@@ -38,6 +38,7 @@ const DataTable: React.FC<DataTableProps> = ({ data, indicator, onDelete, onEdit
   const [currentPage, setCurrentPage] = useState(1);
   const [editingPoint, setEditingPoint] = useState<IndicatorDataPoint | null>(null);
   const itemsPerPage = 20;
+  const LOCAL_STORAGE_PREFIX = 'economic_indicator_';
 
   // Sort data
   const sortedData = [...data].sort((a, b) => {
@@ -94,20 +95,16 @@ const DataTable: React.FC<DataTableProps> = ({ data, indicator, onDelete, onEdit
     }
   };
 
+  const lastApiUpdate = localStorage.getItem(`${LOCAL_STORAGE_PREFIX}last_api_update_${indicator.id}`);
+  const dataSource = localStorage.getItem(`${LOCAL_STORAGE_PREFIX}data_source_${indicator.id}`);
+
   return (
     <div className="overflow-x-auto">
-      {editingPoint && (
-        <EditModal
-          point={editingPoint}
-          isOpen={!!editingPoint}
-          onClose={() => setEditingPoint(null)}
-          onSave={(updatedPoint) => {
-            onEdit?.(updatedPoint);
-            setEditingPoint(null);
-          }}
-        />
-      )}
-      <table className="min-w-full divide-y divide-gray-200">
+      <div className="mb-4 text-sm text-gray-600">
+        <p>Data Source: {dataSource || 'Uploaded Data'}</p>
+        {lastApiUpdate && <p>Last API Update: {new Date(parseInt(lastApiUpdate)).toLocaleDateString()}</p>}
+      </div>
+      <table className="min-w-full bg-white">
         <thead className="bg-gray-50">
           <tr>
             <th

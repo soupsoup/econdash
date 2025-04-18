@@ -180,7 +180,7 @@ export const clearAllStoredData = (): void => {
   }
 };
 
-export const updateIndicatorData = (indicatorId: string, newData: IndicatorDataPoint[]): void => {
+export const updateIndicatorData = (indicatorId: string, newData: IndicatorDataPoint[], source: 'api' | 'upload' = 'upload'): void => {
   const indicator = economicIndicators.find(ind => ind.id === indicatorId);
   if (!indicator) throw new Error(`Invalid indicator ID: ${indicatorId}`);
 
@@ -196,4 +196,10 @@ export const updateIndicatorData = (indicatorId: string, newData: IndicatorDataP
     timestamp: Date.now()
   }));
   localStorage.setItem(LAST_UPDATED_KEY, Date.now().toString());
+  
+  // Store data source information
+  localStorage.setItem(`${LOCAL_STORAGE_PREFIX}data_source_${indicatorId}`, source);
+  if (source === 'api') {
+    localStorage.setItem(`${LOCAL_STORAGE_PREFIX}last_api_update_${indicatorId}`, Date.now().toString());
+  }
 };
