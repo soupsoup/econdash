@@ -92,21 +92,14 @@ const DetailChart: React.FC<DetailChartProps> = ({ data, filteredData }) => {
             return `${date.toLocaleDateString()} (${president?.name || 'Unknown'})`;
           },
           label: function(context) {
-            if (!context?.raw?.y || typeof context.raw.y !== 'number') {
+            const value = context?.raw;
+            if (value === null || value === undefined || typeof value !== 'number') {
               return `${data?.indicator?.name || 'Value'}: N/A`;
             }
 
-            const value = Number(context.raw.y);
-            if (isNaN(value) || !isFinite(value)) {
-              return `${data?.indicator?.name || 'Value'}: N/A`;
-            }
-
-            let formattedValue = 'N/A';
-            if (value !== null && !isNaN(value)) {
-              formattedValue = Math.abs(value) < 0.01 ? 
-                value.toExponential(2) : 
-                value.toFixed(2);
-            }
+            const formattedValue = Math.abs(value) < 0.01 ? 
+              value.toExponential(2) : 
+              value.toFixed(2);
             return `${data.indicator.name}: ${formattedValue}${data.indicator.unit || ''}`;
           }
         }
