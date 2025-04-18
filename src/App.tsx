@@ -24,7 +24,7 @@ function App() {
   }
 
   return (
-    <>
+    <div className="min-h-screen bg-gray-50">
       {error && <ApiStatusBanner />}
       <ErrorBoundary>
         <Routes>
@@ -34,7 +34,7 @@ function App() {
         </Routes>
       </ErrorBoundary>
       <DebugInfo />
-    </>
+    </div>
   );
 }
 

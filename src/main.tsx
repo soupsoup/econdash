@@ -3,10 +3,9 @@ import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { QueryClient, QueryClientProvider } from 'react-query';
 import { BrowserRouter } from 'react-router-dom';
-import App from './App.tsx';
+import App from './App';
 import './index.css';
 
-// Create a client
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
@@ -16,10 +15,7 @@ const queryClient = new QueryClient({
   },
 });
 
-// Add debugging
-console.log("Main.tsx is executing");
 const rootElement = document.getElementById('root');
-console.log("Root element found:", !!rootElement);
 
 if (rootElement) {
   try {
@@ -35,7 +31,6 @@ if (rootElement) {
     console.log("React app rendered successfully");
   } catch (error) {
     console.error("Error rendering React app:", error);
-    // Fallback content to help debug
     rootElement.innerHTML = `
       <div style="padding: 20px; font-family: sans-serif;">
         <h2>Error rendering application</h2>
