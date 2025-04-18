@@ -31,14 +31,18 @@ async function fetchFredData(series: string): Promise<IndicatorDataPoint[]> {
     annualaverage: false
   };
 
-  const response = await fetch(
+  const response = await axios.post(
     BLS_API_BASE_URL,
     {
-      method: 'POST',
+      seriesid: ['LNS14000000'],
+      startyear: '1950',
+      endyear: currentYear
+    },
+    {
       headers: {
         'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(requestBody)
+        'registrationKey': 'ce15238949e14526b9b13c2ff4beabfc'
+      }
     }
   );
 
