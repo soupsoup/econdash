@@ -5,11 +5,11 @@ import { useQuery } from 'react-query';
 import Dashboard from './pages/Dashboard';
 import IndicatorDetail from './pages/IndicatorDetail';
 import ApiStatusBanner from './components/ApiStatusBanner';
-import { fetchAllIndicatorsData } from './services/api';
 import ErrorBoundary from './components/ErrorBoundary';
 import AdminDashboard from './pages/AdminDashboard';
 import DebugInfo from './components/DebugInfo';
 import ErrorDisplay from './components/ErrorDisplay';
+import { fetchAllIndicatorsData } from './services/api';
 
 function App() {
   const { error, isLoading } = useQuery('dataSourceCheck', fetchAllIndicatorsData, {
@@ -19,8 +19,7 @@ function App() {
     enabled: true,
     onError: (err) => {
       console.error('Initial data fetch failed:', {
-        message: err.message,
-        stack: err.stack,
+        message: err instanceof Error ? err.message : String(err),
         timestamp: new Date().toISOString(),
         url: window.location.href
       });
