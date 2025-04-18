@@ -75,7 +75,7 @@ const ApiStatusChecker: React.FC = () => {
         timeout: 5000,
         headers: api.name === 'BLS API' ? {
           'Content-Type': 'application/json',
-          'Registrationkey': 'ce15238949e14526b9b13c2ff4beabfc'
+          'registrationKey': 'ce15238949e14526b9b13c2ff4beabfc'
         } : undefined
       });
       
