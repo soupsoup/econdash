@@ -9,6 +9,7 @@ import { useQuery } from 'react-query';
 import { fetchAllIndicatorsData } from '../services/api';
 import ChartVisibilityControl from '../components/ChartVisibilityControl';
 import { useLocalStorage } from '../hooks/useLocalStorage';
+import { LOCAL_STORAGE_PREFIX } from '../services/api';
 
 export default function AdminDashboard() {
   const [selectedIndicator, setSelectedIndicator] = useState('');
@@ -75,18 +76,36 @@ export default function AdminDashboard() {
 
           <div className="bg-white p-6 rounded-lg shadow">
             <h2 className="text-lg font-semibold mb-4">Data Preview</h2>
-            <select 
-              value={selectedIndicator}
-              onChange={(e) => setSelectedIndicator(e.target.value)}
-              className="w-full p-2 border rounded mb-4"
-            >
-              <option value="">Select Indicator...</option>
-              {economicIndicators.map(indicator => (
-                <option key={indicator.id} value={indicator.id}>
-                  {indicator.name}
-                </option>
-              ))}
-            </select>
+            <div className="mb-4">
+              <select 
+                value={selectedIndicator}
+                onChange={(e) => setSelectedIndicator(e.target.value)}
+                className="w-full p-2 border rounded mb-2"
+              >
+                <option value="">Select Indicator...</option>
+                {economicIndicators.map(indicator => (
+                  <option key={indicator.id} value={indicator.id}>
+                    {indicator.name}
+                  </option>
+                ))}
+              </select>
+              {selectedIndicator && (
+                <div className="text-sm text-gray-600 bg-gray-50 p-3 rounded">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      Data Source: {localStorage.getItem(`${LOCAL_STORAGE_PREFIX}data_source_preferences`) ? 
+                        JSON.parse(localStorage.getItem(`${LOCAL_STORAGE_PREFIX}data_source_preferences`) || '{}')[selectedIndicator]?.useUploadedData ? 
+                        'Uploaded Data' : 'API Data' : 'API Data'}
+                    </div>
+                    <div>
+                      Last API Fetch: {localStorage.getItem(`${LOCAL_STORAGE_PREFIX}last_updated`) ? 
+                        new Date(localStorage.getItem(`${LOCAL_STORAGE_PREFIX}last_updated`) || '').toLocaleDateString() : 
+                        'Never'}
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
 
             {selectedIndicator ? (
               validChartData ? (
