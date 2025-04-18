@@ -20,7 +20,7 @@ async function fetchFredData(series: string): Promise<IndicatorDataPoint[]> {
   console.log('Fetching FRED data:', `${FRED_API_BASE_URL}?${params.toString()}`);
 
   // BLS API request for unemployment data using v2 endpoint
-  const BLS_API_BASE_URL = 'https://api.bls.gov/publicAPI/v2/timeseries/data/';
+  const BLS_API_BASE_URL = 'https://api.bls.gov/publicAPI/v2/timeseries/data';
   const currentYear = new Date().getFullYear().toString();
   const requestBody = {
     seriesid: ['LNS14000000'],
