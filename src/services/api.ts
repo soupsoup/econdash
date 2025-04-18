@@ -3,7 +3,7 @@ import { IndicatorData, IndicatorDataPoint } from '../types';
 import { economicIndicators } from '../data/indicators';
 
 const LOCAL_STORAGE_PREFIX = 'presidential_dashboard_';
-const FRED_API_BASE_URL = '/api/fred/fred/series/observations';
+const FRED_API_BASE_URL = '/api/fred/series/observations';
 
 async function fetchFredData(series: string): Promise<IndicatorDataPoint[]> {
   const params = new URLSearchParams({
