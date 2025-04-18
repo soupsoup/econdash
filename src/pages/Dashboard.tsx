@@ -58,11 +58,6 @@ function Dashboard() {
     retry: 2,
     enabled: true,
     cacheTime: Infinity,
-    onSuccess: () => {
-      // Update last updated timestamp
-      setLastUpdated(getLastUpdatedTimestamp());
-      setHasNewData(false);
-    },
     onError: (err) => {
       console.error('Error fetching economic data:', err);
 
