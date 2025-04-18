@@ -1,3 +1,4 @@
+
 import React from 'react';
 import {
   Chart as ChartJS,
@@ -38,19 +39,14 @@ const DetailChart: React.FC<DetailChartProps> = ({ data, filteredData }) => {
     );
   }
 
-  const formatValue = (value: number | null): string => {
-    if (value === null || value === undefined || isNaN(value)) {
-      return 'N/A';
-    }
-
-    if (data.indicator.id === 'job-creation') {
-      return Math.round(value).toLocaleString();
-    }
-
-    return Math.abs(value) < 0.01 ? 
-      value.toExponential(2) : 
-      value.toFixed(2);
-  };
+  // Create segments based on presidential terms
+  const segments = filteredData.map((point, index) => {
+    const president = getPresidentByDate(point.date);
+    return {
+      borderColor: president?.color || '#999999',
+      backgroundColor: `${president?.color}33` || '#99999933'
+    };
+  });
 
   const chartData = {
     labels: filteredData.map(point => {
@@ -65,7 +61,10 @@ const DetailChart: React.FC<DetailChartProps> = ({ data, filteredData }) => {
       borderWidth: 2,
       pointRadius: 1,
       pointHoverRadius: 6,
-      tension: 0.3
+      tension: 0.3,
+      segment: {
+        borderColor: (ctx) => segments[ctx.p0DataIndex]?.borderColor || '#999999'
+      }
     }]
   };
 
@@ -97,7 +96,9 @@ const DetailChart: React.FC<DetailChartProps> = ({ data, filteredData }) => {
               return `${data.indicator.name}: N/A`;
             }
 
-            const formattedValue = formatValue(value);
+            const formattedValue = Math.abs(value) < 0.01 ? 
+              value.toExponential(2) : 
+              value.toFixed(2);
             return `${data.indicator.name}: ${formattedValue}${data.indicator.unit || ''}`;
           }
         }
