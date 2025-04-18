@@ -48,14 +48,17 @@ const DetailChart: React.FC<DetailChartProps> = ({ data, filteredData }) => {
     };
   });
 
+  // Sort data chronologically
+  const sortedData = [...filteredData].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+  
   const chartData = {
-    labels: filteredData.map(point => {
+    labels: sortedData.map(point => {
       const date = new Date(point.date);
       return date.toLocaleDateString(undefined, { year: 'numeric', month: 'short' });
     }),
     datasets: [{
       label: data.indicator.name,
-      data: filteredData.map(point => Number(point.value) || 0),
+      data: sortedData.map(point => Number(point.value) || 0),
       borderColor: '#2563eb',
       backgroundColor: 'transparent',
       borderWidth: 2,
