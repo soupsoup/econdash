@@ -49,6 +49,8 @@ function Dashboard() {
     refetch,
     error
   } = useQuery('allIndicatorsData', fetchAllIndicatorsData, {
+    retry: 2,
+    refetchOnWindowFocus: false,
     onSuccess: (data) => {
       console.log('Loaded indicators:', data?.length);
       console.log('Visible charts:', visibleCharts);

@@ -13,8 +13,8 @@ function App() {
   const { error } = useQuery('dataSourceCheck', fetchAllIndicatorsData, {
     refetchOnWindowFocus: false,
     staleTime: Infinity,
-    retry: 0,
-    enabled: false,
+    retry: 2,
+    enabled: true,
     cacheTime: Infinity
   });
 
