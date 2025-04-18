@@ -54,14 +54,26 @@ export const setDataSourcePreference = (indicatorId: string, preference: DataSou
 };
 
 export const fetchIndicatorData = async (indicatorId: string): Promise<IndicatorData> => {
+  console.log('fetchIndicatorData called with ID:', indicatorId);
+  
   if (!indicatorId) {
+    console.error('Missing indicatorId');
     throw new Error('Indicator ID is required');
   }
 
   const localStorageKey = `indicator-${indicatorId}`;
+  console.log('Checking localStorage key:', LOCAL_STORAGE_PREFIX + localStorageKey);
+  
   const storedData = getFromLocalStorage(localStorageKey);
+  console.log('Retrieved stored data:', {
+    exists: !!storedData,
+    timestamp: storedData?.timestamp,
+    hasData: !!storedData?.data,
+    dataPoints: storedData?.data?.data?.length
+  });
 
   if (!storedData) {
+    console.error('No stored data found for indicator:', indicatorId);
     throw new Error('No data found. Please upload data first.');
   }
 

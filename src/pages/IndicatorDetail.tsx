@@ -21,10 +21,22 @@ const IndicatorDetail: React.FC = () => {
   const { data: indicatorData = { indicator: { id: '' }, data: [] }, isLoading, error, refetch } = useQuery(
     ['indicatorData', id],
     async () => {
-      console.log('Fetching indicator data for ID:', id);
-      const data = await fetchIndicatorData(id || '');
-      console.log('Received data:', data);
-      return data;
+      console.log('Starting fetch for indicator:', id);
+      console.log('Current local storage state:', localStorage.getItem(`presidential_dashboard_indicator-${id}`));
+      try {
+        const data = await fetchIndicatorData(id || '');
+        console.log('Indicator data fetch result:', {
+          hasData: !!data,
+          dataPoints: data?.data?.length,
+          indicator: data?.indicator,
+          firstPoint: data?.data?.[0],
+          lastPoint: data?.data?.[data?.data?.length - 1]
+        });
+        return data;
+      } catch (err) {
+        console.error('Error fetching indicator data:', err);
+        throw err;
+      }
     },
     {
       enabled: !!id,
