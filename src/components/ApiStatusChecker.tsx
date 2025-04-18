@@ -68,7 +68,8 @@ const ApiStatusChecker: React.FC = () => {
   
   const checkApiStatus = async (api: ApiStatus, index: number) => {
     try {
-      await axios({
+      const startTime = Date.now();
+      const response = await axios({
         method: api.name === 'BLS API' ? 'post' : 'get',
         url: api.url,
         timeout: 5000,
@@ -78,19 +79,45 @@ const ApiStatusChecker: React.FC = () => {
         } : undefined
       });
       
+      const responseTime = Date.now() - startTime;
+      
       setApiStatuses(prev => {
         const updated = [...prev];
         updated[index] = { 
           ...api, 
           status: 'up',
-          lastChecked: new Date()
+          lastChecked: new Date(),
+          responseTime,
+          responseStatus: response.status,
+          responseSize: JSON.stringify(response.data).length,
+          headers: response.headers
         };
         return updated;
+      });
+      
+      console.log(`[API Status] ${api.name} check successful:`, {
+        responseTime,
+        status: response.status,
+        dataSize: JSON.stringify(response.data).length,
+        headers: response.headers
       });
     } catch (error) {
       if (axios.isAxiosError(error)) {
         const status = error.response?.status;
         const errorMessage = error.response?.data?.message || error.message;
+        const errorDetails = {
+          status,
+          statusText: error.response?.statusText,
+          headers: error.response?.headers,
+          data: error.response?.data,
+          config: {
+            url: error.config?.url,
+            method: error.config?.method,
+            headers: error.config?.headers
+          }
+        };
+        
+        console.error(`[API Status] ${api.name} check failed:`, errorDetails);
         
         setApiStatuses(prev => {
           const updated = [...prev];
@@ -99,6 +126,7 @@ const ApiStatusChecker: React.FC = () => {
             status: status === 429 ? 'rate-limited' : 'down',
             message: errorMessage,
             errorCode: status?.toString(),
+            errorDetails,
             lastChecked: new Date()
           };
           return updated;
@@ -205,7 +233,24 @@ const ApiStatusChecker: React.FC = () => {
                   <p className="text-gray-600 break-all">{api.url}</p>
                 </div>
                 
-                {api.status !== 'up' && (
+                {api.status === 'up' ? (
+                  <>
+                    <div>
+                      <p className="font-medium">Response Info:</p>
+                      <ul className="mt-1 space-y-1 text-gray-600">
+                        <li>Response Time: {api.responseTime}ms</li>
+                        <li>Status: {api.responseStatus}</li>
+                        <li>Data Size: {(api.responseSize / 1024).toFixed(2)} KB</li>
+                      </ul>
+                    </div>
+                    <div>
+                      <p className="font-medium">Response Headers:</p>
+                      <pre className="mt-1 p-2 bg-gray-50 rounded text-xs overflow-auto max-h-32">
+                        {JSON.stringify(api.headers, null, 2)}
+                      </pre>
+                    </div>
+                  </>
+                ) : (
                   <>
                     <div>
                       <p className="font-medium">Error:</p>
@@ -213,6 +258,12 @@ const ApiStatusChecker: React.FC = () => {
                       {api.errorCode && (
                         <p className="text-gray-500">Code: {api.errorCode}</p>
                       )}
+                    </div>
+                    <div>
+                      <p className="font-medium">Error Details:</p>
+                      <pre className="mt-1 p-2 bg-red-50 rounded text-xs overflow-auto max-h-48">
+                        {JSON.stringify(api.errorDetails, null, 2)}
+                      </pre>
                     </div>
                     <div>
                       <p className="font-medium">How to fix:</p>
