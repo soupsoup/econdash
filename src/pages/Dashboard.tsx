@@ -7,7 +7,7 @@ import Header from '../components/Header';
 import IndicatorCard from '../components/IndicatorCard';
 import PresidentialComparison from '../components/PresidentialComparison';
 import DataSourceInfo from '../components/DataSourceInfo';
-import ApiStatusChecker from '../components/ApiStatusChecker';
+
 import { AlertTriangle } from 'lucide-react';
 import ApiErrorNotice from '../components/MockDataNotice';
 
@@ -186,11 +186,10 @@ function Dashboard() {
           </div>
         )}
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 gap-6">
           {!isLoading && !error && indicatorsData && indicatorsData.length > 0 && (
             <PresidentialComparison indicatorsData={indicatorsData} />
           )}
-          <ApiStatusChecker />
         </div>
 
         <div className="mt-6">
