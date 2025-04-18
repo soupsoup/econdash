@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { economicIndicators } from '../data/indicators';
 import ApiStatusChecker from '../components/ApiStatusChecker';
@@ -6,14 +5,18 @@ import DataUpload from '../components/DataUpload';
 import IndicatorChart from '../components/IndicatorChart';
 import DataTable from '../components/DataTable';
 import { useQuery } from 'react-query';
-import { fetchAllIndicatorsData } from '../services/api';
+import { fetchAllIndicatorsData, updateIndicatorData } from '../services/api';
 import ChartVisibilityControl from '../components/ChartVisibilityControl';
 import { useLocalStorage } from '../hooks/useLocalStorage';
+import { IndicatorDataPoint } from '../types';
+import { Edit2, Save, X } from 'lucide-react';
 
 export default function AdminDashboard() {
   const [selectedIndicator, setSelectedIndicator] = useState('');
   const [visibleCharts, setVisibleCharts] = useLocalStorage<string[]>('visibleCharts', 
-    () => economicIndicators.map(i => i.id));
+    economicIndicators.map(i => i.id));
+  const [editingDescription, setEditingDescription] = useState('');
+  const [isEditingDescription, setIsEditingDescription] = useState(false);
   
   const { data: indicatorsData, refetch } = useQuery('allIndicatorsData', fetchAllIndicatorsData, {
     refetchOnWindowFocus: false
@@ -47,6 +50,53 @@ export default function AdminDashboard() {
       updateIndicatorData(selectedData.indicator.id, updatedData);
       refetch();
     }
+  };
+
+  const handleEditDescriptionClick = () => {
+    if (!selectedData?.indicator) return;
+    setEditingDescription(selectedData.indicator.description);
+    setIsEditingDescription(true);
+  };
+
+  const handleSaveDescription = () => {
+    if (!selectedData?.indicator) return;
+    
+    // Get the current data from localStorage
+    const localStorageKey = `presidential_dashboard_indicator-${selectedData.indicator.id}`;
+    const storedData = localStorage.getItem(localStorageKey);
+    
+    if (storedData) {
+      // Parse the stored data
+      const parsedData = JSON.parse(storedData);
+      
+      // Update the description while preserving the rest of the indicator data
+      const updatedData = {
+        ...parsedData,
+        data: {
+          ...parsedData.data,
+          indicator: {
+            ...parsedData.data.indicator,
+            description: editingDescription
+          }
+        }
+      };
+      
+      // Save back to localStorage
+      localStorage.setItem(localStorageKey, JSON.stringify(updatedData));
+      
+      // Also update the data points to ensure consistency
+      updateIndicatorData(selectedData.indicator.id, selectedData.data);
+      
+      // Refetch to update the UI
+      refetch();
+    }
+    
+    setIsEditingDescription(false);
+  };
+
+  const handleCancelEdit = () => {
+    setIsEditingDescription(false);
+    setEditingDescription('');
   };
 
   return (
@@ -87,6 +137,51 @@ export default function AdminDashboard() {
                 </option>
               ))}
             </select>
+
+            {selectedIndicator && selectedData?.indicator && (
+              <div className="mb-6">
+                <div className="flex justify-between items-start mb-2">
+                  <h3 className="text-md font-semibold">Description</h3>
+                  {!isEditingDescription && (
+                    <button
+                      onClick={handleEditDescriptionClick}
+                      className="text-blue-600 hover:text-blue-800"
+                      title="Edit description"
+                    >
+                      <Edit2 className="h-4 w-4" />
+                    </button>
+                  )}
+                </div>
+                {isEditingDescription ? (
+                  <div>
+                    <textarea
+                      value={editingDescription}
+                      onChange={(e) => setEditingDescription(e.target.value)}
+                      className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent mb-2"
+                      rows={3}
+                    />
+                    <div className="flex space-x-2">
+                      <button
+                        onClick={handleSaveDescription}
+                        className="flex items-center px-3 py-1 bg-green-600 text-white rounded-md hover:bg-green-700"
+                      >
+                        <Save className="h-4 w-4 mr-1" />
+                        Save
+                      </button>
+                      <button
+                        onClick={handleCancelEdit}
+                        className="flex items-center px-3 py-1 bg-gray-600 text-white rounded-md hover:bg-gray-700"
+                      >
+                        <X className="h-4 w-4 mr-1" />
+                        Cancel
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <p className="text-gray-600">{selectedData.indicator.description}</p>
+                )}
+              </div>
+            )}
 
             {selectedIndicator ? (
               validChartData ? (

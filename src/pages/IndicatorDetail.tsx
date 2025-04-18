@@ -1,14 +1,14 @@
-
 import React, { useState, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery } from 'react-query';
-import { format, subYears, parseISO } from 'date-fns';
+import { format, subYears } from 'date-fns';
 import { fetchIndicatorData, getLastUpdatedTimestamp } from '../services/api';
-import { ArrowLeft, Download, Calendar, Filter, AlertTriangle, ExternalLink } from 'lucide-react';
+import { ArrowLeft, Download, Calendar, Filter, AlertTriangle, ExternalLink, Edit2, Save, X } from 'lucide-react';
 import DetailChart from '../components/DetailChart';
 import PresidentialPeriods from '../components/PresidentialPeriods';
 import DataTable from '../components/DataTable';
 import ApiErrorNotice from '../components/MockDataNotice';
+import { EconomicIndicator } from '../types';
 
 const IndicatorDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -17,8 +17,13 @@ const IndicatorDetail: React.FC = () => {
   const [lastUpdated, setLastUpdated] = useState<string | null>(getLastUpdatedTimestamp());
   const [timeRange, setTimeRange] = useState<number>(10);
   const [viewMode, setViewMode] = useState<'chart' | 'table'>('chart');
+  const [isEditing, setIsEditing] = useState(false);
+  const [editedDescription, setEditedDescription] = useState('');
 
-  const { data: indicatorData = { indicator: { id: '' }, data: [] }, isLoading, error, refetch } = useQuery(
+  // Add state for admin status (you might want to replace this with proper auth)
+  const [isAdmin] = useState(true);
+
+  const { data: indicatorData = { indicator: { id: '', name: '', description: '', unit: '', source: '', frequency: '' } as EconomicIndicator, data: [] }, isLoading, error, refetch } = useQuery(
     ['indicatorData', id],
     async () => {
       console.log('Starting fetch for indicator:', id);
@@ -65,7 +70,10 @@ const IndicatorDetail: React.FC = () => {
 
   // Calculate cutoff date
   const cutoffDate = subYears(new Date(), timeRange);
-  const filteredData = indicatorData.data.filter(point => parseISO(point.date) >= cutoffDate);
+  const filteredData = indicatorData.data.filter(point => {
+    const pointDate = new Date(point.date);
+    return pointDate >= cutoffDate;
+  });
 
   // Create memoized derived data
   const {
@@ -75,31 +83,35 @@ const IndicatorDetail: React.FC = () => {
     maxValue,
     processedData
   } = useMemo(() => {
-    const current = indicatorData.data[indicatorData.data.length - 1]?.value || 0;
-    const avg = filteredData.length > 0 
-      ? filteredData.reduce((sum, point) => sum + point.value, 0) / filteredData.length 
-      : 0;
-    const min = filteredData.length > 0 
-      ? Math.min(...filteredData.map(point => point.value)) 
-      : 0;
-    const max = filteredData.length > 0 
-      ? Math.max(...filteredData.map(point => point.value)) 
-      : 0;
-    
+    let current = 0;
+    let avg = 0;
+    let min = Infinity;
+    let max = -Infinity;
     let processed = filteredData;
-    if (indicatorData.indicator?.id === 'job-creation') {
-      processed = filteredData.map((point, index, array) => {
-        if (index === 0) {
-          return { ...point, originalValue: point.value, value: 0 };
-        }
-        const previousValue = array[index - 1].value;
-        const monthlyChange = point.value - previousValue;
-        return { 
-          ...point, 
-          originalValue: point.value,
-          value: monthlyChange
-        };
-      }).slice(1);
+
+    if (indicatorData.indicator?.id === 'monthly-inflation') {
+      // For monthly inflation, use the raw CPI values for display
+      processed = filteredData.map(point => ({
+        ...point,
+        value: point.value // Keep the raw CPI value
+      }));
+
+      if (processed.length > 0) {
+        current = processed[0].value;
+      }
+    } else {
+      // For other indicators, use the raw values
+      if (processed.length > 0) {
+        current = processed[0].value;
+      }
+    }
+
+    // Calculate statistics from the processed values
+    const values = processed.map(point => point.value).filter(val => !isNaN(val));
+    if (values.length > 0) {
+      avg = values.reduce((sum, val) => sum + val, 0) / values.length;
+      min = Math.min(...values);
+      max = Math.max(...values);
     }
 
     return {
@@ -109,23 +121,33 @@ const IndicatorDetail: React.FC = () => {
       maxValue: max,
       processedData: processed
     };
-  }, [filteredData, indicatorData]);
+  }, [filteredData, indicatorData.indicator?.id]);
 
   // Create memoized CSV data
   const csvData = useMemo(() => {
+    if (indicatorData.indicator?.id === 'monthly-inflation') {
+      // For monthly inflation, export the raw CPI values
+      return filteredData.map(point => ({
+        Date: point.date,
+        Value: point.value,
+        President: point.president
+      }));
+    }
     return filteredData.map(point => ({
       Date: point.date,
-      Value: point.value
+      Value: point.value,
+      President: point.president
     }));
-  }, [filteredData]);
+  }, [filteredData, indicatorData.indicator?.id]);
 
-  const formatValue = (value: number, useOriginal = false) => {
+  const formatValue = (value: number) => {
     if (indicatorData.indicator?.id === 'job-creation') {
-      if (useOriginal) {
-        return Math.round(value).toLocaleString();
-      }
-      const prefix = value > 0 ? '+' : '';
-      return `${prefix}${Math.round(value).toLocaleString()}`;
+      // For employment numbers, show in millions with 3 decimal places
+      const valueInMillions = value / 1000;
+      return valueInMillions.toFixed(3);
+    } else if (indicatorData.indicator?.id === 'monthly-inflation') {
+      // For CPI, show the raw value with 2 decimal places
+      return value.toFixed(2);
     } else {
       return value.toFixed(2);
     }
@@ -148,6 +170,29 @@ const IndicatorDetail: React.FC = () => {
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+  };
+
+  const handleEditClick = () => {
+    setEditedDescription(indicatorData.indicator.description);
+    setIsEditing(true);
+  };
+
+  const handleSaveClick = () => {
+    // Here you would typically make an API call to save the changes
+    // For now, we'll just update it in local storage
+    const storedData = localStorage.getItem(`presidential_dashboard_indicator-${id}`);
+    if (storedData) {
+      const data = JSON.parse(storedData);
+      data.indicator.description = editedDescription;
+      localStorage.setItem(`presidential_dashboard_indicator-${id}`, JSON.stringify(data));
+      refetch();
+    }
+    setIsEditing(false);
+  };
+
+  const handleCancelEdit = () => {
+    setIsEditing(false);
+    setEditedDescription('');
   };
 
   if (isLoading) {
@@ -204,7 +249,38 @@ const IndicatorDetail: React.FC = () => {
                 Back to Dashboard
               </button>
               <h1 className="text-2xl font-bold text-gray-800 mt-2">{indicator.name}</h1>
-              <p className="text-gray-600">{indicator.description}</p>
+              <div className="relative">
+                {isEditing ? (
+                  <div className="mt-2">
+                    <textarea
+                      value={editedDescription}
+                      onChange={(e) => setEditedDescription(e.target.value)}
+                      className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      rows={3}
+                    />
+                    <div className="mt-2 flex space-x-2">
+                      <button
+                        onClick={handleSaveClick}
+                        className="flex items-center px-3 py-1 bg-green-600 text-white rounded-md hover:bg-green-700"
+                      >
+                        <Save className="h-4 w-4 mr-1" />
+                        Save
+                      </button>
+                      <button
+                        onClick={handleCancelEdit}
+                        className="flex items-center px-3 py-1 bg-gray-600 text-white rounded-md hover:bg-gray-700"
+                      >
+                        <X className="h-4 w-4 mr-1" />
+                        Cancel
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="flex items-start">
+                    <p className="text-gray-600">{indicator.description}</p>
+                  </div>
+                )}
+              </div>
             </div>
 
             <div className="flex items-center space-x-3 mt-4 md:mt-0">
@@ -230,37 +306,7 @@ const IndicatorDetail: React.FC = () => {
       <main className="container mx-auto px-4 py-8">
         {Object.keys(apiErrors).length > 0 && <ApiErrorNotice errors={apiErrors} />}
 
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
-          <div className="bg-white rounded-lg shadow-md p-4">
-            <p className="text-sm text-gray-600 mb-1">Current Value</p>
-            <p className="text-2xl font-bold text-gray-800">
-              {formatValue(currentValue)} {indicator.unit}
-            </p>
-          </div>
-
-          <div className="bg-white rounded-lg shadow-md p-4">
-            <p className="text-sm text-gray-600 mb-1">Average</p>
-            <p className="text-2xl font-bold text-gray-800">
-              {formatValue(average)} {indicator.unit}
-            </p>
-          </div>
-
-          <div className="bg-white rounded-lg shadow-md p-4">
-            <p className="text-sm text-gray-600 mb-1">Minimum</p>
-            <p className="text-2xl font-bold text-gray-800">
-              {formatValue(minValue)} {indicator.unit}
-            </p>
-          </div>
-
-          <div className="bg-white rounded-lg shadow-md p-4">
-            <p className="text-sm text-gray-600 mb-1">Maximum</p>
-            <p className="text-2xl font-bold text-gray-800">
-              {formatValue(maxValue)} {indicator.unit}
-            </p>
-          </div>
-        </div>
-
-        <div className="bg-white rounded-lg shadow-md p-4 mb-8">
+        <div className="bg-white rounded-lg shadow-md p-6 mb-6">
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4">
             <div className="flex items-center mb-4 sm:mb-0">
               <Calendar className="h-5 w-5 text-blue-600 mr-2" />
@@ -308,29 +354,28 @@ const IndicatorDetail: React.FC = () => {
           </div>
         </div>
 
-        <div className="bg-white rounded-lg shadow-md p-4 mb-8">
-          <div className="flex items-center mb-4">
-            <Filter className="h-5 w-5 text-blue-600 mr-2" />
-            <h2 className="text-lg font-semibold text-gray-800">
-              {indicator.name} Data ({filteredData.length} data points)
-            </h2>
-          </div>
-
-          <div className={viewMode === 'chart' ? 'block' : 'hidden'}>
-            <div className="h-96">
-              <DetailChart data={indicatorData} filteredData={processedData} />
+        {/* Chart view */}
+        {viewMode === 'chart' && (
+          <>
+            <div className="bg-white rounded-lg shadow-md p-6 mb-6">
+              <div className="h-[400px]">
+                <DetailChart data={indicatorData} filteredData={processedData} />
+              </div>
             </div>
-          </div>
 
-          <div className={viewMode === 'table' ? 'block' : 'hidden'}>
-            <DataTable data={filteredData} indicator={indicator} />
-          </div>
-        </div>
+            <div className="bg-white rounded-lg shadow-md p-6">
+              <h2 className="text-xl font-bold text-gray-800 mb-4">Presidential Performance</h2>
+              <PresidentialPeriods data={indicatorData} />
+            </div>
+          </>
+        )}
 
-        <div className="bg-white rounded-lg shadow-md p-4 mb-8">
-          <h2 className="text-lg font-semibold text-gray-800 mb-4">Performance by Presidential Term</h2>
-          <PresidentialPeriods data={indicatorData} />
-        </div>
+        {/* Table view */}
+        {viewMode === 'table' && (
+          <div className="bg-white rounded-lg shadow-md p-6">
+            <DataTable data={processedData} indicator={indicatorData.indicator} />
+          </div>
+        )}
 
         <div className="bg-white rounded-lg shadow-md p-4">
           <h2 className="text-lg font-semibold text-gray-800 mb-2">Data Source Information</h2>
@@ -360,7 +405,7 @@ const IndicatorDetail: React.FC = () => {
         <div className="container mx-auto px-4 py-6">
           <p className="text-center text-gray-600 text-sm">
             Presidential Economic Dashboard © {new Date().getFullYear()} | 
-            Data sourced from BLS, Federal Reserve, and EIA
+            Data sourced from Federal Reserve Economic Data (FRED)
           </p>
         </div>
       </footer>

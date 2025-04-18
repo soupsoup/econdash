@@ -89,6 +89,11 @@ const DataTable: React.FC<DataTableProps> = ({ data, indicator, onDelete, onEdit
     if (indicator.id === 'job-creation') {
       // For job creation, show whole numbers with commas
       return value.toLocaleString();
+    } else if (indicator.id === 'monthly-inflation') {
+      // For monthly inflation, show the percentage change
+      const point = data.find(p => p.value === value);
+      if (!point?.percentageChange && point?.percentageChange !== 0) return "N/A";
+      return point.percentageChange.toFixed(1);
     } else {
       // For other indicators, use the default formatting with decimals
       return value.toLocaleString();
@@ -122,7 +127,7 @@ const DataTable: React.FC<DataTableProps> = ({ data, indicator, onDelete, onEdit
               onClick={() => handleSort('value')}
             >
               <span className="flex items-center">
-                Value ({indicator.unit}) {renderSortIcon('value')}
+                Monthly Change (%) {renderSortIcon('value')}
               </span>
             </th>
             <th
@@ -148,7 +153,7 @@ const DataTable: React.FC<DataTableProps> = ({ data, indicator, onDelete, onEdit
                 {format(parseISO(point.date), 'MMM d, yyyy')}
               </td>
               <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                {formatValue(point.value)} {indicator.unit}
+                {point.percentageChange !== undefined ? point.percentageChange.toFixed(1) + '%' : 'N/A'}
               </td>
               <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                 {point.president}

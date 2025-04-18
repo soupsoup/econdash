@@ -79,23 +79,44 @@ const IndicatorCard: React.FC<IndicatorCardProps> = ({ data, isLoading, refetch 
   }
 
   // Get current and previous values for comparison
-  const currentValue = dataPoints[dataPoints.length - 1]?.value;
-  const previousValue = dataPoints[dataPoints.length - 2]?.value;
+  let currentValue: number | undefined;
+  let previousValue: number | undefined;
+
+  if (indicator.id === 'monthly-inflation' && dataPoints.length >= 2) {
+    // Calculate month-over-month percentage change
+    const currentCPI = dataPoints[0].value;
+    const previousCPI = dataPoints[1].value;
+    currentValue = ((currentCPI - previousCPI) / previousCPI) * 100;
+    
+    // Calculate previous month's change for comparison
+    if (dataPoints.length >= 3) {
+      const twoPeriodsCPI = dataPoints[2].value;
+      previousValue = ((previousCPI - twoPeriodsCPI) / twoPeriodsCPI) * 100;
+    }
+  } else {
+    currentValue = dataPoints[0]?.value;
+    previousValue = dataPoints[1]?.value;
+  }
 
   // Calculate change
-  const change = currentValue - (previousValue || 0);
-  const percentChange = previousValue ? (change / previousValue) * 100 : 0;
+  const change = currentValue && previousValue ? currentValue - previousValue : 0;
 
   // Determine if change is positive (based on whether higher is better for this indicator)
   const isPositiveChange = indicator.higherIsBetter ? change > 0 : change < 0;
 
   // Format the current value based on the indicator type
   const formatValue = (value: number | undefined) => {
-    if (!value && value !== 0) return "N/A";
+    if (value === undefined) return "N/A";
 
     if (indicator.id === 'job-creation') {
-      // For job creation, show whole numbers with commas
-      return value.toLocaleString();
+      // For employment numbers, show in millions with 3 decimal places
+      return (value / 1000).toFixed(3);
+    } else if (indicator.id === 'monthly-inflation') {
+      // For monthly inflation, show percentage with one decimal place
+      return `${value.toFixed(1)}%`;
+    } else if (indicator.id === 'stock-market') {
+      // For S&P 500, show with 2 decimal places
+      return value.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
     } else {
       // For other indicators, use the default formatting
       return value.toLocaleString();
@@ -105,8 +126,13 @@ const IndicatorCard: React.FC<IndicatorCardProps> = ({ data, isLoading, refetch 
   // Format the change value based on the indicator type
   const formatChange = (changeValue: number) => {
     if (indicator.id === 'job-creation') {
-      // For job creation, show whole numbers with commas
-      return Math.abs(changeValue).toLocaleString();
+      // For employment changes, show in millions with 3 decimal places
+      const changeInMillions = Math.abs(changeValue / 1000).toFixed(3);
+      return changeValue >= 0 ? `+${changeInMillions}` : `-${changeInMillions}`;
+    } else if (indicator.id === 'monthly-inflation') {
+      // For monthly inflation, show percentage point change with one decimal
+      const formattedChange = Math.abs(changeValue).toFixed(1);
+      return `${changeValue >= 0 ? '+' : '-'}${formattedChange} pp`;
     } else {
       // For other indicators, show with 1 decimal place
       return Math.abs(changeValue).toFixed(1);
@@ -142,7 +168,7 @@ const IndicatorCard: React.FC<IndicatorCardProps> = ({ data, isLoading, refetch 
       <DataSourceSelector indicatorId={indicator.id} onPreferenceChange={refetch} /> 
       <div className="flex items-baseline mb-6">
         <span className="text-3xl font-bold mr-2">
-          {formatValue(currentValue)} {indicator.unit}
+          {formatValue(currentValue)}
         </span>
 
         {change !== 0 && previousValue && (
@@ -152,7 +178,9 @@ const IndicatorCard: React.FC<IndicatorCardProps> = ({ data, isLoading, refetch 
             ) : (
               <ArrowDownRight className="h-4 w-4 mr-1" />
             )}
-            <span>{formatChange(change)} ({Math.abs(percentChange).toFixed(1)}%)</span>
+            <span>
+              {formatChange(change)}
+            </span>
           </div>
         )}
       </div>

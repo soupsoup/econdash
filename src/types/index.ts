@@ -13,20 +13,23 @@ export interface EconomicIndicator {
   name: string;
   description: string;
   unit: string;
-  source: 'BLS' | 'FederalReserve' | 'EIA' | 'TradingEconomics';
+  source: string;
   sourceUrl: string;
-  frequency: 'daily' | 'weekly' | 'monthly' | 'quarterly' | 'yearly';
+  frequency: string;
   higherIsBetter: boolean;
+  seriesId: string;
 }
 
 export interface IndicatorDataPoint {
   date: string;
   value: number;
-  president: string;
+  president?: string;
+  percentageChange?: number; // Month-over-month percentage change for inflation data
+  originalValue?: number; // Original value before any transformations
 }
 
 export interface IndicatorData {
   indicator: EconomicIndicator;
   data: IndicatorDataPoint[];
-  lastUpdated: string;
+  lastUpdated?: string;
 }

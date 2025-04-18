@@ -9,11 +9,6 @@ const ApiErrorNotice: React.FC<ApiErrorNoticeProps> = ({ errors = {} }) => {
   const [expanded, setExpanded] = useState(false);
   const errorCount = Object.keys(errors).length;
   
-  // Check if BLS rate limit error is present
-  const hasRateLimitError = Object.values(errors).some(
-    error => error.includes('threshold') || error.includes('rate limit')
-  );
-  
   return (
     <div className="bg-red-50 border border-red-200 text-red-800 rounded-md p-4 mb-6 relative">
       <button 
@@ -28,9 +23,7 @@ const ApiErrorNotice: React.FC<ApiErrorNoticeProps> = ({ errors = {} }) => {
         <div className="flex-1">
           <div className="flex justify-between items-center">
             <p className="font-medium">
-              {hasRateLimitError 
-                ? "BLS API Daily Request Limit Reached" 
-                : "API Data Unavailable"}
+              API Data Unavailable
             </p>
             {!expanded && (
               <button 
@@ -45,56 +38,43 @@ const ApiErrorNotice: React.FC<ApiErrorNoticeProps> = ({ errors = {} }) => {
           {expanded ? (
             <>
               <p className="text-sm mt-2">
-                {hasRateLimitError 
-                  ? "The Bureau of Labor Statistics (BLS) API has a daily request limit that has been reached. This is a common limitation of free API keys."
-                  : "We couldn't retrieve the economic data from the following API sources:"}
+                We're experiencing technical difficulties retrieving the economic data:
               </p>
               
               <div className="mt-3 bg-red-100 p-3 rounded-md border border-red-200">
-                <p className="text-sm font-medium mb-1">Error details:</p>
+                <p className="text-sm font-medium mb-1">Status:</p>
                 
                 {errorCount > 0 ? (
                   <div className="space-y-3">
                     {Object.entries(errors).map(([source, message]) => (
                       <div key={source} className="text-sm">
-                        <p className="font-medium">{source}:</p>
-                        <p className="font-mono text-xs bg-red-50 p-2 rounded border border-red-200 mt-1 overflow-auto max-h-48">
-                          {message}
+                        <p className="font-medium">{source}</p>
+                        <p className="text-xs bg-red-50 p-2 rounded border border-red-200 mt-1">
+                          Service temporarily unavailable
                         </p>
                       </div>
                     ))}
                   </div>
                 ) : (
-                  <p className="text-sm">No specific error details available.</p>
+                  <p className="text-sm">Service temporarily unavailable.</p>
                 )}
                 
-                {hasRateLimitError && (
-                  <>
-                    <p className="text-sm font-medium mt-3 mb-1">About BLS API Rate Limits:</p>
-                    <ul className="text-sm list-disc list-inside ml-2">
-                      <li>Free API keys are limited to 500 requests per day</li>
-                      <li>Rate limits reset at midnight Eastern Time</li>
-                      <li>Consider registering for a new API key if you need more requests</li>
-                      <li>The application will use locally stored data when available</li>
-                    </ul>
-                  </>
-                )}
-                
-                <p className="text-sm font-medium mt-3 mb-1">Other common API issues:</p>
+                <p className="text-sm font-medium mt-3 mb-1">Troubleshooting steps:</p>
                 <ul className="text-sm list-disc list-inside ml-2">
-                  <li>CORS restrictions in browser environment</li>
-                  <li>Network connectivity problems</li>
-                  <li>API service timeouts</li>
+                  <li>Check your internet connection</li>
+                  <li>Try refreshing the page</li>
+                  <li>Clear your browser cache</li>
+                  <li>Try again later</li>
                 </ul>
                 
                 <div className="mt-3 flex items-center">
                   <a 
-                    href="https://www.bls.gov/developers/api_faqs.htm#register1" 
+                    href="https://fred.stlouisfed.org/docs/api/fred/"
                     target="_blank" 
                     rel="noopener noreferrer"
                     className="text-sm text-red-800 hover:text-red-900 flex items-center"
                   >
-                    <span>Learn more about BLS API limits</span>
+                    <span>Learn more about our data sources</span>
                     <ExternalLink className="h-3 w-3 ml-1" />
                   </a>
                 </div>
@@ -102,9 +82,7 @@ const ApiErrorNotice: React.FC<ApiErrorNoticeProps> = ({ errors = {} }) => {
             </>
           ) : (
             <p className="text-sm">
-              {hasRateLimitError 
-                ? "The BLS API has a daily limit of 500 requests which has been reached. The application will use locally stored data when available."
-                : "Failed to retrieve data from API sources. Click \"View error details\" to see the specific errors."}
+              Failed to retrieve data from FRED API. Click "View error details" to see the specific errors.
             </p>
           )}
         </div>

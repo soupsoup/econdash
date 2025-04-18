@@ -15,52 +15,13 @@ export default defineConfig({
       overlay: true,
     },
     proxy: {
-      // BLS API proxy
-      '/api/bls': {
-        target: 'https://api.bls.gov',
-        changeOrigin: true,
-        secure: true,
-        rewrite: (path) => path.replace(/^\/api\/bls/, ''),
-        configure: (proxy) => {
-          proxy.on('proxyReq', (proxyReq, req, res) => {
-            proxyReq.setHeader('Content-Type', 'application/json');
-            proxyReq.setHeader('Registrationkey', 'ce15238949e14526b9b13c2ff4beabfc');
-          });
-          proxy.on('error', (err) => console.error('BLS Proxy Error:', err));
-        }
-      },
-      // FRED API proxy
-      '/fred': {
+      '/api/fred': {
         target: 'https://api.stlouisfed.org',
         changeOrigin: true,
         secure: true,
-        rewrite: (path) => path,
+        rewrite: (path) => path.replace(/^\/api\/fred/, '/fred'),
         configure: (proxy) => {
           proxy.on('error', (err) => console.error('FRED Proxy Error:', err));
-        }
-      },
-      // EIA API proxy
-      '/api/eia': {
-        target: 'https://api.eia.gov',
-        changeOrigin: true,
-        secure: true,
-        rewrite: (path) => path.replace(/^\/api\/eia/, ''),
-        configure: (proxy) => {
-          proxy.on('proxyReq', (proxyReq, req, res) => {
-            proxyReq.setHeader('Content-Type', 'application/json');
-            proxyReq.setHeader('Accept', 'application/json');
-          });
-          proxy.on('proxyRes', (proxyRes, req, res) => {
-            console.log('EIA Proxy Response:', {
-              status: proxyRes.statusCode,
-              headers: proxyRes.headers
-            });
-          });
-          proxy.on('proxyReq', (proxyReq, req, res) => {
-            proxyReq.setHeader('Content-Type', 'application/json');
-            proxyReq.setHeader('Accept', 'application/json');
-          });
-          proxy.on('error', (err) => console.error('EIA Proxy Error:', err));
         }
       }
     }

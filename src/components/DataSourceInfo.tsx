@@ -17,7 +17,7 @@ const DataSourceInfo: React.FC = () => {
           </p>
           <div className="flex items-center text-xs text-gray-500 mb-2">
             <Key className="h-3 w-3 mr-1" />
-            <span>API Key: ce15238949e14526b9b13c2ff4beabfc</span>
+            <span>API access configured</span>
           </div>
           <a 
             href="https://www.bls.gov/data/" 
@@ -37,7 +37,7 @@ const DataSourceInfo: React.FC = () => {
           </p>
           <div className="flex items-center text-xs text-gray-500 mb-2">
             <Key className="h-3 w-3 mr-1" />
-            <span>API Key: 08baf631b4523fb0d66722ab2d546a88</span>
+            <span>API access configured</span>
           </div>
           <a 
             href="https://fred.stlouisfed.org/" 
@@ -57,7 +57,7 @@ const DataSourceInfo: React.FC = () => {
           </p>
           <div className="flex items-center text-xs text-gray-500 mb-2">
             <Key className="h-3 w-3 mr-1" />
-            <span>API Key: WU9DIO3Pc3R6vrqHlObPJgpmKdEgE7ZSvhMm1LJ4</span>
+            <span>API access configured</span>
           </div>
           <a 
             href="https://www.eia.gov/tools/api/index.php" 

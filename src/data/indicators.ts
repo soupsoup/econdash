@@ -2,34 +2,26 @@ import { EconomicIndicator } from '../types';
 
 export const economicIndicators: EconomicIndicator[] = [
   {
-    id: 'egg-prices',
-    name: 'Egg Prices',
-    description: 'Average price of a dozen Grade A large eggs in U.S. cities',
-    unit: 'USD',
-    source: 'TradingEconomics',
-    sourceUrl: 'https://tradingeconomics.com/united-states/egg-prices',
-    frequency: 'monthly',
-    higherIsBetter: false
-  },
-  {
     id: 'unemployment',
     name: 'Unemployment Rate',
     description: 'Percentage of the labor force that is unemployed and actively seeking employment',
     unit: '%',
-    source: 'BLS',
-    sourceUrl: 'https://www.bls.gov/charts/employment-situation/civilian-unemployment-rate.htm',
+    source: 'FederalReserve',
+    sourceUrl: 'https://fred.stlouisfed.org/series/UNRATE',
     frequency: 'monthly',
-    higherIsBetter: false
+    higherIsBetter: false,
+    seriesId: 'UNRATE'
   },
   {
-    id: 'inflation',
-    name: 'Inflation Rate (CPI)',
-    description: 'Annual percentage change in the Consumer Price Index for All Urban Consumers',
+    id: 'monthly-inflation',
+    name: 'Monthly Inflation Rate',
+    description: 'Month-over-month percentage change in Consumer Price Index for All Urban Consumers (CPI-U)',
     unit: '%',
-    source: 'BLS',
-    sourceUrl: 'https://www.bls.gov/charts/consumer-price-index/consumer-price-index-by-category-line-chart.htm',
+    source: 'FederalReserve',
+    sourceUrl: 'https://fred.stlouisfed.org/series/CPIAUCSL',
     frequency: 'monthly',
-    higherIsBetter: false
+    higherIsBetter: false,
+    seriesId: 'CPIAUCSL'
   },
   {
     id: 'gdp-growth',
@@ -39,17 +31,19 @@ export const economicIndicators: EconomicIndicator[] = [
     source: 'FederalReserve',
     sourceUrl: 'https://fred.stlouisfed.org/series/A191RL1Q225SBEA',
     frequency: 'quarterly',
-    higherIsBetter: true
+    higherIsBetter: true,
+    seriesId: 'A191RL1Q225SBEA'
   },
   {
     id: 'job-creation',
-    name: 'Job Creation',
-    description: 'Monthly change in nonfarm payroll employment',
-    unit: 'jobs',
-    source: 'BLS',
-    sourceUrl: 'https://www.bls.gov/charts/employment-situation/civilian-unemployment-rate.htm',
+    name: 'Total Nonfarm Employment',
+    description: 'Total number of U.S. workers',
+    unit: 'million jobs',
+    source: 'FederalReserve',
+    sourceUrl: 'https://fred.stlouisfed.org/series/PAYEMS',
     frequency: 'monthly',
-    higherIsBetter: true
+    higherIsBetter: true,
+    seriesId: 'PAYEMS'
   },
   {
     id: 'federal-debt',
@@ -59,17 +53,19 @@ export const economicIndicators: EconomicIndicator[] = [
     source: 'FederalReserve',
     sourceUrl: 'https://fred.stlouisfed.org/series/GFDEGDQ188S',
     frequency: 'quarterly',
-    higherIsBetter: false
+    higherIsBetter: false,
+    seriesId: 'GFDEGDQ188S'
   },
   {
     id: 'gas-prices',
     name: 'Average Gas Price',
     description: 'U.S. regular all formulations retail gasoline prices',
     unit: '$/gallon',
-    source: 'EIA',
-    sourceUrl: 'https://www.eia.gov/dnav/pet/pet_pri_gnd_dcus_nus_w.htm',
+    source: 'FederalReserve',
+    sourceUrl: 'https://fred.stlouisfed.org/series/GASREGW',
     frequency: 'weekly',
-    higherIsBetter: false
+    higherIsBetter: false,
+    seriesId: 'GASREGW'
   },
   {
     id: 'median-income',
@@ -79,7 +75,8 @@ export const economicIndicators: EconomicIndicator[] = [
     source: 'FederalReserve',
     sourceUrl: 'https://fred.stlouisfed.org/series/MEHOINUSA672N',
     frequency: 'yearly',
-    higherIsBetter: true
+    higherIsBetter: true,
+    seriesId: 'MEHOINUSA672N'
   },
   {
     id: 'stock-market',
@@ -89,6 +86,18 @@ export const economicIndicators: EconomicIndicator[] = [
     source: 'FederalReserve',
     sourceUrl: 'https://fred.stlouisfed.org/series/SP500',
     frequency: 'daily',
-    higherIsBetter: true
+    higherIsBetter: true,
+    seriesId: 'SP500'
+  },
+  {
+    id: 'cpi',
+    name: 'Consumer Price Index',
+    description: 'Consumer Price Index for All Urban Consumers: All Items (Base: 1982-84=100)',
+    unit: 'index',
+    source: 'FederalReserve',
+    sourceUrl: 'https://fred.stlouisfed.org/series/CPIAUCSL',
+    frequency: 'monthly',
+    higherIsBetter: false,
+    seriesId: 'CPIAUCSL'
   }
 ];
