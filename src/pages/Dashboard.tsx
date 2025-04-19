@@ -9,10 +9,13 @@ import { fetchAllIndicatorsData } from '../services/api';
 import { AlertTriangle } from 'lucide-react';
 import { economicIndicators } from '../data/indicators';
 import { IndicatorData } from '../types';
+import { useLocalStorage } from '../hooks/useLocalStorage';
 
 export default function Dashboard() {
   const [lastUpdated, setLastUpdated] = useState<string | null>(null);
   const [hasNewData, setHasNewData] = useState(false);
+  const [visibleCharts] = useLocalStorage<string[]>('visibleCharts', 
+    economicIndicators.map(i => i.id));
 
   const { data: indicators, isLoading, isError, error, refetch } = useQuery<IndicatorData[]>(
     'allIndicatorsData',
@@ -61,17 +64,19 @@ export default function Dashboard() {
         {!isLoading && !isError && indicators && (
           <div className="space-y-8">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              {economicIndicators.map(indicator => {
-                const indicatorData = indicators.find(d => d.indicator?.id === indicator.id);
-                return (
-                  <IndicatorCard
-                    key={indicator.id}
-                    data={indicatorData || { indicator, data: [] }}
-                    isLoading={false}
-                    refetch={refetch}
-                  />
-                );
-              })}
+              {economicIndicators
+                .filter(indicator => visibleCharts.includes(indicator.id))
+                .map(indicator => {
+                  const indicatorData = indicators.find(d => d.indicator?.id === indicator.id);
+                  return (
+                    <IndicatorCard
+                      key={indicator.id}
+                      data={indicatorData || { indicator, data: [] }}
+                      isLoading={false}
+                      refetch={refetch}
+                    />
+                  );
+                })}
             </div>
 
             <NextUpdates />

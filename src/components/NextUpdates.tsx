@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { economicIndicators } from '../data/indicators';
 import { getNextUpdateDate, formatDateTime } from '../utils/dateUtils';
 import { Clock } from 'lucide-react';
+import { useLocalStorage } from '../hooks/useLocalStorage';
 
 interface UpdateInfo {
   id: string;
@@ -12,14 +13,18 @@ interface UpdateInfo {
 const NextUpdates: React.FC = () => {
   const [updates, setUpdates] = useState<UpdateInfo[]>([]);
   const [timeUntilNextUpdate, setTimeUntilNextUpdate] = useState<string>('');
+  const [visibleCharts] = useLocalStorage<string[]>('visibleCharts', 
+    economicIndicators.map(i => i.id));
 
   useEffect(() => {
-    // Calculate next update for each indicator
-    const updateInfos = economicIndicators.map(indicator => ({
-      id: indicator.id,
-      name: indicator.name,
-      nextUpdate: getNextUpdateDate(indicator)
-    }));
+    // Calculate next update for each visible indicator
+    const updateInfos = economicIndicators
+      .filter(indicator => visibleCharts.includes(indicator.id))
+      .map(indicator => ({
+        id: indicator.id,
+        name: indicator.name,
+        nextUpdate: getNextUpdateDate(indicator)
+      }));
 
     // Sort by next update date
     const sortedUpdates = updateInfos.sort((a, b) => 
@@ -27,7 +32,7 @@ const NextUpdates: React.FC = () => {
     );
 
     setUpdates(sortedUpdates);
-  }, []);
+  }, [visibleCharts]);
 
   useEffect(() => {
     if (updates.length === 0) return;
