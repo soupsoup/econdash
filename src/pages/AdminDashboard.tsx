@@ -9,7 +9,9 @@ import { fetchAllIndicatorsData, updateIndicatorData } from '../services/api';
 import ChartVisibilityControl from '../components/ChartVisibilityControl';
 import { useLocalStorage } from '../hooks/useLocalStorage';
 import { IndicatorDataPoint } from '../types';
-import { Edit2, Save, X } from 'lucide-react';
+import { Edit2, Save, X, LogOut } from 'lucide-react';
+import { useAuth } from '../contexts/AuthContext';
+import { useNavigate } from 'react-router-dom';
 
 export default function AdminDashboard() {
   const [selectedIndicator, setSelectedIndicator] = useState('');
@@ -17,7 +19,14 @@ export default function AdminDashboard() {
     economicIndicators.map(i => i.id));
   const [editingDescription, setEditingDescription] = useState('');
   const [isEditingDescription, setIsEditingDescription] = useState(false);
+  const { logout } = useAuth();
+  const navigate = useNavigate();
   
+  const handleLogout = () => {
+    logout();
+    navigate('/');
+  };
+
   const { data: indicatorsData, refetch } = useQuery('allIndicatorsData', fetchAllIndicatorsData, {
     refetchOnWindowFocus: false
   });
@@ -102,7 +111,16 @@ export default function AdminDashboard() {
   return (
     <div className="min-h-screen bg-gray-50 p-8">
       <div className="max-w-7xl mx-auto">
-        <h1 className="text-2xl font-bold mb-8">Admin Dashboard</h1>
+        <div className="flex justify-between items-center mb-8">
+          <h1 className="text-2xl font-bold">Admin Dashboard</h1>
+          <button
+            onClick={handleLogout}
+            className="flex items-center px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 transition-colors"
+          >
+            <LogOut className="h-4 w-4 mr-2" />
+            Logout
+          </button>
+        </div>
         
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           <div className="space-y-6">

@@ -199,7 +199,7 @@ function Dashboard() {
       <footer className="bg-white border-t border-gray-200 mt-12">
         <div className="container mx-auto px-4 py-6">
           <p className="text-center text-gray-600 text-sm">
-            Presidential Economic Dashboard © {new Date().getFullYear()} | 
+            America Econ © {new Date().getFullYear()} | 
             Data sourced from Federal Reserve Economic Data (FRED)
           </p>
         </div>

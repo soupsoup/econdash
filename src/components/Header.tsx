@@ -1,6 +1,5 @@
 import React from 'react';
 import { BarChart3, Database } from 'lucide-react';
-import { getCurrentPresident } from '../data/presidents';
 
 interface HeaderProps {
   lastUpdated: string | null;
@@ -9,8 +8,6 @@ interface HeaderProps {
 }
 
 const Header: React.FC<HeaderProps> = ({ lastUpdated }) => {
-  const currentPresident = getCurrentPresident();
-  
   return (
     <header className="bg-white shadow-md">
       <div className="container mx-auto px-4 py-6">
@@ -18,19 +15,17 @@ const Header: React.FC<HeaderProps> = ({ lastUpdated }) => {
           <div className="flex items-center mb-4 md:mb-0">
             <BarChart3 className="h-8 w-8 mr-3 text-blue-600" />
             <div>
-              <h1 className="text-2xl font-bold text-gray-800">Presidential Economic Dashboard</h1>
-              <p className="text-gray-600">Tracking economic performance under {currentPresident.name}</p>
+              <h1 className="text-2xl font-bold text-gray-800">America Econ</h1>
+              <p className="text-gray-600">Tracking the major economic indicators for the United States of America</p>
             </div>
           </div>
           
-          <div className="flex items-center">
-            <div className="text-sm text-gray-600">
-              {lastUpdated ? (
-                <span>Last updated: {new Date(lastUpdated).toLocaleDateString()}</span>
-              ) : (
-                <span>Loading data...</span>
-              )}
-            </div>
+          <div className="text-sm text-gray-600">
+            {lastUpdated ? (
+              <span>Last updated: {new Date(lastUpdated).toLocaleDateString()}</span>
+            ) : (
+              <span>Loading data...</span>
+            )}
           </div>
         </div>
         
