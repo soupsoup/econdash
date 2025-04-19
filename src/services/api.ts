@@ -8,6 +8,14 @@ const FRED_API_BASE_URL = import.meta.env.PROD
   ? '/.netlify/functions/fred-proxy'
   : '/api/fred/series/observations';
 
+// Debug logging
+console.log('Environment Configuration:', {
+  isProd: import.meta.env.PROD,
+  baseUrl: FRED_API_BASE_URL,
+  apiKey: import.meta.env.VITE_FRED_API_KEY ? 'Present' : 'Missing',
+  envKeys: Object.keys(import.meta.env)
+});
+
 export const LAST_UPDATED_KEY = `${LOCAL_STORAGE_PREFIX}last_updated`;
 export const DATA_SOURCE_PREFERENCES_KEY = `${LOCAL_STORAGE_PREFIX}data_source_preferences`;
 
@@ -18,11 +26,50 @@ interface FredObservation {
   realtime_end?: string;
 }
 
+async function testFredApiKey(): Promise<boolean> {
+  const apiKey = import.meta.env.VITE_FRED_API_KEY;
+  if (!apiKey) {
+    console.error('FRED API key is missing in environment variables');
+    return false;
+  }
+
+  try {
+    const testUrl = `https://api.stlouisfed.org/fred/series/observations?series_id=UNRATE&api_key=${apiKey}&file_type=json&limit=1`;
+    console.log('Testing FRED API with URL:', testUrl);
+    
+    const response = await fetch(testUrl, {
+      method: 'GET',
+      headers: {
+        'Accept': 'application/json',
+      },
+      mode: 'cors'
+    });
+
+    console.log('FRED API Test Response:', {
+      status: response.status,
+      statusText: response.statusText,
+      headers: Object.fromEntries(response.headers.entries())
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('FRED API Test Error:', errorText);
+      return false;
+    }
+
+    const data = await response.json();
+    console.log('FRED API Test Success:', data);
+    return true;
+  } catch (error) {
+    console.error('FRED API Test Error:', error);
+    return false;
+  }
+}
+
 async function fetchFredData(series: string): Promise<IndicatorDataPoint[]> {
   const today = new Date().toISOString().split('T')[0];
   const params = new URLSearchParams({
     series_id: series,
-    api_key: import.meta.env.VITE_FRED_API_KEY,
     file_type: 'json',
     observation_start: '1950-01-01',
     observation_end: today,
@@ -31,26 +78,43 @@ async function fetchFredData(series: string): Promise<IndicatorDataPoint[]> {
   });
 
   const url = `${FRED_API_BASE_URL}?${params.toString()}`;
-  console.log('Fetching FRED data with params:', {
-    series,
-    observation_end: today,
-    sort_order: 'desc',
-    units: 'lin'
-  });
+  console.log('Fetching FRED data with URL:', url);
 
   try {
-    const response = await fetch(url);
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: {
+        'Accept': 'application/json',
+      }
+    });
+
+    console.log('FRED API Response:', {
+      status: response.status,
+      statusText: response.statusText,
+      headers: Object.fromEntries(response.headers.entries())
+    });
+
     const contentType = response.headers.get('content-type');
     
     if (!response.ok) {
       const errorText = await response.text();
-      console.error('FRED API Error:', {
+      console.error('FRED API Error Details:', {
         status: response.status,
         statusText: response.statusText,
         contentType,
-        error: errorText
+        error: errorText,
+        url: url
       });
-      throw new Error(`FRED API Error (${response.status}): ${errorText}`);
+      
+      if (response.status === 403) {
+        throw new Error('Invalid or expired FRED API key. Please check your API key configuration.');
+      } else if (response.status === 404) {
+        throw new Error('FRED API endpoint not found. Please check the series ID.');
+      } else if (response.status === 429) {
+        throw new Error('FRED API rate limit exceeded. Please try again later.');
+      } else {
+        throw new Error(`FRED API Error (${response.status}): ${errorText}`);
+      }
     }
 
     if (!contentType?.includes('application/json')) {
