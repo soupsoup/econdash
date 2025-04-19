@@ -4,6 +4,7 @@ import IndicatorCard from '../components/IndicatorCard';
 import PresidentialComparison from '../components/PresidentialComparison';
 import DataSourceInfo from '../components/DataSourceInfo';
 import NextUpdates from '../components/NextUpdates';
+import PresidentSchedule from '../components/PresidentSchedule';
 import { useQuery } from 'react-query';
 import { fetchAllIndicatorsData } from '../services/api';
 import { AlertTriangle } from 'lucide-react';
@@ -61,32 +62,38 @@ export default function Dashboard() {
           </div>
         )}
 
-        {!isLoading && !isError && indicators && (
-          <div className="space-y-8">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              {economicIndicators
-                .filter(indicator => visibleCharts.includes(indicator.id))
-                .map(indicator => {
-                  const indicatorData = indicators.find(d => d.indicator?.id === indicator.id);
-                  return (
-                    <IndicatorCard
-                      key={indicator.id}
-                      data={indicatorData || { indicator, data: [] }}
-                      isLoading={false}
-                      refetch={refetch}
-                    />
-                  );
-                })}
-            </div>
+        <div className="space-y-8">
+          {!isLoading && !isError && indicators && (
+            <>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                {economicIndicators
+                  .filter(indicator => visibleCharts.includes(indicator.id))
+                  .map(indicator => {
+                    const indicatorData = indicators.find(d => d.indicator?.id === indicator.id);
+                    return (
+                      <IndicatorCard
+                        key={indicator.id}
+                        data={indicatorData || { indicator, data: [] }}
+                        isLoading={false}
+                        refetch={refetch}
+                      />
+                    );
+                  })}
+              </div>
 
-            <NextUpdates />
-            
+              <NextUpdates />
+            </>
+          )}
+          
+          <PresidentSchedule />
+          
+          {!isLoading && !isError && indicators && (
             <div className="space-y-8">
               <PresidentialComparison indicatorsData={indicators} />
               <DataSourceInfo />
             </div>
-          </div>
-        )}
+          )}
+        </div>
       </main>
     </div>
   );
