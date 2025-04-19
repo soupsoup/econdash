@@ -59,30 +59,26 @@ export default function Dashboard() {
         )}
 
         {!isLoading && !isError && indicators && (
-          <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-            <div className="lg:col-span-3">
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-                {economicIndicators.map(indicator => {
-                  const indicatorData = indicators.find(d => d.indicator?.id === indicator.id);
-                  return (
-                    <IndicatorCard
-                      key={indicator.id}
-                      data={indicatorData || { indicator, data: [] }}
-                      isLoading={false}
-                      refetch={refetch}
-                    />
-                  );
-                })}
-              </div>
-              
-              <div className="space-y-8">
-                <PresidentialComparison indicatorsData={indicators} />
-                <DataSourceInfo />
-              </div>
+          <div className="space-y-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              {economicIndicators.map(indicator => {
+                const indicatorData = indicators.find(d => d.indicator?.id === indicator.id);
+                return (
+                  <IndicatorCard
+                    key={indicator.id}
+                    data={indicatorData || { indicator, data: [] }}
+                    isLoading={false}
+                    refetch={refetch}
+                  />
+                );
+              })}
             </div>
+
+            <NextUpdates />
             
-            <div className="lg:col-span-1 space-y-6">
-              <NextUpdates />
+            <div className="space-y-8">
+              <PresidentialComparison indicatorsData={indicators} />
+              <DataSourceInfo />
             </div>
           </div>
         )}
