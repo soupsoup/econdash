@@ -4,9 +4,6 @@ import { ArrowUpRight, ArrowDownRight, ExternalLink, Maximize2, AlertTriangle } 
 import { IndicatorData } from '../types';
 import DetailChart from './DetailChart'; // Changed import
 
-import DataSourceSelector from './DataSourceSelector';
-
-
 interface IndicatorCardProps {
   data: IndicatorData | null;
   isLoading: boolean;
@@ -165,7 +162,7 @@ const IndicatorCard: React.FC<IndicatorCardProps> = ({ data, isLoading, refetch 
           </a>
         </div>
       </div>
-      <DataSourceSelector indicatorId={indicator.id} onPreferenceChange={refetch} /> 
+
       <div className="flex items-baseline mb-6">
         <span className="text-3xl font-bold mr-2">
           {formatValue(currentValue)}

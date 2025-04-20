@@ -11,7 +11,7 @@ exports.handler = async function(event) {
     const params = new URLSearchParams(event.queryStringParameters);
     
     // Add the API key from environment variable
-    params.append('api_key', process.env.VITE_FRED_API_KEY);
+    params.append('api_key', process.env.FRED_API_KEY);
     
     // Make the request to FRED API
     const response = await axios.get(`https://api.stlouisfed.org/fred/series/observations?${params.toString()}`, {
