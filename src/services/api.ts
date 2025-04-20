@@ -334,6 +334,20 @@ export const getLastUpdated = (indicatorId: string): string | null => {
   return localStorage.getItem(`${LAST_UPDATED_PREFIX}${indicatorId}`);
 };
 
+export const getLastUpdatedTimestamp = (indicatorId: string): string | null => {
+  const storedData = localStorage.getItem(`${LOCAL_STORAGE_PREFIX}api_${indicatorId}`);
+  if (storedData) {
+    try {
+      const parsedData: StoredData = JSON.parse(storedData);
+      return parsedData.lastUpdated;
+    } catch (error) {
+      console.error('Error parsing stored data:', error);
+      return null;
+    }
+  }
+  return null;
+};
+
 export const clearAllStoredData = (): void => {
   try {
     Object.keys(localStorage).forEach(key => {
