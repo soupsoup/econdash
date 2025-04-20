@@ -12,8 +12,8 @@ export default defineConfig(({ mode }) => {
       exclude: ['lucide-react'],
     },
     build: {
+      sourcemap: false,
       rollupOptions: {
-        // Ensure environment variables are properly handled
         output: {
           manualChunks(id) {
             if (id.includes('node_modules')) {
@@ -22,6 +22,11 @@ export default defineConfig(({ mode }) => {
           }
         }
       }
+    },
+    define: {
+      // Prevent environment variables from being included in the build
+      'import.meta.env.VITE_FRED_API_KEY': JSON.stringify(''),
+      'process.env.FRED_API_KEY': JSON.stringify('')
     },
     server: {
       host: '0.0.0.0',

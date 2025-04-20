@@ -12,6 +12,33 @@
 [build.environment]
   NODE_VERSION = "20"
 
+[build.processing]
+  skip_processing = true
+
+[build.processing.css]
+  bundle = false
+  minify = false
+
+[build.processing.js]
+  bundle = false
+  minify = false
+
+[build.processing.html]
+  pretty_urls = true
+
+[build.processing.images]
+  compress = false
+
 [secrets]
   SECRETS_SCAN_ENABLED = true
-  SECRETS_SCAN_OMIT_PATHS = ["node_modules/**/*"] 
+  # Ignore build output and other necessary paths
+  SECRETS_SCAN_OMIT_PATHS = [
+    "node_modules/**/*",
+    "dist/**/*",
+    ".netlify/**/*"
+  ]
+  # Specify which environment variables to ignore in scanning
+  SECRETS_SCAN_OMIT_KEYS = [
+    "FRED_API_KEY",
+    "VITE_FRED_API_KEY"
+  ] 
