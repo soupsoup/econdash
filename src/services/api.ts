@@ -245,27 +245,24 @@ export const fetchIndicatorData = async (indicatorId: string): Promise<Indicator
     if (!indicator) throw new Error('Invalid indicator ID');
 
     const today = new Date().toISOString().split('T')[0];
-    const params: Record<string, string> = {
+    const params = new URLSearchParams({
       series_id: indicator.seriesId,
-      file_type: 'json',
       observation_start: '1950-01-01',
       observation_end: today,
       sort_order: 'desc',
       units: 'lin'
-    };
+    });
 
-    // Add API key only in development
-    if (!import.meta.env.PROD) {
-      const apiKey = import.meta.env.VITE_FRED_API_KEY;
-      if (!apiKey) {
-        throw new Error('FRED API key is missing in environment variables');
-      }
-      params.api_key = apiKey;
-    }
+    // Log the request details
+    console.log(`Fetching data for ${indicator.name}:`, {
+      indicatorId,
+      seriesId: indicator.seriesId,
+      params: Object.fromEntries(params.entries()),
+      baseUrl: FRED_API_BASE_URL,
+      isProd: import.meta.env.PROD
+    });
 
-    console.log(`Fetching data for ${indicator.name} (${indicator.seriesId})...`);
-    
-    const response = await axios.get<FredResponse>(`${FRED_API_BASE_URL}/series/observations`, {
+    const response = await axios.get<FredResponse>(`${FRED_API_BASE_URL}`, {
       params,
       headers: {
         'Accept': 'application/json',
@@ -273,11 +270,13 @@ export const fetchIndicatorData = async (indicatorId: string): Promise<Indicator
       }
     });
 
-    console.log('API Response:', {
+    console.log(`API Response for ${indicator.name}:`, {
       status: response.status,
+      statusText: response.statusText,
+      headers: response.headers,
       url: response.config.url,
-      params: response.config.params,
-      headers: response.headers
+      dataSize: JSON.stringify(response.data).length,
+      observationCount: response.data.observations?.length
     });
 
     if (!response.data || !Array.isArray(response.data.observations)) {
@@ -285,10 +284,7 @@ export const fetchIndicatorData = async (indicatorId: string): Promise<Indicator
       throw new Error('Invalid API response format');
     }
 
-    const data = response.data;
-    console.log(`Received ${data.observations.length} observations for ${indicator.name}`);
-    
-    const formattedData = formatFredData(data.observations, indicator);
+    const formattedData = formatFredData(response.data.observations, indicator);
     const indicatorData = { indicator, data: formattedData };
 
     // Store API data locally with timestamp
@@ -301,17 +297,13 @@ export const fetchIndicatorData = async (indicatorId: string): Promise<Indicator
 
     return indicatorData;
   } catch (error: unknown) {
-    console.error('Error fetching from API:', error);
-    
-    // Log error details if available
-    const axiosError = error as { response?: { status: number; data: any }; config?: { url: string } };
-    if (axiosError.response) {
-      console.error('API error details:', {
-        status: axiosError.response.status,
-        data: axiosError.response.data,
-        url: axiosError.config?.url
-      });
-    }
+    console.error(`Error fetching ${indicatorId}:`, {
+      error,
+      message: error instanceof Error ? error.message : String(error),
+      response: (error as any).response?.data,
+      status: (error as any).response?.status,
+      config: (error as any).config
+    });
     
     // Try to use locally stored API data if available
     const storedData = localStorage.getItem(`${LOCAL_STORAGE_PREFIX}api_${indicatorId}`);
