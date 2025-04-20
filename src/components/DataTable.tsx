@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import { format, parseISO } from 'date-fns';
+import { format } from 'date-fns';
 import { IndicatorDataPoint, EconomicIndicator } from '../types';
-import { ChevronUp, ChevronDown } from 'lucide-react';
+import { ChevronUp, ChevronDown, Edit2, Trash2 } from 'lucide-react';
 
 interface DataTableProps {
   data: IndicatorDataPoint[];
@@ -31,7 +31,6 @@ const EditModal: React.FC<{
   );
 };
 
-
 const DataTable: React.FC<DataTableProps> = ({ data, indicator, onDelete, onEdit, isAdmin = false }) => {
   const [sortField, setSortField] = useState<SortField>('date');
   const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
@@ -50,8 +49,8 @@ const DataTable: React.FC<DataTableProps> = ({ data, indicator, onDelete, onEdit
       return sortDirection === 'asc' ? a.value - b.value : b.value - a.value;
     } else {
       return sortDirection === 'asc'
-        ? a.president.localeCompare(b.president)
-        : b.president.localeCompare(a.president);
+        ? (a.president || '').localeCompare(b.president || '')
+        : (b.president || '').localeCompare(a.president || '');
     }
   });
 
@@ -73,31 +72,35 @@ const DataTable: React.FC<DataTableProps> = ({ data, indicator, onDelete, onEdit
     setCurrentPage(1);
   };
 
+  // Format value based on indicator type
+  const formatValue = (value: number) => {
+    switch (indicator.id) {
+      case 'monthly-inflation':
+      case 'unemployment-rate':
+      case 'gdp-growth':
+        return `${value.toFixed(2)}%`;
+      case 'median-income':
+      case 'gas-price':
+      case 'sp500':
+        return new Intl.NumberFormat('en-US', { 
+          style: 'currency', 
+          currency: 'USD',
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 2
+        }).format(value);
+      default:
+        return value.toLocaleString();
+    }
+  };
+
   // Render sort icon
   const renderSortIcon = (field: SortField) => {
     if (sortField !== field) return null;
-
     return sortDirection === 'asc' ? (
       <ChevronUp className="h-4 w-4 inline-block ml-1" />
     ) : (
       <ChevronDown className="h-4 w-4 inline-block ml-1" />
     );
-  };
-
-  // Format value based on indicator type
-  const formatValue = (value: number) => {
-    if (indicator.id === 'job-creation') {
-      // For job creation, show whole numbers with commas
-      return value.toLocaleString();
-    } else if (indicator.id === 'monthly-inflation') {
-      // For monthly inflation, show the percentage change
-      const point = data.find(p => p.value === value);
-      if (!point?.percentageChange && point?.percentageChange !== 0) return "N/A";
-      return point.percentageChange.toFixed(1);
-    } else {
-      // For other indicators, use the default formatting with decimals
-      return value.toLocaleString();
-    }
   };
 
   const lastApiUpdate = localStorage.getItem(`${LOCAL_STORAGE_PREFIX}last_api_update_${indicator.id}`);
@@ -127,7 +130,7 @@ const DataTable: React.FC<DataTableProps> = ({ data, indicator, onDelete, onEdit
               onClick={() => handleSort('value')}
             >
               <span className="flex items-center">
-                Monthly Change (%) {renderSortIcon('value')}
+                Value {renderSortIcon('value')}
               </span>
             </th>
             <th
@@ -148,29 +151,29 @@ const DataTable: React.FC<DataTableProps> = ({ data, indicator, onDelete, onEdit
         </thead>
         <tbody className="bg-white divide-y divide-gray-200">
           {paginatedData.map((point, index) => (
-            <tr key={index} className="hover:bg-gray-50">
+            <tr key={point.date} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
               <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                {format(parseISO(point.date), 'MMM d, yyyy')}
+                {format(new Date(point.date), 'MMM d, yyyy')}
               </td>
               <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                {point.percentageChange !== undefined ? point.percentageChange.toFixed(1) + '%' : 'N/A'}
+                {formatValue(point.value)}
               </td>
               <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                {point.president}
+                {point.president || 'N/A'}
               </td>
               {isAdmin && (
                 <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                   <button
-                    onClick={() => setEditingPoint(point)}
+                    onClick={() => onEdit?.(point)}
                     className="text-blue-600 hover:text-blue-900 mr-3"
                   >
-                    Edit
+                    <Edit2 className="h-4 w-4 inline" />
                   </button>
                   <button
                     onClick={() => onDelete?.(point)}
                     className="text-red-600 hover:text-red-900"
                   >
-                    Delete
+                    <Trash2 className="h-4 w-4 inline" />
                   </button>
                 </td>
               )}
@@ -178,6 +181,27 @@ const DataTable: React.FC<DataTableProps> = ({ data, indicator, onDelete, onEdit
           ))}
         </tbody>
       </table>
+      {totalPages > 1 && (
+        <div className="flex justify-between items-center px-6 py-3 bg-gray-50">
+          <button
+            onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+            disabled={currentPage === 1}
+            className="px-3 py-1 text-sm bg-white border rounded-md disabled:opacity-50"
+          >
+            Previous
+          </button>
+          <span className="text-sm text-gray-700">
+            Page {currentPage} of {totalPages}
+          </span>
+          <button
+            onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+            disabled={currentPage === totalPages}
+            className="px-3 py-1 text-sm bg-white border rounded-md disabled:opacity-50"
+          >
+            Next
+          </button>
+        </div>
+      )}
     </div>
   );
 };

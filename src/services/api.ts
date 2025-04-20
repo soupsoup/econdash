@@ -7,14 +7,15 @@ const LOCAL_STORAGE_PREFIX = 'economic_indicator_';
 const LAST_UPDATED_PREFIX = 'last_updated_';
 const FRED_API_BASE_URL = import.meta.env.PROD 
   ? '/.netlify/functions/fred-proxy'
-  : 'https://api.stlouisfed.org/fred/series/observations';
+  : '/api/fred';
 
 // Debug logging
 console.log('Environment Configuration:', {
   isProd: import.meta.env.PROD,
   baseUrl: FRED_API_BASE_URL,
   apiKey: import.meta.env.VITE_FRED_API_KEY ? 'Present' : 'Missing',
-  envKeys: Object.keys(import.meta.env)
+  envKeys: Object.keys(import.meta.env),
+  nodeEnv: process.env.NODE_ENV
 });
 
 export const LAST_UPDATED_KEY = `${LOCAL_STORAGE_PREFIX}last_updated`;
@@ -97,7 +98,7 @@ async function fetchFredData(series: string): Promise<IndicatorDataPoint[]> {
     params.append('api_key', import.meta.env.VITE_FRED_API_KEY || '');
   }
 
-  const url = `${FRED_API_BASE_URL}${import.meta.env.PROD ? '' : '?'}${params.toString()}`;
+  const url = `${FRED_API_BASE_URL}/series/observations${import.meta.env.PROD ? '' : '?'}${params.toString()}`;
   console.log('Fetching FRED data with URL:', url);
 
   try {
@@ -242,17 +243,48 @@ export const fetchIndicatorData = async (indicatorId: string): Promise<Indicator
     const indicator = economicIndicators.find(i => i.id === indicatorId);
     if (!indicator) throw new Error('Invalid indicator ID');
 
-    const response = await axios.get(`${FRED_API_BASE_URL}${import.meta.env.PROD ? '' : '?'}`, {
-      params: {
-        series_id: indicator.seriesId,
-        api_key: import.meta.env.PROD ? undefined : import.meta.env.VITE_FRED_API_KEY,
-        file_type: 'json',
-        sort_order: 'desc',
-        observation_start: '1900-01-01'
+    const today = new Date().toISOString().split('T')[0];
+    const params: Record<string, string> = {
+      series_id: indicator.seriesId,
+      file_type: 'json',
+      observation_start: '1950-01-01',
+      observation_end: today,
+      sort_order: 'desc',
+      units: 'lin'
+    };
+
+    // Add API key in development mode
+    if (!import.meta.env.PROD) {
+      const apiKey = import.meta.env.VITE_FRED_API_KEY;
+      if (!apiKey) {
+        throw new Error('FRED API key is missing in environment variables');
+      }
+      params.api_key = apiKey;
+    }
+
+    console.log(`Fetching data for ${indicator.name} (${indicator.seriesId})...`);
+    
+    const response = await axios.get<FredResponse>(`${FRED_API_BASE_URL}/series/observations`, {
+      params,
+      headers: {
+        'Accept': 'application/json'
       }
     });
 
-    const data = response.data as FredResponse;
+    console.log('API Response:', {
+      status: response.status,
+      url: response.config.url,
+      params: response.config.params
+    });
+
+    if (!response.data || !Array.isArray(response.data.observations)) {
+      console.error('Invalid API response:', response.data);
+      throw new Error('Invalid API response format');
+    }
+
+    const data = response.data;
+    console.log(`Received ${data.observations.length} observations for ${indicator.name}`);
+    
     const formattedData = formatFredData(data.observations, indicator);
     const indicatorData = { indicator, data: formattedData };
 
@@ -265,7 +297,7 @@ export const fetchIndicatorData = async (indicatorId: string): Promise<Indicator
     localStorage.setItem(`${LAST_UPDATED_PREFIX}${indicatorId}`, new Date().toISOString());
 
     return indicatorData;
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('Error fetching from API:', error);
     
     // Try to use locally stored API data if available
@@ -276,25 +308,54 @@ export const fetchIndicatorData = async (indicatorId: string): Promise<Indicator
       return parsedData.data;
     }
     
-    throw error;
+    if (error instanceof Error) {
+      throw error;
+    }
+    throw new Error('Failed to fetch indicator data');
   }
 };
 
 export const fetchAllIndicatorsData = async (): Promise<IndicatorData[]> => {
-  const results = await Promise.allSettled(
-    economicIndicators.map(indicator => fetchIndicatorData(indicator.id))
-  );
+  console.log('Fetching all indicators data...');
+  
+  try {
+    const results = await Promise.allSettled(
+      economicIndicators.map(async indicator => {
+        try {
+          console.log(`Fetching data for ${indicator.name}...`);
+          const data = await fetchIndicatorData(indicator.id);
+          console.log(`Successfully fetched data for ${indicator.name}`);
+          return data;
+        } catch (error) {
+          console.error(`Error fetching ${indicator.name}:`, error);
+          // Try to get from localStorage as fallback
+          const storedData = localStorage.getItem(`${LOCAL_STORAGE_PREFIX}api_${indicator.id}`);
+          if (storedData) {
+            console.log(`Using cached data for ${indicator.name}`);
+            return JSON.parse(storedData).data;
+          }
+          throw error;
+        }
+      })
+    );
 
-  return results
-    .map((result, index) => {
-      if (result.status === 'fulfilled') {
-        return result.value;
-      } else {
-        console.error(`Error fetching ${economicIndicators[index].name}:`, result.reason);
-        return null;
-      }
-    })
-    .filter((data): data is IndicatorData => data !== null);
+    const validData = results
+      .map((result, index) => {
+        if (result.status === 'fulfilled') {
+          return result.value;
+        } else {
+          console.error(`Failed to fetch ${economicIndicators[index].name}:`, result.reason);
+          return null;
+        }
+      })
+      .filter((data): data is IndicatorData => data !== null);
+
+    console.log(`Successfully fetched ${validData.length} out of ${economicIndicators.length} indicators`);
+    return validData;
+  } catch (error) {
+    console.error('Error in fetchAllIndicatorsData:', error);
+    throw error;
+  }
 };
 
 const getFromLocalStorage = (key: string): { data: any; timestamp: number } | null => {

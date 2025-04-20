@@ -4,6 +4,7 @@ import ApiStatusChecker from '../components/ApiStatusChecker';
 import DataUpload from '../components/DataUpload';
 import IndicatorChart from '../components/IndicatorChart';
 import DataTable from '../components/DataTable';
+import DataPreview from '../components/DataPreview';
 import { useQuery } from 'react-query';
 import { fetchAllIndicatorsData, updateIndicatorData, getDataSourcePreferences, setDataSourcePreference, getLastUpdated } from '../services/api';
 import ChartVisibilityControl from '../components/ChartVisibilityControl';
@@ -38,7 +39,7 @@ export default function AdminDashboard() {
   };
 
   // Ensure we have valid data before rendering chart
-  const validChartData = selectedData && selectedData.indicator && selectedData.data ? selectedData : null;
+  const validChartData = selectedData && selectedData.indicator && selectedData.data && selectedData.data.length > 0 ? selectedData : null;
 
   const handleEditDataPoint = (updatedPoint: IndicatorDataPoint) => {
     if (!selectedData) return;
@@ -46,6 +47,16 @@ export default function AdminDashboard() {
     const updatedData = selectedData.data.map(point => 
       point.date === updatedPoint.date ? updatedPoint : point
     );
+    
+    // Update the data in localStorage
+    const storageKey = `economic_indicator_api_${selectedData.indicator.id}`;
+    const storedData = localStorage.getItem(storageKey);
+    
+    if (storedData) {
+      const parsedData = JSON.parse(storedData);
+      parsedData.data.data = updatedData;
+      localStorage.setItem(storageKey, JSON.stringify(parsedData));
+    }
     
     updateIndicatorData(selectedData.indicator.id, updatedData);
     refetch();
@@ -56,6 +67,17 @@ export default function AdminDashboard() {
     
     if (confirm('Are you sure you want to delete this data point?')) {
       const updatedData = selectedData.data.filter(point => point.date !== pointToDelete.date);
+      
+      // Update the data in localStorage
+      const storageKey = `economic_indicator_api_${selectedData.indicator.id}`;
+      const storedData = localStorage.getItem(storageKey);
+      
+      if (storedData) {
+        const parsedData = JSON.parse(storedData);
+        parsedData.data.data = updatedData;
+        localStorage.setItem(storageKey, JSON.stringify(parsedData));
+      }
+      
       updateIndicatorData(selectedData.indicator.id, updatedData);
       refetch();
     }
@@ -212,6 +234,8 @@ export default function AdminDashboard() {
               <h2 className="text-lg font-semibold mb-4">Data Upload</h2>
               <DataUpload onUpload={handleDataUpload} />
             </div>
+
+            <DataPreview />
 
             <div className="bg-white p-6 rounded-lg shadow">
               <h2 className="text-lg font-semibold mb-4">Data Preview</h2>

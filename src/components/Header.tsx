@@ -1,13 +1,14 @@
 import React from 'react';
-import { BarChart3, Database } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { Clock, BarChart3, Database } from 'lucide-react';
 
 interface HeaderProps {
-  lastUpdated: string | null;
-  hasNewData: boolean;
-  onRefresh: () => void;
+  lastUpdated?: string | null;
+  hasNewData?: boolean;
+  onRefresh?: () => void;
 }
 
-const Header: React.FC<HeaderProps> = ({ lastUpdated }) => {
+export default function Header({ lastUpdated, hasNewData, onRefresh }: HeaderProps) {
   return (
     <header className="bg-white shadow-md">
       <div className="container mx-auto px-4 py-6">
@@ -22,7 +23,10 @@ const Header: React.FC<HeaderProps> = ({ lastUpdated }) => {
           
           <div className="text-sm text-gray-600">
             {lastUpdated ? (
-              <span>Last updated: {new Date(lastUpdated).toLocaleDateString()}</span>
+              <div className="flex items-center">
+                <Clock className="h-4 w-4 mr-1" />
+                <span>Last updated: {new Date(lastUpdated).toLocaleString()}</span>
+              </div>
             ) : (
               <span>Loading data...</span>
             )}
@@ -36,6 +40,4 @@ const Header: React.FC<HeaderProps> = ({ lastUpdated }) => {
       </div>
     </header>
   );
-};
-
-export default Header;
+}

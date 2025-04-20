@@ -25,16 +25,17 @@ exports.handler = async function(event) {
       statusCode: 200,
       headers: {
         'Content-Type': 'application/json',
-        'Access-Control-Allow-Origin': '*'
+        'Access-Control-Allow-Origin': '*',
+        'Cache-Control': 'public, max-age=3600' // Cache for 1 hour
       },
       body: JSON.stringify(response.data)
     };
   } catch (error) {
-    console.error('Proxy error:', error);
+    console.error('Proxy error:', error.response?.data || error.message);
     return {
       statusCode: error.response?.status || 500,
       body: JSON.stringify({
-        error: error.message
+        error: error.response?.data?.error_message || error.message
       })
     };
   }
