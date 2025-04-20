@@ -11,6 +11,18 @@ export default defineConfig(({ mode }) => {
     optimizeDeps: {
       exclude: ['lucide-react'],
     },
+    build: {
+      rollupOptions: {
+        // Ensure environment variables are properly handled
+        output: {
+          manualChunks(id) {
+            if (id.includes('node_modules')) {
+              return 'vendor';
+            }
+          }
+        }
+      }
+    },
     server: {
       host: '0.0.0.0',
       port: 3000,

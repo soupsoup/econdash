@@ -9,12 +9,10 @@ const FRED_API_BASE_URL = import.meta.env.PROD
   ? '/.netlify/functions/fred-proxy/series/observations'
   : '/api/fred/series/observations';
 
-// Debug logging
+// Debug logging (without sensitive info)
 console.log('Environment Configuration:', {
   isProd: import.meta.env.PROD,
   baseUrl: FRED_API_BASE_URL,
-  apiKey: import.meta.env.VITE_FRED_API_KEY ? 'Present' : 'Missing',
-  envKeys: Object.keys(import.meta.env),
   nodeEnv: process.env.NODE_ENV
 });
 
@@ -99,18 +97,16 @@ async function fetchFredData(series: string): Promise<IndicatorDataPoint[]> {
   }
 
   const url = `${FRED_API_BASE_URL}?${params.toString()}`;
-  console.log('Fetching FRED data from:', url);
+  console.log('Fetching FRED data for series:', series);
 
   try {
     const response = await fetch(url);
     
     if (!response.ok) {
-      const errorText = await response.text();
       console.error('FRED API Error:', {
         status: response.status,
         statusText: response.statusText,
-        error: errorText,
-        url: url.replace(import.meta.env.VITE_FRED_API_KEY || '', '[REDACTED]')
+        series
       });
       throw new Error(`Failed to fetch data: ${response.status} ${response.statusText}`);
     }
@@ -118,7 +114,7 @@ async function fetchFredData(series: string): Promise<IndicatorDataPoint[]> {
     const data = await response.json();
     
     if (!data.observations || !Array.isArray(data.observations)) {
-      console.error('Invalid FRED API response:', data);
+      console.error('Invalid FRED API response format for series:', series);
       throw new Error('Invalid response format from FRED API');
     }
 
@@ -145,7 +141,10 @@ async function fetchFredData(series: string): Promise<IndicatorDataPoint[]> {
 
     return dataPoints;
   } catch (error) {
-    console.error('Error fetching FRED data:', error);
+    console.error('Error fetching FRED data:', {
+      series,
+      error: error instanceof Error ? error.message : 'Unknown error'
+    });
     throw error;
   }
 }
