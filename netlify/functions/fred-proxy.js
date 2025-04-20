@@ -7,18 +7,40 @@ exports.handler = async function(event) {
   }
 
   try {
+    // Log the incoming request
+    console.log('Incoming request:', {
+      path: event.path,
+      queryParams: event.queryStringParameters
+    });
+
+    // Check if FRED API key is present
+    if (!process.env.FRED_API_KEY) {
+      console.error('FRED API key is missing in environment variables');
+      return {
+        statusCode: 500,
+        body: JSON.stringify({ error: 'FRED API key is not configured' })
+      };
+    }
+
     // Parse the query parameters
     const params = new URLSearchParams(event.queryStringParameters);
     
     // Add the API key from environment variable
     params.append('api_key', process.env.FRED_API_KEY);
+
+    // Construct the FRED API URL
+    const fredUrl = `https://api.stlouisfed.org/fred/series/observations?${params.toString()}`;
     
+    console.log('Requesting FRED API:', fredUrl.replace(process.env.FRED_API_KEY, 'REDACTED'));
+
     // Make the request to FRED API
-    const response = await axios.get(`https://api.stlouisfed.org/fred/series/observations?${params.toString()}`, {
+    const response = await axios.get(fredUrl, {
       headers: {
         'Accept': 'application/json',
       }
     });
+
+    console.log('FRED API response status:', response.status);
 
     // Return the response
     return {
@@ -31,11 +53,17 @@ exports.handler = async function(event) {
       body: JSON.stringify(response.data)
     };
   } catch (error) {
-    console.error('Proxy error:', error.response?.data || error.message);
+    console.error('Proxy error:', {
+      status: error.response?.status,
+      data: error.response?.data,
+      message: error.message
+    });
+
     return {
       statusCode: error.response?.status || 500,
       body: JSON.stringify({
-        error: error.response?.data?.error_message || error.message
+        error: error.response?.data?.error_message || error.message,
+        details: error.response?.data
       })
     };
   }

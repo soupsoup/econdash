@@ -253,7 +253,7 @@ export const fetchIndicatorData = async (indicatorId: string): Promise<Indicator
       units: 'lin'
     };
 
-    // Add API key in development mode
+    // Add API key only in development
     if (!import.meta.env.PROD) {
       const apiKey = import.meta.env.VITE_FRED_API_KEY;
       if (!apiKey) {
@@ -267,14 +267,16 @@ export const fetchIndicatorData = async (indicatorId: string): Promise<Indicator
     const response = await axios.get<FredResponse>(`${FRED_API_BASE_URL}/series/observations`, {
       params,
       headers: {
-        'Accept': 'application/json'
+        'Accept': 'application/json',
+        'Content-Type': 'application/json'
       }
     });
 
     console.log('API Response:', {
       status: response.status,
       url: response.config.url,
-      params: response.config.params
+      params: response.config.params,
+      headers: response.headers
     });
 
     if (!response.data || !Array.isArray(response.data.observations)) {
@@ -300,6 +302,16 @@ export const fetchIndicatorData = async (indicatorId: string): Promise<Indicator
   } catch (error: unknown) {
     console.error('Error fetching from API:', error);
     
+    // Log error details if available
+    const axiosError = error as { response?: { status: number; data: any }; config?: { url: string } };
+    if (axiosError.response) {
+      console.error('API error details:', {
+        status: axiosError.response.status,
+        data: axiosError.response.data,
+        url: axiosError.config?.url
+      });
+    }
+    
     // Try to use locally stored API data if available
     const storedData = localStorage.getItem(`${LOCAL_STORAGE_PREFIX}api_${indicatorId}`);
     if (storedData) {
@@ -308,10 +320,7 @@ export const fetchIndicatorData = async (indicatorId: string): Promise<Indicator
       return parsedData.data;
     }
     
-    if (error instanceof Error) {
-      throw error;
-    }
-    throw new Error('Failed to fetch indicator data');
+    throw error;
   }
 };
 
