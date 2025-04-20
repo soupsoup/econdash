@@ -18,7 +18,19 @@ exports.handler = async function(event) {
       console.error('FRED API key is missing in environment variables');
       return {
         statusCode: 500,
-        body: JSON.stringify({ error: 'FRED API key is not configured' })
+        headers: {
+          'Content-Type': 'application/json',
+          'Access-Control-Allow-Origin': '*'
+        },
+        body: JSON.stringify({ 
+          error: 'FRED API key is not configured',
+          message: 'The FRED API key environment variable is missing. Please configure it in the Netlify dashboard.',
+          debug: {
+            availableEnvVars: Object.keys(process.env).filter(key => !key.includes('KEY') && !key.includes('TOKEN')),
+            path: event.path,
+            queryParams: event.queryStringParameters
+          }
+        })
       };
     }
 
