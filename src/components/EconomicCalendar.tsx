@@ -1,17 +1,35 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useQuery } from 'react-query';
-import { Calendar, TrendingUp, TrendingDown } from 'lucide-react';
+import { Calendar, TrendingUp, TrendingDown, ChevronLeft, ChevronRight } from 'lucide-react';
 import { fetchEconomicCalendar } from '../services/jblanked-api';
+import { format, addDays, isSameDay } from 'date-fns';
 
 const EconomicCalendar: React.FC = () => {
+  const [selectedDate, setSelectedDate] = useState(new Date());
+  const next7Days = Array.from({ length: 7 }, (_, i) => addDays(new Date(), i));
+
   const { data: events, isLoading, isError } = useQuery(
-    'economic-calendar',
-    fetchEconomicCalendar,
+    ['economic-calendar', selectedDate.toISOString()],
+    () => fetchEconomicCalendar(selectedDate),
     {
       refetchInterval: 1000 * 60 * 5, // Refetch every 5 minutes (free tier limit)
       staleTime: 1000 * 60 * 4, // Consider data stale after 4 minutes
     }
   );
+
+  const handlePrevDay = () => {
+    const prevDay = addDays(selectedDate, -1);
+    if (isSameDay(prevDay, new Date()) || prevDay > new Date()) {
+      setSelectedDate(prevDay);
+    }
+  };
+
+  const handleNextDay = () => {
+    const nextDay = addDays(selectedDate, 1);
+    if (nextDay <= addDays(new Date(), 6)) {
+      setSelectedDate(nextDay);
+    }
+  };
 
   if (isLoading) {
     return (
@@ -41,10 +59,48 @@ const EconomicCalendar: React.FC = () => {
 
   return (
     <div className="bg-white rounded-lg shadow-md p-6">
-      <h2 className="text-xl font-bold text-gray-800 flex items-center mb-4">
-        <Calendar className="h-5 w-5 mr-2 text-blue-600" />
-        Today's Economic Events
-      </h2>
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+        <h2 className="text-xl font-bold text-gray-800 flex items-center">
+          <Calendar className="h-5 w-5 mr-2 text-blue-600" />
+          Economic Events
+        </h2>
+
+        <div className="flex items-center space-x-2">
+          <button
+            onClick={handlePrevDay}
+            disabled={isSameDay(selectedDate, new Date())}
+            className="p-1 rounded hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <ChevronLeft className="h-5 w-5" />
+          </button>
+          
+          <div className="flex gap-1 overflow-x-auto py-1 px-2">
+            {next7Days.map((date) => (
+              <button
+                key={date.toISOString()}
+                onClick={() => setSelectedDate(date)}
+                className={`px-3 py-1 rounded-full text-sm whitespace-nowrap ${
+                  isSameDay(date, selectedDate)
+                    ? 'bg-blue-100 text-blue-700'
+                    : 'hover:bg-gray-100'
+                }`}
+              >
+                {isSameDay(date, new Date())
+                  ? 'Today'
+                  : format(date, 'EEE, MMM d')}
+              </button>
+            ))}
+          </div>
+
+          <button
+            onClick={handleNextDay}
+            disabled={isSameDay(selectedDate, addDays(new Date(), 6))}
+            className="p-1 rounded hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <ChevronRight className="h-5 w-5" />
+          </button>
+        </div>
+      </div>
 
       {events && events.length > 0 ? (
         <div className="space-y-4">
@@ -65,13 +121,7 @@ const EconomicCalendar: React.FC = () => {
                   <div>
                     <h3 className="font-medium text-gray-900">{event.name}</h3>
                     <p className="text-sm text-gray-500">
-                      {new Date(event.date).toLocaleDateString(undefined, {
-                        weekday: 'long',
-                        month: 'long',
-                        day: 'numeric',
-                        hour: '2-digit',
-                        minute: '2-digit',
-                      })}
+                      {format(new Date(event.date), 'h:mm a')}
                     </p>
                     <div className="mt-1 flex items-center gap-2">
                       <span className={`text-xs px-2 py-0.5 rounded ${
@@ -125,7 +175,11 @@ const EconomicCalendar: React.FC = () => {
         </div>
       ) : (
         <div className="text-center text-gray-500 py-4">
-          No economic events scheduled for today.
+          No economic events scheduled for {
+            isSameDay(selectedDate, new Date())
+              ? 'today'
+              : format(selectedDate, 'MMMM d, yyyy')
+          }.
         </div>
       )}
     </div>
