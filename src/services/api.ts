@@ -6,8 +6,8 @@ import axios from 'axios';
 const LOCAL_STORAGE_PREFIX = 'economic_indicator_';
 const LAST_UPDATED_PREFIX = 'last_updated_';
 const FRED_API_BASE_URL = import.meta.env.PROD 
-  ? '/.netlify/functions/fred-proxy'
-  : '/api/fred';
+  ? '/.netlify/functions/fred-proxy/series/observations'
+  : '/api/fred/series/observations';
 
 // Debug logging
 console.log('Environment Configuration:', {
@@ -93,71 +93,36 @@ async function fetchFredData(series: string): Promise<IndicatorDataPoint[]> {
     units: 'lin'
   });
 
-  // In development, add the API key directly
-  if (!import.meta.env.PROD) {
-    params.append('api_key', import.meta.env.VITE_FRED_API_KEY || '');
+  // Only add API key in development
+  if (!import.meta.env.PROD && import.meta.env.VITE_FRED_API_KEY) {
+    params.append('api_key', import.meta.env.VITE_FRED_API_KEY);
   }
 
-  // Construct URL without the /series/observations path segment
   const url = `${FRED_API_BASE_URL}?${params.toString()}`;
-  console.log('Fetching FRED data with URL:', url);
+  console.log('Fetching FRED data from:', url);
 
   try {
-    const response = await fetch(url, {
-      method: 'GET',
-      headers: {
-        'Accept': 'application/json',
-      }
-    });
-
-    console.log('FRED API Response:', {
-      status: response.status,
-      statusText: response.statusText,
-      headers: Object.fromEntries(response.headers.entries())
-    });
-
-    const contentType = response.headers.get('content-type');
+    const response = await fetch(url);
     
     if (!response.ok) {
       const errorText = await response.text();
-      console.error('FRED API Error Details:', {
+      console.error('FRED API Error:', {
         status: response.status,
         statusText: response.statusText,
-        contentType,
         error: errorText,
-        url: url
+        url: url.replace(import.meta.env.VITE_FRED_API_KEY || '', '[REDACTED]')
       });
-      
-      if (response.status === 403) {
-        throw new Error('Invalid or expired FRED API key. Please check your API key configuration.');
-      } else if (response.status === 404) {
-        throw new Error('FRED API endpoint not found. Please check the series ID.');
-      } else if (response.status === 429) {
-        throw new Error('FRED API rate limit exceeded. Please try again later.');
-      } else {
-        throw new Error(`FRED API Error (${response.status}): ${errorText}`);
-      }
-    }
-
-    if (!contentType?.includes('application/json')) {
-      console.error('Invalid content type from FRED API:', contentType);
-      throw new Error('Invalid response format from FRED API');
+      throw new Error(`Failed to fetch data: ${response.status} ${response.statusText}`);
     }
 
     const data = await response.json();
     
     if (!data.observations || !Array.isArray(data.observations)) {
       console.error('Invalid FRED API response:', data);
-      throw new Error('Invalid response from FRED API');
+      throw new Error('Invalid response format from FRED API');
     }
 
-    if (data.observations.length === 0) {
-      console.error('No data returned from FRED API for series:', series);
-      throw new Error(`No data available for series: ${series}`);
-    }
-
-    // Log the most recent data point
-    console.log('Most recent data point for series', series, ':', data.observations[0]);
+    console.log(`Received ${data.observations.length} observations for ${series}`);
 
     // Convert observations to data points and filter out invalid values
     const dataPoints = data.observations
@@ -175,20 +140,7 @@ async function fetchFredData(series: string): Promise<IndicatorDataPoint[]> {
         const previous = dataPoints[i + 1].value;
         dataPoints[i].percentageChange = ((current - previous) / previous) * 100;
       }
-      // The last point doesn't have a next point to compare with
       dataPoints[dataPoints.length - 1].percentageChange = 0;
-    }
-
-    // For S&P 500, ensure we have valid values and sort by date
-    if (series === 'SP500') {
-      console.log('Processing S&P 500 data points:', dataPoints.slice(0, 5));  // Log first 5 points for debugging
-      const validPoints = dataPoints
-        .filter((point: IndicatorDataPoint) => point.value > 0)
-        .sort((a: IndicatorDataPoint, b: IndicatorDataPoint) => 
-          new Date(b.date).getTime() - new Date(a.date).getTime()  // Sort in descending order (newest first)
-        );
-      console.log('Latest S&P 500 value:', validPoints[0]?.value);
-      return validPoints;
     }
 
     return dataPoints;

@@ -19,18 +19,19 @@ export default defineConfig(({ mode }) => {
       },
       proxy: {
         '/api/fred': {
-          target: 'https://api.stlouisfed.org/fred',
+          target: 'https://api.stlouisfed.org',
           changeOrigin: true,
           rewrite: (path) => path.replace(/^\/api\/fred/, ''),
-          configure: (proxy, _options) => {
-            proxy.on('error', (err, _req, _res) => {
-              console.log('proxy error', err);
+          configure: (proxy, options) => {
+            proxy.on('error', (err, req, res) => {
+              console.error('Proxy error:', err);
             });
-            proxy.on('proxyReq', (proxyReq, req, _res) => {
-              console.log('Sending Request to the Target:', req.method, req.url);
-            });
-            proxy.on('proxyRes', (proxyRes, req, _res) => {
-              console.log('Received Response from the Target:', proxyRes.statusCode, req.url);
+            proxy.on('proxyReq', (proxyReq, req, res) => {
+              console.log('Proxying request:', {
+                path: req.url,
+                method: req.method,
+                headers: proxyReq.getHeaders()
+              });
             });
           }
         }
