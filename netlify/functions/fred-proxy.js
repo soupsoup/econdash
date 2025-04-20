@@ -7,9 +7,11 @@ exports.handler = async function(event) {
   }
 
   try {
-    // Log the incoming request
-    console.log('Incoming request:', {
-      path: event.path,
+    // Enhanced debug logging
+    console.log('Environment check:', {
+      hasApiKey: !!process.env.FRED_API_KEY,
+      envVarKeys: Object.keys(process.env).filter(key => !key.includes('KEY') && !key.includes('SECRET')),
+      requestPath: event.path,
       queryParams: event.queryStringParameters
     });
 
@@ -22,13 +24,12 @@ exports.handler = async function(event) {
           'Content-Type': 'application/json',
           'Access-Control-Allow-Origin': '*'
         },
-        body: JSON.stringify({ 
+        body: JSON.stringify({
           error: 'FRED API key is not configured',
-          message: 'The FRED API key environment variable is missing. Please configure it in the Netlify dashboard.',
           debug: {
-            availableEnvVars: Object.keys(process.env).filter(key => !key.includes('KEY') && !key.includes('TOKEN')),
-            path: event.path,
-            queryParams: event.queryStringParameters
+            timestamp: new Date().toISOString(),
+            environment: process.env.NODE_ENV,
+            context: 'netlify function'
           }
         })
       };
@@ -36,14 +37,16 @@ exports.handler = async function(event) {
 
     // Parse the query parameters
     const params = new URLSearchParams(event.queryStringParameters);
-    
-    // Add the API key from environment variable
     params.append('api_key', process.env.FRED_API_KEY);
+    params.append('file_type', 'json');
 
     // Construct the FRED API URL
     const fredUrl = `https://api.stlouisfed.org/fred/series/observations?${params.toString()}`;
     
-    console.log('Requesting FRED API:', fredUrl.replace(process.env.FRED_API_KEY, 'REDACTED'));
+    console.log('Making FRED API request:', {
+      url: fredUrl.replace(process.env.FRED_API_KEY, 'REDACTED'),
+      params: Object.fromEntries(params.entries())
+    });
 
     // Make the request to FRED API
     const response = await axios.get(fredUrl, {
@@ -52,7 +55,11 @@ exports.handler = async function(event) {
       }
     });
 
-    console.log('FRED API response status:', response.status);
+    console.log('FRED API response:', {
+      status: response.status,
+      dataSize: JSON.stringify(response.data).length,
+      observationCount: response.data.observations?.length
+    });
 
     // Return the response
     return {
@@ -65,17 +72,29 @@ exports.handler = async function(event) {
       body: JSON.stringify(response.data)
     };
   } catch (error) {
-    console.error('Proxy error:', {
+    console.error('Proxy error details:', {
+      message: error.message,
       status: error.response?.status,
+      statusText: error.response?.statusText,
       data: error.response?.data,
-      message: error.message
+      stack: error.stack
     });
 
     return {
       statusCode: error.response?.status || 500,
+      headers: {
+        'Content-Type': 'application/json',
+        'Access-Control-Allow-Origin': '*'
+      },
       body: JSON.stringify({
         error: error.response?.data?.error_message || error.message,
-        details: error.response?.data
+        details: error.response?.data,
+        debug: {
+          timestamp: new Date().toISOString(),
+          environment: process.env.NODE_ENV,
+          requestPath: event.path,
+          queryParams: event.queryStringParameters
+        }
       })
     };
   }
