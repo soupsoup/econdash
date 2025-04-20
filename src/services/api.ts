@@ -98,7 +98,8 @@ async function fetchFredData(series: string): Promise<IndicatorDataPoint[]> {
     params.append('api_key', import.meta.env.VITE_FRED_API_KEY || '');
   }
 
-  const url = `${FRED_API_BASE_URL}/series/observations${import.meta.env.PROD ? '' : '?'}${params.toString()}`;
+  // Construct URL without the /series/observations path segment
+  const url = `${FRED_API_BASE_URL}?${params.toString()}`;
   console.log('Fetching FRED data with URL:', url);
 
   try {

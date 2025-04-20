@@ -35,24 +35,40 @@ exports.handler = async function(event) {
       };
     }
 
-    // Parse the query parameters
+    // Parse and validate query parameters
     const params = new URLSearchParams(event.queryStringParameters);
+    
+    // Check for required series_id
+    if (!params.get('series_id')) {
+      return {
+        statusCode: 400,
+        headers: {
+          'Content-Type': 'application/json',
+          'Access-Control-Allow-Origin': '*'
+        },
+        body: JSON.stringify({ error: 'series_id parameter is required' })
+      };
+    }
+
+    // Add required parameters
     params.append('api_key', process.env.FRED_API_KEY);
-    params.append('file_type', 'json');
+    params.set('file_type', 'json'); // Ensure JSON response
 
     // Construct the FRED API URL
     const fredUrl = `https://api.stlouisfed.org/fred/series/observations?${params.toString()}`;
     
     console.log('Making FRED API request:', {
       url: fredUrl.replace(process.env.FRED_API_KEY, 'REDACTED'),
-      params: Object.fromEntries(params.entries())
+      params: Object.fromEntries(params)
     });
 
     // Make the request to FRED API
     const response = await axios.get(fredUrl, {
       headers: {
         'Accept': 'application/json',
-      }
+        'User-Agent': 'AmericaEcon/1.0'
+      },
+      timeout: 10000 // 10 second timeout
     });
 
     console.log('FRED API response:', {
@@ -80,14 +96,18 @@ exports.handler = async function(event) {
       stack: error.stack
     });
 
+    // Handle specific FRED API errors
+    const errorStatus = error.response?.status || 500;
+    const errorMessage = error.response?.data?.error_message || error.message;
+    
     return {
-      statusCode: error.response?.status || 500,
+      statusCode: errorStatus,
       headers: {
         'Content-Type': 'application/json',
         'Access-Control-Allow-Origin': '*'
       },
       body: JSON.stringify({
-        error: error.response?.data?.error_message || error.message,
+        error: errorMessage,
         details: error.response?.data,
         debug: {
           timestamp: new Date().toISOString(),
