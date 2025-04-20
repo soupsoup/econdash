@@ -62,7 +62,7 @@ const PresidentialComparison: React.FC<PresidentialComparisonProps> = ({ indicat
   
   return (
     <div className="bg-white rounded-lg shadow-md p-6">
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex flex-col-reverse sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
         <h2 className="text-xl font-bold text-gray-800 flex items-center">
           <BarChart className="h-5 w-5 mr-2 text-blue-600" />
           Presidential Comparison
@@ -71,7 +71,7 @@ const PresidentialComparison: React.FC<PresidentialComparisonProps> = ({ indicat
         <select
           value={selectedIndicator}
           onChange={(e) => setSelectedIndicator(e.target.value)}
-          className="border border-gray-300 rounded-md px-3 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="w-full sm:w-auto border border-gray-300 rounded-md px-3 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
         >
           {indicatorsData.map(data => (
             <option key={data.indicator.id} value={data.indicator.id}>
