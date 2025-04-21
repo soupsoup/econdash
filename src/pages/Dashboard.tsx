@@ -5,6 +5,7 @@ import PresidentialComparison from '../components/PresidentialComparison';
 import DataSourceInfo from '../components/DataSourceInfo';
 import NextUpdates from '../components/NextUpdates';
 import PresidentSchedule from '../components/PresidentSchedule';
+import EconomicCalendar from '../components/EconomicCalendar';
 import { useQuery } from 'react-query';
 import { fetchAllIndicatorsData } from '../services/api';
 import { AlertTriangle } from 'lucide-react';
@@ -28,42 +29,58 @@ export default function Dashboard() {
           setLastUpdated(timestamp);
         }
       },
-      refetchOnWindowFocus: false
+      refetchOnWindowFocus: false,
+      retry: 3,
+      retryDelay: 1000,
+      onError: (error) => {
+        console.error('Error fetching indicator data:', error);
+      }
     }
   );
 
   const handleRefresh = () => {
     setHasNewData(false);
+    refetch();
   };
+
+  // Check if we have any valid data to display
+  const hasValidData = indicators && indicators.length > 0;
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <Header 
-        lastUpdated={lastUpdated}
-        hasNewData={hasNewData}
-        onRefresh={handleRefresh}
-      />
-      
+      <Header />
       <main className="container mx-auto px-4 py-8">
-        {isLoading && (
-          <div className="text-center py-8">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-            <p className="mt-4 text-gray-600">Loading economic data...</p>
+        {isError && (
+          <div className="mb-8 flex items-center justify-between bg-red-50 p-4 rounded-lg">
+            <div className="flex items-center space-x-3">
+              <AlertTriangle className="h-5 w-5 text-red-500" />
+              <p className="text-red-700">
+                Error loading data: {error instanceof Error ? error.message : 'Unknown error'}
+              </p>
+            </div>
+            <button
+              onClick={handleRefresh}
+              className="px-4 py-2 bg-red-100 text-red-700 rounded hover:bg-red-200"
+            >
+              Retry
+            </button>
           </div>
         )}
 
-        {isError && (
-          <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-8">
-            <div className="flex items-center text-red-800 mb-2">
-              <AlertTriangle className="h-5 w-5 mr-2" />
-              <h3 className="font-semibold">Error Loading Data</h3>
-            </div>
-            <p className="text-red-600">{error instanceof Error ? error.message : 'An error occurred while fetching the data.'}</p>
+        {hasNewData && (
+          <div className="mb-8 flex items-center justify-between bg-yellow-50 p-4 rounded-lg">
+            <p className="text-yellow-700">New data available!</p>
+            <button
+              onClick={handleRefresh}
+              className="mt-2 px-4 py-2 bg-yellow-100 text-yellow-700 rounded hover:bg-yellow-200"
+            >
+              Refresh Data
+            </button>
           </div>
         )}
 
         <div className="space-y-8">
-          {!isLoading && !isError && indicators && (
+          {!isLoading && hasValidData && (
             <>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                 {economicIndicators
@@ -81,13 +98,16 @@ export default function Dashboard() {
                   })}
               </div>
 
-              <NextUpdates />
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <EconomicCalendar />
+                <NextUpdates />
+              </div>
             </>
           )}
           
           <PresidentSchedule />
           
-          {!isLoading && !isError && indicators && (
+          {!isLoading && hasValidData && (
             <div className="space-y-8">
               <PresidentialComparison indicatorsData={indicators} />
               <DataSourceInfo />

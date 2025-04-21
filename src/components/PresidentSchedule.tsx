@@ -22,8 +22,13 @@ const fetchPresidentSchedule: QueryFunction<ScheduleEvent[]> = async () => {
       headers: {
         'Accept': 'application/json',
         'Content-Type': 'application/json',
+        'Cache-Control': 'no-cache',
+        'Pragma': 'no-cache'
       }
     });
+    
+    // Log the response for debugging
+    console.log('Schedule API response:', response.data);
     return response.data;
   } catch (error) {
     console.error('Error fetching president schedule:', error);
@@ -32,17 +37,6 @@ const fetchPresidentSchedule: QueryFunction<ScheduleEvent[]> = async () => {
 };
 
 const formatDate = (event: ScheduleEvent) => {
-  const today = new Date();
-  const tomorrow = new Date(today);
-  tomorrow.setDate(today.getDate() + 1);
-  
-  const eventDate = new Date(event.date);
-  
-  if (eventDate.toDateString() === today.toDateString()) {
-    return 'Today';
-  } else if (eventDate.toDateString() === tomorrow.toDateString()) {
-    return 'Tomorrow';
-  }
   return `${event.day_of_week}, ${event.month} ${event.day}`;
 };
 
@@ -51,19 +45,40 @@ const PresidentSchedule: React.FC = () => {
     'presidentSchedule',
     fetchPresidentSchedule,
     {
-      refetchInterval: 1000 * 60 * 30, // Refetch every 30 minutes
+      refetchInterval: 1000 * 60 * 15, // Refetch every 15 minutes
+      refetchOnWindowFocus: true,
+      refetchOnMount: true,
+      cacheTime: 1000 * 60 * 10, // Cache for 10 minutes
+      staleTime: 1000 * 60 * 5, // Consider data stale after 5 minutes
+      retry: 3,
       select: (data: ScheduleEvent[]) => {
-        const today = new Date();
-        const tomorrow = new Date(today);
-        tomorrow.setDate(today.getDate() + 1);
-        tomorrow.setHours(23, 59, 59, 999); // End of tomorrow
+        // Get today's date in YYYY-MM-DD format
+        const today = new Date().toISOString().split('T')[0];
+        const tomorrow = new Date();
+        tomorrow.setDate(tomorrow.getDate() + 1);
+        const tomorrowStr = tomorrow.toISOString().split('T')[0];
+        
+        console.log('Filtering for dates:', today, tomorrowStr);
         
         return data
           .filter(event => {
-            const eventDate = new Date(event.date);
-            return eventDate >= today && eventDate <= tomorrow;
+            // Keep events from today and tomorrow
+            return event.date === today || event.date === tomorrowStr;
           })
-          .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+          .sort((a, b) => {
+            // First sort by date
+            if (a.date !== b.date) {
+              return a.date.localeCompare(b.date);
+            }
+            // Then sort by time if available
+            if (a.time && b.time) {
+              return a.time.localeCompare(b.time);
+            }
+            // Put events with no time at the end of their day
+            if (!a.time) return 1;
+            if (!b.time) return -1;
+            return 0;
+          });
       }
     }
   );

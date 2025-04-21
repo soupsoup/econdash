@@ -5,6 +5,11 @@
 
 # Handle client-side routing
 [[redirects]]
+  from = "/api/*"
+  to = "/.netlify/functions/:splat"
+  status = 200
+
+[[redirects]]
   from = "/*"
   to = "/index.html"
   status = 200
@@ -41,4 +46,10 @@
   SECRETS_SCAN_OMIT_KEYS = [
     "FRED_API_KEY",
     "VITE_FRED_API_KEY"
-  ] 
+  ]
+
+[dev]
+  framework = "#custom"
+  command = "npm run dev"
+  targetPort = 3000
+  port = 8888 
