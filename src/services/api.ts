@@ -3,8 +3,9 @@ import { IndicatorData, IndicatorDataPoint, EconomicIndicator } from '../types';
 import { economicIndicators } from '../data/indicators';
 import axios from 'axios';
 
-const LOCAL_STORAGE_PREFIX = 'economic_indicator_';
-const LAST_UPDATED_PREFIX = 'last_updated_';
+// Update cache prefix to force refresh with new series IDs
+const LOCAL_STORAGE_PREFIX = 'economic_indicator_v2_';
+const LAST_UPDATED_PREFIX = 'last_updated_v2_';
 const FRED_API_BASE_URL = import.meta.env.PROD 
   ? '/.netlify/functions/fred-proxy/series/observations'
   : '/api/fred/series/observations';
@@ -14,6 +15,16 @@ console.log('Environment Configuration:', {
   isProd: import.meta.env.PROD,
   baseUrl: FRED_API_BASE_URL,
   nodeEnv: process.env.NODE_ENV
+});
+
+// Clear old cache entries
+Object.keys(localStorage).forEach(key => {
+  if (key.startsWith('economic_indicator_') && !key.startsWith('economic_indicator_v2_')) {
+    localStorage.removeItem(key);
+  }
+  if (key.startsWith('last_updated_') && !key.startsWith('last_updated_v2_')) {
+    localStorage.removeItem(key);
+  }
 });
 
 export const LAST_UPDATED_KEY = `${LOCAL_STORAGE_PREFIX}last_updated`;

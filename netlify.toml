@@ -3,12 +3,20 @@
   publish = "dist"
   functions = "netlify/functions"
 
-# Handle client-side routing
+# Handle FRED API requests through our Netlify function
+[[redirects]]
+  from = "/api/fred/*"
+  to = "/.netlify/functions/fred-proxy"
+  status = 200
+  force = true
+
+# Handle other API routes
 [[redirects]]
   from = "/api/*"
   to = "/.netlify/functions/:splat"
   status = 200
 
+# Handle client-side routing
 [[redirects]]
   from = "/*"
   to = "/index.html"

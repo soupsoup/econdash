@@ -10,7 +10,8 @@ export const economicIndicators: EconomicIndicator[] = [
     sourceUrl: 'https://fred.stlouisfed.org/series/UNRATE',
     frequency: 'monthly',
     higherIsBetter: false,
-    seriesId: 'UNRATE'
+    seriesId: 'UNRATE',
+    transform: 'none'
   },
   {
     id: 'monthly-inflation',
@@ -21,7 +22,8 @@ export const economicIndicators: EconomicIndicator[] = [
     sourceUrl: 'https://fred.stlouisfed.org/series/CPIAUCSL',
     frequency: 'monthly',
     higherIsBetter: false,
-    seriesId: 'CPIAUCSL'
+    seriesId: 'CPIAUCSL',
+    transform: 'pct_change'
   },
   {
     id: 'gdp-growth',
@@ -29,10 +31,11 @@ export const economicIndicators: EconomicIndicator[] = [
     description: 'Annual percentage change in real Gross Domestic Product',
     unit: '%',
     source: 'FederalReserve',
-    sourceUrl: 'https://fred.stlouisfed.org/series/A191RL1Q225SBEA',
+    sourceUrl: 'https://fred.stlouisfed.org/series/GDPC1',
     frequency: 'quarterly',
     higherIsBetter: true,
-    seriesId: 'A191RL1Q225SBEA'
+    seriesId: 'GDPC1',
+    transform: 'pct_change_year'
   },
   {
     id: 'job-creation',
@@ -43,7 +46,8 @@ export const economicIndicators: EconomicIndicator[] = [
     sourceUrl: 'https://fred.stlouisfed.org/series/PAYEMS',
     frequency: 'monthly',
     higherIsBetter: true,
-    seriesId: 'PAYEMS'
+    seriesId: 'PAYEMS',
+    transform: 'divide_by_1000'
   },
   {
     id: 'federal-debt',
@@ -54,7 +58,8 @@ export const economicIndicators: EconomicIndicator[] = [
     sourceUrl: 'https://fred.stlouisfed.org/series/GFDEGDQ188S',
     frequency: 'quarterly',
     higherIsBetter: false,
-    seriesId: 'GFDEGDQ188S'
+    seriesId: 'GFDEGDQ188S',
+    transform: 'none'
   },
   {
     id: 'gas-prices',
@@ -65,7 +70,8 @@ export const economicIndicators: EconomicIndicator[] = [
     sourceUrl: 'https://fred.stlouisfed.org/series/GASREGW',
     frequency: 'weekly',
     higherIsBetter: false,
-    seriesId: 'GASREGW'
+    seriesId: 'GASREGW',
+    transform: 'none'
   },
   {
     id: 'median-income',
@@ -76,7 +82,8 @@ export const economicIndicators: EconomicIndicator[] = [
     sourceUrl: 'https://fred.stlouisfed.org/series/MEHOINUSA672N',
     frequency: 'yearly',
     higherIsBetter: true,
-    seriesId: 'MEHOINUSA672N'
+    seriesId: 'MEHOINUSA672N',
+    transform: 'none'
   },
   {
     id: 'stock-market',
@@ -87,7 +94,8 @@ export const economicIndicators: EconomicIndicator[] = [
     sourceUrl: 'https://fred.stlouisfed.org/series/SP500',
     frequency: 'daily',
     higherIsBetter: true,
-    seriesId: 'SP500'
+    seriesId: 'SP500',
+    transform: 'none'
   },
   {
     id: 'cpi',
@@ -98,6 +106,31 @@ export const economicIndicators: EconomicIndicator[] = [
     sourceUrl: 'https://fred.stlouisfed.org/series/CPIAUCSL',
     frequency: 'monthly',
     higherIsBetter: false,
-    seriesId: 'CPIAUCSL'
+    seriesId: 'CPIAUCSL',
+    transform: 'none'
+  },
+  {
+    id: 'egg-prices',
+    name: 'Egg Prices',
+    description: 'Average Price: Eggs, Grade A, Large (Cost per Dozen) in U.S. City Average',
+    unit: '$/dozen',
+    source: 'FederalReserve',
+    sourceUrl: 'https://fred.stlouisfed.org/series/APU0000708111',
+    frequency: 'monthly',
+    higherIsBetter: false,
+    seriesId: 'APU0000708111',
+    transform: 'none'
+  },
+  {
+    id: 'crude-oil',
+    name: 'Crude Oil Prices (WTI)',
+    description: 'Crude Oil Prices: West Texas Intermediate (WTI) - Cushing, Oklahoma',
+    unit: '$/barrel',
+    source: 'FederalReserve',
+    sourceUrl: 'https://fred.stlouisfed.org/series/DCOILWTICO',
+    frequency: 'daily',
+    higherIsBetter: false,
+    seriesId: 'DCOILWTICO',
+    transform: 'none'
   }
 ];

@@ -6,6 +6,7 @@ import DataSourceInfo from '../components/DataSourceInfo';
 import NextUpdates from '../components/NextUpdates';
 import PresidentSchedule from '../components/PresidentSchedule';
 import EconomicCalendar from '../components/EconomicCalendar';
+import GoldPriceIndicator from '../components/GoldPriceIndicator';
 import { useQuery } from 'react-query';
 import { fetchAllIndicatorsData } from '../services/api';
 import { AlertTriangle } from 'lucide-react';
@@ -83,8 +84,12 @@ export default function Dashboard() {
           {!isLoading && hasValidData && (
             <>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <GoldPriceIndicator />
                 {economicIndicators
-                  .filter(indicator => visibleCharts.includes(indicator.id))
+                  .filter(indicator => 
+                    visibleCharts.includes(indicator.id) && 
+                    indicator.id !== 'GOLDAMGBD228NLBM' // Remove FRED gold price indicator
+                  )
                   .map(indicator => {
                     const indicatorData = indicators.find(d => d.indicator?.id === indicator.id);
                     return (

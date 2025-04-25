@@ -16,6 +16,9 @@ const EconomicCalendar: React.FC = () => {
             width="100%" 
             height="100%" 
             frameBorder="0" 
+            // Note: While React warns about allowTransparency, we need to keep it camelCased
+            // for TypeScript compatibility. This is a known issue where React's runtime and
+            // TypeScript definitions differ.
             allowTransparency={true}
             className="absolute inset-0"
           ></iframe>
