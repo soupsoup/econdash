@@ -13,6 +13,7 @@ import { IndicatorDataPoint } from '../types';
 import { Edit2, Save, X, LogOut, Database } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
+import { BreakingNewsManager } from '../components/BreakingNewsManager';
 
 export default function AdminDashboard() {
   const [selectedIndicator, setSelectedIndicator] = useState('');
@@ -169,6 +170,7 @@ export default function AdminDashboard() {
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
           <div className="lg:col-span-3 space-y-6">
+            <BreakingNewsManager />
             <div className="bg-white rounded-lg shadow-md p-4">
               <h2 className="text-lg font-semibold mb-4">Data Sources</h2>
               <div className="space-y-4">

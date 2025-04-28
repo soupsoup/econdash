@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Header from '../components/Header';
 import IndicatorCard from '../components/IndicatorCard';
 import PresidentialComparison from '../components/PresidentialComparison';
@@ -8,11 +8,12 @@ import PresidentSchedule from '../components/PresidentSchedule';
 import EconomicCalendar from '../components/EconomicCalendar';
 import GoldPriceIndicator from '../components/GoldPriceIndicator';
 import { useQuery } from 'react-query';
-import { fetchAllIndicatorsData } from '../services/api';
+import { fetchAllIndicatorsData, checkForDataUpdates } from '../services/api';
 import { AlertTriangle } from 'lucide-react';
 import { economicIndicators } from '../data/indicators';
 import { IndicatorData } from '../types';
 import { useLocalStorage } from '../hooks/useLocalStorage';
+import { BreakingNewsBanner } from '../components/BreakingNewsBanner';
 
 export default function Dashboard() {
   const [lastUpdated, setLastUpdated] = useState<string | null>(null);
@@ -28,9 +29,12 @@ export default function Dashboard() {
         if (data && data.length > 0) {
           const timestamp = new Date().toISOString();
           setLastUpdated(timestamp);
+          localStorage.setItem('economic_indicator_v3_last_global_update', Date.now().toString());
         }
       },
-      refetchOnWindowFocus: false,
+      refetchOnWindowFocus: true,
+      refetchOnMount: true,
+      refetchInterval: 1000 * 60 * 30, // Check every 30 minutes
       retry: 3,
       retryDelay: 1000,
       onError: (error) => {
@@ -38,6 +42,25 @@ export default function Dashboard() {
       }
     }
   );
+
+  useEffect(() => {
+    const checkUpdates = async () => {
+      try {
+        const needsUpdate = await checkForDataUpdates();
+        if (needsUpdate) {
+          console.log('Data update needed, triggering refetch...');
+          setHasNewData(true);
+        }
+      } catch (error) {
+        console.error('Error checking for updates:', error);
+      }
+    };
+
+    // Check for updates on mount and every 5 minutes
+    checkUpdates();
+    const interval = setInterval(checkUpdates, 1000 * 60 * 5);
+    return () => clearInterval(interval);
+  }, []);
 
   const handleRefresh = () => {
     setHasNewData(false);
@@ -48,7 +71,8 @@ export default function Dashboard() {
   const hasValidData = indicators && indicators.length > 0;
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-100">
+      <BreakingNewsBanner />
       <Header />
       <main className="container mx-auto px-4 py-8">
         {isError && (
