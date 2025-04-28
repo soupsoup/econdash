@@ -4,30 +4,32 @@ import { economicIndicators } from '../data/indicators';
 import axios from 'axios';
 
 // Update cache prefix to force refresh with new series IDs
-const LOCAL_STORAGE_PREFIX = 'economic_indicator_v2_';
-const LAST_UPDATED_PREFIX = 'last_updated_v2_';
-const FRED_API_BASE_URL = import.meta.env.PROD 
-  ? '/.netlify/functions/fred-proxy/series/observations'
-  : '/api/fred/series/observations';
+const LOCAL_STORAGE_PREFIX = 'economic_indicator_v3_';
+const LAST_UPDATED_PREFIX = 'last_updated_';
+const LAST_UPDATED_KEY = `${LOCAL_STORAGE_PREFIX}last_global_update`;
+const CACHE_DURATION = 1000 * 60 * 60; // 1 hour in milliseconds
+
+// Use relative URLs for both development and production
+const FRED_API_BASE_URL = '/.netlify/functions/fred-proxy';
 
 // Debug logging (without sensitive info)
-console.log('Environment Configuration:', {
+console.log('API Configuration:', {
   isProd: import.meta.env.PROD,
-  baseUrl: FRED_API_BASE_URL,
-  nodeEnv: process.env.NODE_ENV
+  fredApiUrl: FRED_API_BASE_URL,
+  nodeEnv: process.env.NODE_ENV,
+  availableIndicators: economicIndicators.map(i => i.id)
 });
 
 // Clear old cache entries
 Object.keys(localStorage).forEach(key => {
-  if (key.startsWith('economic_indicator_') && !key.startsWith('economic_indicator_v2_')) {
+  if (key.startsWith('economic_indicator_') && !key.startsWith('economic_indicator_v3_')) {
     localStorage.removeItem(key);
   }
-  if (key.startsWith('last_updated_') && !key.startsWith('last_updated_v2_')) {
+  if (key.startsWith('last_updated_') && !key.startsWith('last_updated_v3_')) {
     localStorage.removeItem(key);
   }
 });
 
-export const LAST_UPDATED_KEY = `${LOCAL_STORAGE_PREFIX}last_updated`;
 export const DATA_SOURCE_PREFERENCES_KEY = `${LOCAL_STORAGE_PREFIX}data_source_preferences`;
 
 interface FredObservation {
@@ -102,34 +104,51 @@ async function fetchFredData(series: string): Promise<IndicatorDataPoint[]> {
     units: 'lin'
   });
 
-  // Only add API key in development
-  if (!import.meta.env.PROD && import.meta.env.VITE_FRED_API_KEY) {
-    params.append('api_key', import.meta.env.VITE_FRED_API_KEY);
-  }
-
-  const url = `${FRED_API_BASE_URL}?${params.toString()}`;
-  console.log('Fetching FRED data for series:', series);
+  const url = `${FRED_API_BASE_URL}/series/observations?${params.toString()}`;
+  console.log('Fetching FRED data:', {
+    series,
+    url,
+    params: Object.fromEntries(params)
+  });
 
   try {
     const response = await fetch(url);
     
+    console.log('FRED API Response:', {
+      series,
+      status: response.status,
+      statusText: response.statusText,
+      headers: Object.fromEntries(response.headers),
+      ok: response.ok
+    });
+    
     if (!response.ok) {
+      const errorText = await response.text();
       console.error('FRED API Error:', {
+        series,
         status: response.status,
         statusText: response.statusText,
-        series
+        error: errorText
       });
-      throw new Error(`Failed to fetch data: ${response.status} ${response.statusText}`);
+      throw new Error(`Failed to fetch data: ${response.status} ${response.statusText} - ${errorText}`);
     }
 
     const data = await response.json();
     
+    console.log('FRED API Success:', {
+      series,
+      dataKeys: Object.keys(data),
+      observationCount: data.observations?.length,
+      sampleObservation: data.observations?.[0]
+    });
+    
     if (!data.observations || !Array.isArray(data.observations)) {
-      console.error('Invalid FRED API response format for series:', series);
+      console.error('Invalid FRED API response format:', {
+        series,
+        data
+      });
       throw new Error('Invalid response format from FRED API');
     }
-
-    console.log(`Received ${data.observations.length} observations for ${series}`);
 
     // Convert observations to data points and filter out invalid values
     const dataPoints = data.observations
@@ -140,21 +159,20 @@ async function fetchFredData(series: string): Promise<IndicatorDataPoint[]> {
       }))
       .filter((point: IndicatorDataPoint) => !isNaN(point.value) && point.value !== null);
 
-    // Calculate percentage changes for inflation data
-    if (series === 'CPIAUCSL') {
-      for (let i = 0; i < dataPoints.length - 1; i++) {
-        const current = dataPoints[i].value;
-        const previous = dataPoints[i + 1].value;
-        dataPoints[i].percentageChange = ((current - previous) / previous) * 100;
-      }
-      dataPoints[dataPoints.length - 1].percentageChange = 0;
-    }
+    console.log('Processed FRED data:', {
+      series,
+      totalObservations: data.observations.length,
+      validDataPoints: dataPoints.length,
+      firstPoint: dataPoints[0],
+      lastPoint: dataPoints[dataPoints.length - 1]
+    });
 
     return dataPoints;
   } catch (error) {
     console.error('Error fetching FRED data:', {
       series,
-      error: error instanceof Error ? error.message : 'Unknown error'
+      error: error instanceof Error ? error.message : 'Unknown error',
+      stack: error instanceof Error ? error.stack : undefined
     });
     throw error;
   }
@@ -193,9 +211,16 @@ export const fetchIndicatorData = async (indicatorId: string): Promise<Indicator
   const preferences = getDataSourcePreferences();
   const useUploadedData = preferences[indicatorId]?.useUploadedData || false;
 
+  console.log(`Fetching data for indicator ${indicatorId}:`, {
+    useUploadedData,
+    hasStoredPreferences: !!preferences[indicatorId],
+    fredApiUrl: FRED_API_BASE_URL
+  });
+
   if (useUploadedData) {
     const uploadedData = localStorage.getItem(`${LOCAL_STORAGE_PREFIX}uploaded_${indicatorId}`);
     if (!uploadedData) {
+      console.error(`No uploaded data available for ${indicatorId}`);
       throw new Error('No uploaded data available');
     }
     return JSON.parse(uploadedData);
@@ -204,7 +229,10 @@ export const fetchIndicatorData = async (indicatorId: string): Promise<Indicator
   try {
     // Try to fetch from API
     const indicator = economicIndicators.find(i => i.id === indicatorId);
-    if (!indicator) throw new Error('Invalid indicator ID');
+    if (!indicator) {
+      console.error(`Invalid indicator ID: ${indicatorId}`);
+      throw new Error('Invalid indicator ID');
+    }
 
     const today = new Date().toISOString().split('T')[0];
     const params = new URLSearchParams({
@@ -212,41 +240,78 @@ export const fetchIndicatorData = async (indicatorId: string): Promise<Indicator
       observation_start: '1950-01-01',
       observation_end: today,
       sort_order: 'desc',
-      units: 'lin'
+      units: 'lin',
+      file_type: 'json'
     });
 
     // Log the request details
-    console.log(`Fetching data for ${indicator.name}:`, {
+    const requestUrl = `${FRED_API_BASE_URL}`;
+    console.log(`Making FRED API request for ${indicator.name}:`, {
       indicatorId,
       seriesId: indicator.seriesId,
       params: Object.fromEntries(params.entries()),
-      baseUrl: FRED_API_BASE_URL,
-      isProd: import.meta.env.PROD
+      requestUrl,
+      fullUrl: `${requestUrl}?${params.toString()}`
     });
 
-    const response = await axios.get<FredResponse>(`${FRED_API_BASE_URL}`, {
-      params,
-      headers: {
-        'Accept': 'application/json',
-        'Content-Type': 'application/json'
+    // Add retry logic for the request
+    let response;
+    let retries = 3;
+    let lastError;
+
+    while (retries > 0) {
+      try {
+        response = await axios.get<FredResponse>(requestUrl, {
+          params,
+          headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+          },
+          // Add timeout and validation
+          timeout: 10000,
+          validateStatus: (status) => status === 200
+        });
+        break;
+      } catch (error) {
+        lastError = error;
+        console.error(`Attempt ${4 - retries} failed for ${indicator.name}:`, error);
+        retries--;
+        if (retries > 0) {
+          await new Promise(resolve => setTimeout(resolve, 1000 * (4 - retries)));
+          continue;
+        }
+        throw error;
       }
-    });
+    }
+
+    if (!response?.data) {
+      console.error(`Empty response for ${indicator.name}`);
+      throw new Error('Empty API response');
+    }
 
     console.log(`API Response for ${indicator.name}:`, {
       status: response.status,
       statusText: response.statusText,
       headers: response.headers,
-      url: response.config.url,
       dataSize: JSON.stringify(response.data).length,
-      observationCount: response.data.observations?.length
+      observationCount: response.data.observations?.length,
+      sampleData: response.data.observations?.[0]
     });
 
-    if (!response.data || !Array.isArray(response.data.observations)) {
+    if (!response.data.observations || !Array.isArray(response.data.observations)) {
       console.error('Invalid API response:', response.data);
       throw new Error('Invalid API response format');
     }
 
     const formattedData = formatFredData(response.data.observations, indicator);
+    
+    if (formattedData.length === 0) {
+      console.error(`No valid data points for ${indicator.name}`);
+      throw new Error('No valid data points');
+    }
+
+    console.log(`Formatted ${formattedData.length} data points for ${indicator.name}`);
+
     const indicatorData = { indicator, data: formattedData };
 
     // Store API data locally with timestamp
@@ -271,7 +336,7 @@ export const fetchIndicatorData = async (indicatorId: string): Promise<Indicator
     const storedData = localStorage.getItem(`${LOCAL_STORAGE_PREFIX}api_${indicatorId}`);
     if (storedData) {
       const parsedData: StoredData = JSON.parse(storedData);
-      console.log(`Using locally stored API data from ${parsedData.lastUpdated}`);
+      console.log(`Using locally stored API data from ${parsedData.lastUpdated} for ${indicatorId}`);
       return parsedData.data;
     }
     
@@ -342,16 +407,22 @@ export const checkForDataUpdates = async (): Promise<boolean> => {
     const lastUpdateTime = parseInt(lastUpdate);
     const now = Date.now();
     
-    // If it's been more than 6 hours since last update, trigger a refresh
-    const SIX_HOURS = 6 * 60 * 60 * 1000;
-    if (now - lastUpdateTime > SIX_HOURS) {
+    // If it's been more than 1 hour since last update, trigger a refresh
+    if (now - lastUpdateTime > CACHE_DURATION) {
       return true;
     }
 
-    return false;
+    // Also check individual indicator timestamps
+    const anyIndicatorNeedsUpdate = economicIndicators.some(indicator => {
+      const indicatorLastUpdate = localStorage.getItem(`${LAST_UPDATED_PREFIX}${indicator.id}`);
+      if (!indicatorLastUpdate) return true;
+      return (now - new Date(indicatorLastUpdate).getTime()) > CACHE_DURATION;
+    });
+
+    return anyIndicatorNeedsUpdate;
   } catch (error) {
     console.error('Error checking for updates:', error);
-    return false;
+    return true;
   }
 };
 
@@ -375,12 +446,15 @@ export const getLastUpdatedTimestamp = (indicatorId: string): string | null => {
 
 export const clearAllStoredData = (): void => {
   try {
+    // Clear all versions of cached data
     Object.keys(localStorage).forEach(key => {
-      if (key.startsWith(LOCAL_STORAGE_PREFIX)) {
+      if (key.startsWith('economic_indicator_') || 
+          key.startsWith('last_updated_') ||
+          key.includes('uploaded_')) {
         localStorage.removeItem(key);
       }
     });
-    console.log('All stored data cleared');
+    console.log('All stored data cleared successfully');
   } catch (error) {
     console.error('Error clearing stored data:', error);
   }

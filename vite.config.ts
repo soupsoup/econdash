@@ -31,8 +31,7 @@ export default defineConfig(({ mode }) => {
       }
     },
     define: {
-      'import.meta.env.VITE_FRED_API_KEY': JSON.stringify(env.VITE_FRED_API_KEY || ''),
-      'process.env.FRED_API_KEY': JSON.stringify(env.VITE_FRED_API_KEY || ''),
+      // Remove FRED API key from client-side code
       'import.meta.env.VITE_ALPHA_VANTAGE_API_KEY': JSON.stringify('KDTNQE681CX1CZNE'),
       'import.meta.env.VITE_METAL_PRICE_API_KEY': JSON.stringify('1a32ae2c2658bcd7a47fe9f0dadd88c3')
     },
@@ -51,8 +50,8 @@ export default defineConfig(({ mode }) => {
             const url = new URL(path, 'http://localhost');
             const searchParams = new URLSearchParams(url.search);
             
-            // Always set the API key from environment variable
-            searchParams.set('api_key', env.VITE_FRED_API_KEY || '');
+            // Remove API key handling from development proxy
+            // API key will be handled by Netlify function only
             
             // Ensure file_type is set to json
             if (!searchParams.has('file_type')) {
@@ -61,13 +60,6 @@ export default defineConfig(({ mode }) => {
             
             // Remove /api/fred from the path and add /fred
             const newPath = `/fred${url.pathname.replace(/^\/api\/fred/, '')}`;
-            
-            // Log the request for debugging
-            console.log('FRED API Request:', {
-              path: newPath,
-              apiKey: env.VITE_FRED_API_KEY ? 'Present' : 'Missing',
-              params: Object.fromEntries(searchParams)
-            });
             
             return `${newPath}?${searchParams.toString()}`;
           },

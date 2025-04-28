@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { CheckCircle, XCircle, AlertTriangle, Clock, Database, RefreshCw, ExternalLink } from 'lucide-react';
@@ -16,7 +15,7 @@ const ApiStatusChecker: React.FC = () => {
   const [apiStatuses, setApiStatuses] = useState<ApiStatus[]>([
     {
       name: 'FRED API',
-      url: `/api/fred/series/observations?series_id=CPIAUCSL&api_key=${import.meta.env.VITE_FRED_API_KEY}&file_type=json&observation_start=1950-01-01&frequency=m`,
+      url: `/.netlify/functions/fred-proxy/series/observations?series_id=CPIAUCSL&file_type=json&observation_start=1950-01-01&frequency=m`,
       status: 'checking'
     },
     {
