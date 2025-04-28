@@ -15,7 +15,7 @@ interface JBNewsEvent {
   projection: string;
 }
 
-const API_KEY = 'ZLJjlNds.bWLVqZ3bJwWILqD3remPozF9bNV4esFJ';
+const API_KEY = '';
 const BASE_URL = 'https://www.jblanked.com/api/v1';
 
 export async function fetchEconomicCalendar(date?: Date): Promise<JBNewsEvent[]> {
