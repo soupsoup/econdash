@@ -9,7 +9,7 @@ import EconomicCalendar from '../components/EconomicCalendar';
 import GoldPriceIndicator from '../components/GoldPriceIndicator';
 import { useQuery } from 'react-query';
 import { fetchAllIndicatorsData, checkForDataUpdates } from '../services/api';
-import { AlertTriangle } from 'lucide-react';
+import { AlertTriangle, RefreshCw } from 'lucide-react';
 import { economicIndicators } from '../data/indicators';
 import { IndicatorData } from '../types';
 import { useLocalStorage } from '../hooks/useLocalStorage';
@@ -17,7 +17,7 @@ import { BreakingNewsBanner } from '../components/BreakingNewsBanner';
 
 export default function Dashboard() {
   const [lastUpdated, setLastUpdated] = useState<string | null>(null);
-  const [hasNewData, setHasNewData] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const [visibleCharts] = useLocalStorage<string[]>('visibleCharts', 
     economicIndicators.map(i => i.id));
 
@@ -31,14 +31,16 @@ export default function Dashboard() {
           setLastUpdated(timestamp);
           localStorage.setItem('economic_indicator_v3_last_global_update', Date.now().toString());
         }
+        setIsRefreshing(false);
       },
       refetchOnWindowFocus: true,
       refetchOnMount: true,
-      refetchInterval: 1000 * 60 * 30, // Check every 30 minutes
+      refetchInterval: 1000 * 60 * 15, // Check every 15 minutes
       retry: 3,
       retryDelay: 1000,
       onError: (error) => {
         console.error('Error fetching indicator data:', error);
+        setIsRefreshing(false);
       }
     }
   );
@@ -49,7 +51,8 @@ export default function Dashboard() {
         const needsUpdate = await checkForDataUpdates();
         if (needsUpdate) {
           console.log('Data update needed, triggering refetch...');
-          setHasNewData(true);
+          setIsRefreshing(true);
+          refetch();
         }
       } catch (error) {
         console.error('Error checking for updates:', error);
@@ -60,47 +63,30 @@ export default function Dashboard() {
     checkUpdates();
     const interval = setInterval(checkUpdates, 1000 * 60 * 5);
     return () => clearInterval(interval);
-  }, []);
-
-  const handleRefresh = () => {
-    setHasNewData(false);
-    refetch();
-  };
+  }, [refetch]);
 
   // Check if we have any valid data to display
   const hasValidData = indicators && indicators.length > 0;
 
   return (
-    <div className="min-h-screen bg-gray-100">
-      <BreakingNewsBanner />
+    <div className="min-h-screen bg-gray-50">
       <Header />
       <main className="container mx-auto px-4 py-8">
-        {isError && (
-          <div className="mb-8 flex items-center justify-between bg-red-50 p-4 rounded-lg">
-            <div className="flex items-center space-x-3">
-              <AlertTriangle className="h-5 w-5 text-red-500" />
-              <p className="text-red-700">
-                Error loading data: {error instanceof Error ? error.message : 'Unknown error'}
-              </p>
-            </div>
-            <button
-              onClick={handleRefresh}
-              className="px-4 py-2 bg-red-100 text-red-700 rounded hover:bg-red-200"
-            >
-              Retry
-            </button>
+        <BreakingNewsBanner />
+        
+        {isRefreshing && (
+          <div className="fixed top-4 right-4 bg-blue-100 text-blue-800 px-4 py-2 rounded-lg shadow-md flex items-center space-x-2">
+            <RefreshCw className="h-4 w-4 animate-spin" />
+            <span>Updating data...</span>
           </div>
         )}
 
-        {hasNewData && (
-          <div className="mb-8 flex items-center justify-between bg-yellow-50 p-4 rounded-lg">
-            <p className="text-yellow-700">New data available!</p>
-            <button
-              onClick={handleRefresh}
-              className="mt-2 px-4 py-2 bg-yellow-100 text-yellow-700 rounded hover:bg-yellow-200"
-            >
-              Refresh Data
-            </button>
+        {isError && (
+          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-6">
+            <div className="flex items-center">
+              <AlertTriangle className="h-5 w-5 mr-2" />
+              <span>Error loading data: {error instanceof Error ? error.message : 'Unknown error'}</span>
+            </div>
           </div>
         )}
 
@@ -120,7 +106,7 @@ export default function Dashboard() {
                       <IndicatorCard
                         key={indicator.id}
                         data={indicatorData || { indicator, data: [] }}
-                        isLoading={false}
+                        isLoading={isLoading || isRefreshing}
                         refetch={refetch}
                       />
                     );
