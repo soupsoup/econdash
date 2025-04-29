@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { format } from 'date-fns';
 import { IndicatorDataPoint, EconomicIndicator } from '../types';
-import { ChevronUp, ChevronDown, Edit2, Trash2 } from 'lucide-react';
+import { ChevronUp, ChevronDown, Edit2, Trash2, X, Save } from 'lucide-react';
 
 interface DataTableProps {
   data: IndicatorDataPoint[];
@@ -20,13 +20,74 @@ const EditModal: React.FC<{
   onClose: () => void;
   onSave: (updatedPoint: IndicatorDataPoint) => void;
 }> = ({ point, isOpen, onClose, onSave }) => {
-  //Implementation for EditModal would go here.  This is a placeholder.
+  const [editedPoint, setEditedPoint] = useState<IndicatorDataPoint>({ ...point });
+
   if (!isOpen) return null;
+
+  const handleSave = () => {
+    onSave(editedPoint);
+    onClose();
+  };
+
   return (
-    <div>
-      {/* Modal content to edit point.date, point.value, point.president */}
-      <button onClick={onClose}>Close</button>
-      <button onClick={() => onSave(point)}>Save</button>
+    <div className="fixed inset-0 bg-gray-500 bg-opacity-75 flex items-center justify-center">
+      <div className="bg-white rounded-lg p-6 max-w-md w-full">
+        <div className="flex justify-between items-center mb-4">
+          <h3 className="text-lg font-medium">Edit Data Point</h3>
+          <button onClick={onClose} className="text-gray-400 hover:text-gray-500">
+            <X className="h-5 w-5" />
+          </button>
+        </div>
+        
+        <div className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700">Date</label>
+            <input
+              type="date"
+              value={editedPoint.date}
+              onChange={(e) => setEditedPoint({ ...editedPoint, date: e.target.value })}
+              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+            />
+          </div>
+          
+          <div>
+            <label className="block text-sm font-medium text-gray-700">Value</label>
+            <input
+              type="number"
+              step="0.01"
+              value={editedPoint.value}
+              onChange={(e) => setEditedPoint({ ...editedPoint, value: parseFloat(e.target.value) })}
+              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+            />
+          </div>
+          
+          <div>
+            <label className="block text-sm font-medium text-gray-700">President</label>
+            <input
+              type="text"
+              value={editedPoint.president || ''}
+              onChange={(e) => setEditedPoint({ ...editedPoint, president: e.target.value })}
+              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+            />
+          </div>
+        </div>
+        
+        <div className="mt-6 flex justify-end space-x-3">
+          <button
+            onClick={onClose}
+            className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={handleSave}
+            className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 flex items-center"
+          >
+            <Save className="h-4 w-4 mr-2" />
+            Save
+          </button>
+        </div>
+      </div>
     </div>
   );
 };
@@ -106,6 +167,17 @@ const DataTable: React.FC<DataTableProps> = ({ data, indicator, onDelete, onEdit
   const lastApiUpdate = localStorage.getItem(`${LOCAL_STORAGE_PREFIX}last_api_update_${indicator.id}`);
   const dataSource = localStorage.getItem(`${LOCAL_STORAGE_PREFIX}data_source_${indicator.id}`);
 
+  const handleEdit = (point: IndicatorDataPoint) => {
+    setEditingPoint(point);
+  };
+
+  const handleSaveEdit = (updatedPoint: IndicatorDataPoint) => {
+    if (onEdit) {
+      onEdit(updatedPoint);
+    }
+    setEditingPoint(null);
+  };
+
   return (
     <div className="overflow-x-auto">
       <div className="mb-4 text-sm text-gray-600">
@@ -164,7 +236,7 @@ const DataTable: React.FC<DataTableProps> = ({ data, indicator, onDelete, onEdit
               {isAdmin && (
                 <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                   <button
-                    onClick={() => onEdit?.(point)}
+                    onClick={() => handleEdit(point)}
                     className="text-blue-600 hover:text-blue-900 mr-3"
                   >
                     <Edit2 className="h-4 w-4 inline" />
@@ -181,25 +253,37 @@ const DataTable: React.FC<DataTableProps> = ({ data, indicator, onDelete, onEdit
           ))}
         </tbody>
       </table>
+
+      {editingPoint && (
+        <EditModal
+          point={editingPoint}
+          isOpen={true}
+          onClose={() => setEditingPoint(null)}
+          onSave={handleSaveEdit}
+        />
+      )}
+
       {totalPages > 1 && (
-        <div className="flex justify-between items-center px-6 py-3 bg-gray-50">
-          <button
-            onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
-            disabled={currentPage === 1}
-            className="px-3 py-1 text-sm bg-white border rounded-md disabled:opacity-50"
-          >
-            Previous
-          </button>
-          <span className="text-sm text-gray-700">
-            Page {currentPage} of {totalPages}
-          </span>
-          <button
-            onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
-            disabled={currentPage === totalPages}
-            className="px-3 py-1 text-sm bg-white border rounded-md disabled:opacity-50"
-          >
-            Next
-          </button>
+        <div className="flex justify-center mt-4">
+          <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+            <button
+              onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+              disabled={currentPage === 1}
+              className="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50"
+            >
+              Previous
+            </button>
+            <span className="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700">
+              Page {currentPage} of {totalPages}
+            </span>
+            <button
+              onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+              disabled={currentPage === totalPages}
+              className="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50"
+            >
+              Next
+            </button>
+          </nav>
         </div>
       )}
     </div>
