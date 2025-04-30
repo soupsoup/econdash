@@ -18,6 +18,7 @@ export interface EconomicIndicator {
   frequency: string;
   higherIsBetter: boolean;
   seriesId: string;
+  transform?: 'none' | 'pct_change' | 'pct_change_year' | 'divide_by_1000';
 }
 
 export interface IndicatorDataPoint {

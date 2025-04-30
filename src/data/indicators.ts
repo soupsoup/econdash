@@ -132,5 +132,17 @@ export const economicIndicators: EconomicIndicator[] = [
     higherIsBetter: false,
     seriesId: 'DCOILWTICO',
     transform: 'none'
+  },
+  {
+    id: 'mortgage-30yr',
+    name: '30-Year Fixed Rate Mortgage Average',
+    description: 'Average interest rate for 30-year fixed-rate mortgages in the United States',
+    unit: '%',
+    source: 'FederalReserve',
+    sourceUrl: 'https://fred.stlouisfed.org/series/MORTGAGE30US',
+    frequency: 'weekly',
+    higherIsBetter: false,
+    seriesId: 'MORTGAGE30US',
+    transform: 'none'
   }
 ];

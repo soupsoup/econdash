@@ -66,6 +66,7 @@ const RELEASE_SCHEDULES: ReleaseSchedules = {
   },
   weekly: {
     'gas-prices': { day: 1, hour: 10, minute: 30 }, // Monday, 10:30 AM ET
+    'mortgage-30yr': { day: 4, hour: 10, minute: 0 }, // Thursday, 10:00 AM ET
     default: { day: 1, hour: 10, minute: 30 }
   },
   yearly: {
