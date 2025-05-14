@@ -283,11 +283,25 @@ async function fetchBlsData(series: string): Promise<IndicatorDataPoint[] | BlsD
       }
       throw new Error('BLS API rate limit reached. Please try again later or contact support if this persists.');
     }
+    // Fallback to Supabase if BLS API response is invalid
     if (!data.Results?.series?.[0]?.data) {
-      console.error('Invalid BLS API response format:', {
-        series,
-        data
-      });
+      if (series === 'CUUR0000SA0') {
+        try {
+          const resp = await fetch('/.netlify/functions/indicator-db?indicator_id=cpi');
+          if (resp.ok) {
+            const dbData = await resp.json();
+            if (Array.isArray(dbData) && dbData.length > 0) {
+              return {
+                data: dbData.map((row: any) => ({ date: row.date, value: parseFloat(row.value) })),
+                cachedAt: dbData[dbData.length - 1]?.date,
+                supabaseFallback: true
+              };
+            }
+          }
+        } catch (dbError) {
+          console.error('Supabase fallback failed:', dbError);
+        }
+      }
       throw new Error('Invalid response format from BLS API');
     }
     // Only keep valid monthly periods (M01-M12)
