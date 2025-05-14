@@ -32,7 +32,6 @@ export default defineConfig(({ mode }) => {
     },
     define: {
       // Define environment variables that should be available in the client
-      'import.meta.env.VITE_ALPHA_VANTAGE_API_KEY': JSON.stringify(env.VITE_ALPHA_VANTAGE_API_KEY),
       'import.meta.env.VITE_METAL_PRICE_API_KEY': JSON.stringify(env.VITE_METAL_PRICE_API_KEY)
     },
     server: {
@@ -129,17 +128,6 @@ export default defineConfig(({ mode }) => {
               proxyReq.setHeader('Origin', 'https://www.investing.com');
               proxyReq.setHeader('Referer', 'https://www.investing.com/economic-calendar/');
             });
-          }
-        },
-        '/api/alpha-vantage': {
-          target: 'https://www.alphavantage.co',
-          changeOrigin: true,
-          secure: true,
-          rewrite: (path) => {
-            const url = new URL(path, 'http://localhost');
-            const params = new URLSearchParams(url.search);
-            params.set('apikey', env.VITE_ALPHA_VANTAGE_API_KEY || '');
-            return `/query?${params.toString()}`;
           }
         },
         '/api/calendar': {
