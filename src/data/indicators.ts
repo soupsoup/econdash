@@ -102,11 +102,11 @@ export const economicIndicators: EconomicIndicator[] = [
     name: 'Consumer Price Index',
     description: 'Consumer Price Index for All Urban Consumers: All Items (Base: 1982-84=100)',
     unit: 'index',
-    source: 'FederalReserve',
-    sourceUrl: 'https://fred.stlouisfed.org/series/CPIAUCSL',
+    source: 'BLS',
+    sourceUrl: 'https://data.bls.gov/timeseries/CUUR0000SA0&output_view=pct_12mths',
     frequency: 'monthly',
     higherIsBetter: false,
-    seriesId: 'CPIAUCSL',
+    seriesId: 'CUUR0000SA0',
     transform: 'none'
   },
   {
@@ -143,6 +143,42 @@ export const economicIndicators: EconomicIndicator[] = [
     frequency: 'weekly',
     higherIsBetter: false,
     seriesId: 'MORTGAGE30US',
+    transform: 'none'
+  },
+  {
+    id: 'gold-price',
+    name: 'Gold Price',
+    description: 'Price of gold per troy ounce in USD',
+    unit: '$/oz',
+    source: 'MetalPriceAPI',
+    sourceUrl: 'https://www.metalpriceapi.com/',
+    frequency: 'daily',
+    higherIsBetter: false,
+    seriesId: 'XAUUSD',
+    transform: 'none'
+  },
+  {
+    id: 'ppi',
+    name: 'Producer Price Index (PPI)',
+    description: 'US Producer Price Index for All Commodities',
+    unit: 'Index',
+    source: 'BLS',
+    sourceUrl: 'https://www.bls.gov/ppi/',
+    frequency: 'monthly',
+    higherIsBetter: false,
+    seriesId: 'WPUFD4',
+    transform: 'none'
+  },
+  {
+    id: 'retail-sales',
+    name: 'US Retail Sales',
+    description: 'Advance Monthly Sales for Retail and Food Services, seasonally adjusted',
+    unit: '$M',
+    source: 'Census',
+    sourceUrl: 'https://www.census.gov/retail/',
+    frequency: 'monthly',
+    higherIsBetter: true,
+    seriesId: 'MRTSSM44X72USS',
     transform: 'none'
   }
 ];

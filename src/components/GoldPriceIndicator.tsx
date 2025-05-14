@@ -32,9 +32,6 @@ const GoldPriceIndicator: React.FC = () => {
     };
 
     fetchGoldPrice();
-    // Refresh every minute
-    const interval = setInterval(fetchGoldPrice, 60 * 1000);
-    return () => clearInterval(interval);
   }, []);
 
   if (loading) {

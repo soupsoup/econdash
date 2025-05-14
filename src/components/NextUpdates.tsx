@@ -60,9 +60,6 @@ const NextUpdates: React.FC = () => {
     };
 
     updateCountdown();
-    const interval = setInterval(updateCountdown, 60000); // Update every minute
-
-    return () => clearInterval(interval);
   }, [updates]);
 
   return (

@@ -1,4 +1,3 @@
-
 import { presidents } from '../data/presidents';
 
 export interface LocalDataPoint {
@@ -81,3 +80,38 @@ export const getJobCreationDataFromCsv = (): DataPoint[] => {
     return [];
   }
 };
+
+// Utility to parse CPI2005_2025.csv and store as fallback CPI data
+export async function importCpiCsvToLocalStorage(csvUrl: string = '/CPI2005_2025.csv') {
+  try {
+    const response = await fetch(csvUrl);
+    if (!response.ok) throw new Error('Failed to fetch CPI CSV');
+    const text = await response.text();
+    const lines = text.split('\n').filter(line => line.trim().length > 0);
+    const header = lines[0].split(',');
+    const yearIdx = header.indexOf('Year');
+    const monthIdx = header.indexOf('Month');
+    const valueIdx = header.indexOf('Value');
+    if (yearIdx === -1 || monthIdx === -1 || valueIdx === -1) throw new Error('CSV header missing required columns');
+    const data = lines.slice(1).map(line => {
+      const cols = line.split(',');
+      const year = cols[yearIdx];
+      const month = cols[monthIdx].padStart(2, '0');
+      const value = parseFloat(cols[valueIdx]);
+      const date = `${year}-${month}-01`;
+      return {
+        date,
+        value
+      };
+    })
+    // Only keep rows with valid date and value
+    .filter(row => !isNaN(row.value) && row.date && !isNaN(new Date(row.date).getTime()));
+    // Store in localStorage under the same key as BLS API cache
+    const cacheKey = 'economic_indicator_v3_api_cpi';
+    localStorage.setItem(cacheKey, JSON.stringify({ data, timestamp: Date.now(), source: 'csv' }));
+    return data;
+  } catch (error) {
+    console.error('Error importing CPI CSV:', error);
+    throw error;
+  }
+}

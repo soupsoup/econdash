@@ -41,59 +41,12 @@ const IndicatorCard: React.FC<IndicatorCardProps> = ({ data, isLoading, refetch 
 
   const { indicator, data: dataPoints } = data;
 
-  // Check if we have data
-  if (!dataPoints || dataPoints.length === 0) {
-    return (
-      <div className="bg-white rounded-lg shadow-md p-6">
-        <div className="flex justify-between items-start mb-4">
-          <div>
-            <h3 className="text-lg font-semibold text-gray-800">{indicator.name}</h3>
-            <p className="text-sm text-gray-600">{indicator.description}</p>
-          </div>
-        </div>
-
-        <div className="flex items-center justify-center h-40 bg-red-50 rounded-md border border-red-100">
-          <div className="text-center p-4">
-            <AlertTriangle className="h-8 w-8 text-red-500 mx-auto mb-2" />
-            <p className="text-sm text-red-800">No data available</p>
-          </div>
-        </div>
-
-        <div className="mt-4 text-xs text-gray-500 flex justify-between items-center">
-          <div>
-            <span>Source: {indicator.source}</span>
-          </div>
-          <Link 
-            to={`/indicator/${indicator.id}`}
-            className="text-blue-600 hover:text-blue-800 flex items-center text-xs"
-          >
-            <span className="mr-1">Details</span>
-            <ArrowUpRight className="h-3 w-3" />
-          </Link>
-        </div>
-      </div>
-    );
-  }
+  // Sort data points by date descending to ensure latest is first
+  const sortedDataPoints = [...dataPoints].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
   // Get current and previous values for comparison
-  let currentValue: number | undefined;
-  let previousValue: number | undefined;
-
-  if (indicator.id === 'monthly-inflation' && dataPoints.length >= 2) {
-    // Calculate month-over-month percentage change
-    const currentCPI = dataPoints[0].value;
-    const previousCPI = dataPoints[1].value;
-    currentValue = ((currentCPI - previousCPI) / previousCPI) * 100;
-    
-    // Calculate previous month's change for comparison
-    if (dataPoints.length >= 3) {
-      const twoPeriodsCPI = dataPoints[2].value;
-      previousValue = ((previousCPI - twoPeriodsCPI) / twoPeriodsCPI) * 100;
-    }
-  } else {
-    currentValue = dataPoints[0]?.value;
-    previousValue = dataPoints[1]?.value;
-  }
+  let currentValue: number | undefined = sortedDataPoints[0]?.value;
+  let previousValue: number | undefined = sortedDataPoints[1]?.value;
 
   // Calculate change
   const change = currentValue && previousValue ? currentValue - previousValue : 0;
@@ -182,8 +135,8 @@ const IndicatorCard: React.FC<IndicatorCardProps> = ({ data, isLoading, refetch 
         )}
       </div>
 
-      <div className="h-32"> {/* Height adjusted to 32 */}
-        <DetailChart data={data} filteredData={data?.data} /> {/* Added filteredData prop */}
+      <div className="w-full aspect-[2/1]">
+        <DetailChart data={data} filteredData={data?.data} />
       </div>
 
       <div className="mt-4 text-xs text-gray-500 flex justify-between items-center">

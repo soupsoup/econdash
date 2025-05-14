@@ -1,0 +1,15 @@
+{
+  "status": "REQUEST_SUCCEEDED",
+  "responseTime": 97,
+  "message": [
+    "Invalid Series for Series USPPIMM"
+  ],
+  "Results": {
+    "series": [
+      {
+        "seriesID": "USPPIMM",
+        "data": []
+      }
+    ]
+  }
+}

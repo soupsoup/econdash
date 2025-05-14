@@ -33,9 +33,8 @@ export default function Dashboard() {
         }
         setIsRefreshing(false);
       },
-      refetchOnWindowFocus: true,
+      refetchOnWindowFocus: false,
       refetchOnMount: true,
-      refetchInterval: 1000 * 60 * 15, // Check every 15 minutes
       retry: 3,
       retryDelay: 1000,
       onError: (error) => {
@@ -59,10 +58,8 @@ export default function Dashboard() {
       }
     };
 
-    // Check for updates on mount and every 5 minutes
+    // Check for updates on mount only
     checkUpdates();
-    const interval = setInterval(checkUpdates, 1000 * 60 * 5);
-    return () => clearInterval(interval);
   }, [refetch]);
 
   // Check if we have any valid data to display
@@ -94,7 +91,6 @@ export default function Dashboard() {
           {!isLoading && hasValidData && (
             <>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                <GoldPriceIndicator />
                 {economicIndicators
                   .filter(indicator => 
                     visibleCharts.includes(indicator.id) && 

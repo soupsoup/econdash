@@ -5,7 +5,7 @@
 
 # Handle FRED API requests through our Netlify function
 [[redirects]]
-  from = "/.netlify/functions/fred-proxy"
+  from = "/api/fred-proxy"
   to = "/.netlify/functions/fred-proxy"
   status = 200
   force = true

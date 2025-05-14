@@ -45,8 +45,7 @@ const PresidentSchedule: React.FC = () => {
     'presidentSchedule',
     fetchPresidentSchedule,
     {
-      refetchInterval: 1000 * 60 * 15, // Refetch every 15 minutes
-      refetchOnWindowFocus: true,
+      refetchOnWindowFocus: false,
       refetchOnMount: true,
       cacheTime: 1000 * 60 * 10, // Cache for 10 minutes
       staleTime: 1000 * 60 * 5, // Consider data stale after 5 minutes

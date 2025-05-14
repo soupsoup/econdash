@@ -14,7 +14,7 @@ const IndicatorDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [apiErrors, setApiErrors] = useState<Record<string, string>>({});
-  const [lastUpdated, setLastUpdated] = useState<string | null>(getLastUpdatedTimestamp());
+  const [lastUpdated, setLastUpdated] = useState<string | null>(getLastUpdatedTimestamp(id || ''));
   const [timeRange, setTimeRange] = useState<number>(10);
   const [viewMode, setViewMode] = useState<'chart' | 'table'>('chart');
   const [isEditing, setIsEditing] = useState(false);
@@ -49,7 +49,7 @@ const IndicatorDetail: React.FC = () => {
       retry: 2,
       retryDelay: 1000,
       onSuccess: () => {
-        setLastUpdated(getLastUpdatedTimestamp());
+        setLastUpdated(getLastUpdatedTimestamp(id || ''));
       },
       onError: (err) => {
         console.error('Error fetching indicator data:', err);
@@ -68,12 +68,33 @@ const IndicatorDetail: React.FC = () => {
     }
   );
 
-  // Calculate cutoff date
-  const cutoffDate = subYears(new Date(), timeRange);
-  const filteredData = indicatorData.data.filter(point => {
+  // Filter out data points with invalid dates
+  const validData = indicatorData.data.filter(point => {
+    const d = new Date(point.date);
+    return point.date && !isNaN(d.getTime());
+  });
+  if (validData.length !== indicatorData.data.length) {
+    console.warn('Filtered out invalid date points:', indicatorData.data.filter(point => {
+      const d = new Date(point.date);
+      return !point.date || isNaN(d.getTime());
+    }));
+  }
+
+  let latestDate: Date;
+  if (validData.length > 0) {
+    latestDate = new Date(Math.max(...validData.map(point => new Date(point.date).getTime())));
+  } else {
+    latestDate = new Date();
+    console.error('No valid CPI data available for charting.');
+  }
+  const cutoffDate = subYears(latestDate, timeRange);
+  const filteredData = validData.filter(point => {
     const pointDate = new Date(point.date);
     return pointDate >= cutoffDate;
   });
+
+  // Check for BLS cache info
+  const blsCachedAt = (indicatorData as any).blsCachedAt as string | undefined;
 
   // Create memoized derived data
   const {
@@ -112,6 +133,11 @@ const IndicatorDetail: React.FC = () => {
       avg = values.reduce((sum, val) => sum + val, 0) / values.length;
       min = Math.min(...values);
       max = Math.max(...values);
+    }
+
+    // Debug log for CPI data
+    if (indicatorData.indicator?.id === 'cpi') {
+      console.log('DEBUG: CPI data array being rendered:', processed);
     }
 
     return {
@@ -306,6 +332,17 @@ const IndicatorDetail: React.FC = () => {
       <main className="container mx-auto px-4 py-8">
         {Object.keys(apiErrors).length > 0 && <ApiErrorNotice errors={apiErrors} />}
 
+        {/* Show BLS cache warning if present */}
+        {blsCachedAt && (
+          <div className="flex items-center bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4 mb-4 rounded">
+            <AlertTriangle className="h-5 w-5 mr-2 text-yellow-500" />
+            <span>
+              BLS data is currently rate-limited. Displaying cached data as of{' '}
+              <strong>{new Date(blsCachedAt).toLocaleString()}</strong>.
+            </span>
+          </div>
+        )}
+
         <div className="bg-white rounded-lg shadow-md p-6 mb-6">
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4">
             <div className="flex items-center mb-4 sm:mb-0">
@@ -358,7 +395,7 @@ const IndicatorDetail: React.FC = () => {
         {viewMode === 'chart' && (
           <>
             <div className="bg-white rounded-lg shadow-md p-6 mb-6">
-              <div className="h-[400px]">
+              <div className="w-full aspect-[2/1]">
                 <DetailChart data={indicatorData} filteredData={processedData} />
               </div>
             </div>

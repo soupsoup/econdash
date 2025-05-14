@@ -54,10 +54,6 @@ const DataPreview: React.FC = () => {
     };
 
     loadPreviewData();
-    // Set up an interval to refresh the data every minute
-    const interval = setInterval(loadPreviewData, 60000);
-
-    return () => clearInterval(interval);
   }, []);
 
   return (
