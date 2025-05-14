@@ -31,9 +31,9 @@ export default defineConfig(({ mode }) => {
       }
     },
     define: {
-      // Remove FRED API key from client-side code
-      'import.meta.env.VITE_ALPHA_VANTAGE_API_KEY': JSON.stringify('KDTNQE681CX1CZNE'),
-      'import.meta.env.VITE_METAL_PRICE_API_KEY': JSON.stringify('1a32ae2c2658bcd7a47fe9f0dadd88c3')
+      // Define environment variables that should be available in the client
+      'import.meta.env.VITE_ALPHA_VANTAGE_API_KEY': JSON.stringify(env.VITE_ALPHA_VANTAGE_API_KEY),
+      'import.meta.env.VITE_METAL_PRICE_API_KEY': JSON.stringify(env.VITE_METAL_PRICE_API_KEY)
     },
     server: {
       host: '0.0.0.0',
@@ -85,7 +85,7 @@ export default defineConfig(({ mode }) => {
           rewrite: (path) => {
             const url = new URL(path, 'http://localhost');
             const params = new URLSearchParams(url.search);
-            params.set('api_key', '1a32ae2c2658bcd7a47fe9f0dadd88c3');
+            params.set('api_key', env.VITE_METAL_PRICE_API_KEY || '');
             return `${url.pathname.replace(/^\/api\/metal/, '')}?${params.toString()}`;
           },
           configure: (proxy, options) => {
@@ -138,7 +138,7 @@ export default defineConfig(({ mode }) => {
           rewrite: (path) => {
             const url = new URL(path, 'http://localhost');
             const params = new URLSearchParams(url.search);
-            params.set('apikey', 'KDTNQE681CX1CZNE');
+            params.set('apikey', env.VITE_ALPHA_VANTAGE_API_KEY || '');
             return `/query?${params.toString()}`;
           }
         },
