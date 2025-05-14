@@ -241,6 +241,15 @@ const IndicatorDetail: React.FC = () => {
           <p className="text-gray-600 mb-4">
             We couldn't retrieve the economic data for this indicator.
           </p>
+          {/* Show if Supabase fallback was used */}
+          {(indicatorData as any).supabaseFallback && (
+            <div className="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4 mb-4 rounded">
+              <AlertTriangle className="h-5 w-5 mr-2 text-yellow-500" />
+              <span>
+                The data shown was retrieved from Supabase (local database fallback), not the live API.
+              </span>
+            </div>
+          )}
           <div className="bg-red-50 border border-red-200 rounded-md p-3 mb-6 text-left">
             <p className="text-sm text-red-800 font-medium">Error details:</p>
             <p className="text-sm text-red-700 font-mono mt-1 overflow-auto max-h-48">

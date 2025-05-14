@@ -204,6 +204,7 @@ export interface BlsDataWithCache {
   data: IndicatorDataPoint[];
   cachedAt?: string; // ISO string if using cached data
   csvFallback?: boolean;
+  supabaseFallback?: boolean;
 }
 
 async function fetchBlsData(series: string): Promise<IndicatorDataPoint[] | BlsDataWithCache> {
@@ -310,6 +311,25 @@ async function fetchBlsData(series: string): Promise<IndicatorDataPoint[] | BlsD
       error: error instanceof Error ? error.message : 'Unknown error',
       stack: error instanceof Error ? error.stack : undefined
     });
+
+    // Try to get Supabase fallback for CPI on any error
+    if (series === 'CUUR0000SA0') {
+      try {
+        const resp = await fetch('/.netlify/functions/indicator-db?indicator_id=cpi');
+        if (resp.ok) {
+          const dbData = await resp.json();
+          if (Array.isArray(dbData) && dbData.length > 0) {
+            return {
+              data: dbData.map((row: any) => ({ date: row.date, value: parseFloat(row.value) })),
+              cachedAt: dbData[dbData.length - 1]?.date,
+              supabaseFallback: true
+            };
+          }
+        }
+      } catch (dbError) {
+        console.error('Supabase fallback failed:', dbError);
+      }
+    }
 
     // Try to get CSV fallback for CPI on any error
     if (series === 'CUUR0000SA0') {
