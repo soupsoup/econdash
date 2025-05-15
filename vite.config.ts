@@ -27,7 +27,13 @@ export default defineConfig(({ mode }) => {
               return 'vendor';
             }
           }
-        }
+        },
+        external: [
+          '@mui/material/styles',
+          '@mui/material/CssBaseline',
+          '@emotion/react',
+          '@emotion/styled'
+        ]
       }
     },
     define: {
