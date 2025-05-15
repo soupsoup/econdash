@@ -17,10 +17,13 @@ export class ErrorBoundary extends React.Component<{children: React.ReactNode}, 
 
   render() {
     if (this.state.hasError) {
+      const { error } = this.state;
       return (
         <div style={{ color: 'red', padding: 20 }}>
           <h1>Something went wrong.</h1>
-          <pre>{this.state.error?.toString()}</pre>
+          <pre>{error?.toString()}</pre>
+          {error?.message && <pre>Message: {error.message}</pre>}
+          {error?.stack && <details><summary>Stack Trace</summary><pre>{error.stack}</pre></details>}
         </div>
       );
     }
