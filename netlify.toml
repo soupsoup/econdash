@@ -9,7 +9,7 @@
 [secrets]
   scan_enabled = true
   scan_omit_paths = ["node_modules", "dist"]
-  scan_omit_keys = ["VITE_METAL_PRICE_API_KEY", "FRED_API_KEY", "SUPABASE_URL", "SUPABASE_SERVICE_ROLE_KEY"]
+  scan_omit_keys = ["VITE_METAL_PRICE_API_KEY", "FRED_API_KEY", "SUPABASE_URL", "SUPABASE_SERVICE_ROLE_KEY", "VITE_SUPABASE_ANON_KEY"]
 
 # Ignore secrets in build output
 [build.processing]
@@ -28,6 +28,7 @@
 [build.processing.js]
   bundle = true
   minify = true
+  format = "esm"
 
 # Configure redirects
 [[redirects]]
