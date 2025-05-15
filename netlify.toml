@@ -1,7 +1,7 @@
 [build]
   command = "npm run build"
   publish = "dist"
-  functions = "netlify/functions"
+  environment = { NODE_VERSION = "20" }
 
 # Handle FRED API requests through our Netlify function
 [[redirects]]
@@ -29,21 +29,23 @@
   to = "/index.html"
   status = 200
 
-[build.environment]
-  NODE_VERSION = "20"
-
+# Configure functions
 [functions]
+  directory = "netlify/functions"
   node_bundler = "esbuild"
   external_node_modules = ["node-fetch"]
 
+# Configure secrets scanning
+[secrets]
+  scan_enabled = true
+  scan_omit_paths = ["node_modules", "dist"]
+  scan_omit_keys = ["VITE_METAL_PRICE_API_KEY", "FRED_API_KEY"]
+
+# Ignore secrets in build output
 [build.processing]
   skip_processing = false
 
 [build.processing.css]
-  bundle = true
-  minify = true
-
-[build.processing.js]
   bundle = true
   minify = true
 
@@ -53,23 +55,9 @@
 [build.processing.images]
   compress = true
 
-[secrets]
-  SECRETS_SCAN_ENABLED = true
-  # Ignore build output and other necessary paths
-  SECRETS_SCAN_OMIT_PATHS = [
-    "node_modules/**/*",
-    "dist/**/*",
-    ".netlify/**/*",
-    "*.log",
-    "*.lock"
-  ]
-  # Specify which environment variables to ignore in scanning
-  SECRETS_SCAN_OMIT_KEYS = [
-    "FRED_API_KEY",
-    "VITE_FRED_API_KEY",
-    "VITE_BLS_API_KEY",
-    "VITE_EIA_API_KEY"
-  ]
+[build.processing.js]
+  bundle = true
+  minify = true
 
 [dev]
   framework = "#custom"

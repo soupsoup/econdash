@@ -36,10 +36,6 @@ export default defineConfig(({ mode }) => {
         ]
       }
     },
-    define: {
-      // Define environment variables that should be available in the client
-      'import.meta.env.VITE_METAL_PRICE_API_KEY': JSON.stringify(env.VITE_METAL_PRICE_API_KEY)
-    },
     server: {
       host: '0.0.0.0',
       port: 3000,
@@ -90,7 +86,7 @@ export default defineConfig(({ mode }) => {
           rewrite: (path) => {
             const url = new URL(path, 'http://localhost');
             const params = new URLSearchParams(url.search);
-            params.set('api_key', env.VITE_METAL_PRICE_API_KEY || '');
+            // Remove API key from rewrite
             return `${url.pathname.replace(/^\/api\/metal/, '')}?${params.toString()}`;
           },
           configure: (proxy, options) => {
