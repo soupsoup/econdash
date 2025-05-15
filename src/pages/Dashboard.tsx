@@ -15,7 +15,11 @@ import { IndicatorData } from '../types';
 import { useLocalStorage } from '../hooks/useLocalStorage';
 import { BreakingNewsBanner } from '../components/BreakingNewsBanner';
 
-export default function Dashboard() {
+interface DashboardProps {
+  indicatorsData: IndicatorData[];
+}
+
+export default function Dashboard({ indicatorsData }: DashboardProps) {
   const [lastUpdated, setLastUpdated] = useState<string | null>(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [visibleCharts] = useLocalStorage<string[]>('visibleCharts', 
