@@ -2,7 +2,6 @@ import { format } from 'date-fns';
 import { IndicatorData, IndicatorDataPoint, EconomicIndicator } from '../types';
 import { economicIndicators } from '../data/indicators';
 import axios from 'axios';
-import { createClient } from '@supabase/supabase-js';
 
 // Update cache prefix to force refresh with new series IDs
 const LOCAL_STORAGE_PREFIX = 'economic_indicator_v3_';
@@ -205,7 +204,6 @@ export interface BlsDataWithCache {
   data: IndicatorDataPoint[];
   cachedAt?: string; // ISO string if using cached data
   csvFallback?: boolean;
-  supabaseFallback?: boolean;
 }
 
 async function fetchBlsData(series: string): Promise<IndicatorDataPoint[] | BlsDataWithCache> {
@@ -223,28 +221,16 @@ async function fetchBlsData(series: string): Promise<IndicatorDataPoint[] | BlsD
   });
 
   const url = `${BLS_API_BASE_URL}?${params.toString()}`;
-  console.log('Fetching BLS data:', {
-    series,
-    url,
-    params: Object.fromEntries(params)
-  });
 
   try {
     const response = await fetch(url);
     if (!response.ok) {
       const errorText = await response.text();
-      console.error('BLS API Error:', {
-        series,
-        status: response.status,
-        statusText: response.statusText,
-        error: errorText
-      });
       // Check for rate limit error
       if (errorText.includes('daily threshold') || errorText.includes('REQUEST_NOT_PROCESSED')) {
         // Try to get cached data
         const cachedData = localStorage.getItem(`${LOCAL_STORAGE_PREFIX}api_${series}`);
         if (cachedData) {
-          console.log('Using cached BLS data due to rate limit');
           const parsedData = JSON.parse(cachedData);
           return { data: parsedData.data, cachedAt: new Date(parsedData.timestamp).toISOString() };
         }
@@ -252,7 +238,6 @@ async function fetchBlsData(series: string): Promise<IndicatorDataPoint[] | BlsD
         if (series === 'CUUR0000SA0') {
           const csvFallback = localStorage.getItem('economic_indicator_v3_api_cpi');
           if (csvFallback) {
-            console.log('Using CSV fallback CPI data due to BLS rate limit and no API cache');
             const parsed = JSON.parse(csvFallback);
             return { data: parsed.data, cachedAt: new Date(parsed.timestamp).toISOString(), csvFallback: true };
           }
@@ -269,7 +254,6 @@ async function fetchBlsData(series: string): Promise<IndicatorDataPoint[] | BlsD
       // Try to get cached data
       const cachedData = localStorage.getItem(`${LOCAL_STORAGE_PREFIX}api_${series}`);
       if (cachedData) {
-        console.log('Using cached BLS data due to rate limit');
         const parsedData = JSON.parse(cachedData);
         return { data: parsedData.data, cachedAt: new Date(parsedData.timestamp).toISOString() };
       }
@@ -277,34 +261,17 @@ async function fetchBlsData(series: string): Promise<IndicatorDataPoint[] | BlsD
       if (series === 'CUUR0000SA0') {
         const csvFallback = localStorage.getItem('economic_indicator_v3_api_cpi');
         if (csvFallback) {
-          console.log('Using CSV fallback CPI data due to BLS rate limit and no API cache');
           const parsed = JSON.parse(csvFallback);
           return { data: parsed.data, cachedAt: new Date(parsed.timestamp).toISOString(), csvFallback: true };
         }
       }
       throw new Error('BLS API rate limit reached. Please try again later or contact support if this persists.');
     }
-    // Fallback to Supabase if BLS API response is invalid
+
     if (!data.Results?.series?.[0]?.data) {
-      if (series === 'CUUR0000SA0') {
-        try {
-          const resp = await fetch('/.netlify/functions/indicator-db?indicator_id=cpi');
-          if (resp.ok) {
-            const dbData = await resp.json();
-            if (Array.isArray(dbData) && dbData.length > 0) {
-              return {
-                data: dbData.map((row: any) => ({ date: row.date, value: parseFloat(row.value) })),
-                cachedAt: dbData[dbData.length - 1]?.date,
-                supabaseFallback: true
-              };
-            }
-          }
-        } catch (dbError) {
-          console.error('Supabase fallback failed:', dbError);
-        }
-      }
       throw new Error('Invalid response format from BLS API');
     }
+
     // Only keep valid monthly periods (M01-M12)
     const monthly = data.Results.series[0].data
       .filter(point => /^M(0[1-9]|1[0-2])$/.test(point.period))
@@ -314,43 +281,21 @@ async function fetchBlsData(series: string): Promise<IndicatorDataPoint[] | BlsD
       }))
       .filter(point => !isNaN(point.value) && point.value !== null)
       .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+
     // Cache the successful response
     localStorage.setItem(`${LOCAL_STORAGE_PREFIX}api_${series}`, JSON.stringify({
       data: monthly,
       timestamp: Date.now()
     }));
+
     return monthly;
   } catch (error) {
-    console.error('Error fetching BLS data:', {
-      series,
-      error: error instanceof Error ? error.message : 'Unknown error',
-      stack: error instanceof Error ? error.stack : undefined
-    });
-
-    // Try to get Supabase fallback for CPI on any error
-    if (series === 'CUUR0000SA0') {
-      try {
-        const resp = await fetch('/.netlify/functions/indicator-db?indicator_id=cpi');
-        if (resp.ok) {
-          const dbData = await resp.json();
-          if (Array.isArray(dbData) && dbData.length > 0) {
-            return {
-              data: dbData.map((row: any) => ({ date: row.date, value: parseFloat(row.value) })),
-              cachedAt: dbData[dbData.length - 1]?.date,
-              supabaseFallback: true
-            };
-          }
-        }
-      } catch (dbError) {
-        console.error('Supabase fallback failed:', dbError);
-      }
-    }
+    console.error('Error fetching BLS data:', error);
 
     // Try to get CSV fallback for CPI on any error
     if (series === 'CUUR0000SA0') {
       const csvFallback = localStorage.getItem('economic_indicator_v3_api_cpi');
       if (csvFallback) {
-        console.log('Using CSV fallback CPI data due to BLS API error');
         const parsed = JSON.parse(csvFallback);
         return { data: parsed.data, cachedAt: new Date(parsed.timestamp).toISOString(), csvFallback: true };
       }
@@ -423,187 +368,81 @@ export const setDataSourcePreference = (indicatorId: string, preference: DataSou
   }
 };
 
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
-const supabase = createClient(supabaseUrl, supabaseAnonKey);
-
 export const fetchIndicatorData = async (indicatorId: string): Promise<IndicatorData> => {
-  if (indicatorId === 'egg-prices') {
-    // Fetch all egg price data from Supabase
-    const { data, error } = await supabase
-      .from('egg_prices')
-      .select('date, value, president')
-      .order('date', { ascending: false });
-
-    console.log('Supabase egg_prices fetch:', { data, error });
-
-    if (error) throw new Error('Failed to fetch egg prices from Supabase: ' + error.message);
-
-    // Format to match IndicatorData
-    return {
-      indicator: {
-        id: 'egg-prices',
-        name: 'Egg Prices',
-        description: 'Average Price: Eggs, Grade A, Large (Cost per Dozen) in U.S. City Average',
-        unit: '$/dozen',
-        source: 'Supabase',
-        sourceUrl: '',
-        frequency: 'monthly',
-        higherIsBetter: false,
-        seriesId: 'egg-prices',
-        transform: 'none'
-      },
-      data: data || []
-    };
-  }
-
-  // Cleanup: Always remove uploaded CPI data and preference
-  if (indicatorId === 'cpi') {
-    localStorage.removeItem('economic_indicator_v3_uploaded_cpi');
-    const prefsKey = 'economic_indicator_v3_data_source_preferences';
-    const prefs = JSON.parse(localStorage.getItem(prefsKey) || '{}');
-    if (prefs.cpi) {
-      delete prefs.cpi;
-      localStorage.setItem(prefsKey, JSON.stringify(prefs));
-    }
-  }
-
-  const preferences = getDataSourcePreferences();
-  // For CPI, never use uploaded data
-  const useUploadedData = indicatorId !== 'cpi' && preferences[indicatorId]?.useUploadedData;
-
-  console.log(`Fetching data for indicator ${indicatorId}:`, {
-    useUploadedData,
-    hasStoredPreferences: !!preferences[indicatorId]
-  });
-
-  if (useUploadedData) {
-    const uploadedData = localStorage.getItem(`${LOCAL_STORAGE_PREFIX}uploaded_${indicatorId}`);
-    if (!uploadedData) {
-      console.error(`No uploaded data available for ${indicatorId}`);
-      throw new Error('No uploaded data available');
-    }
-    return JSON.parse(uploadedData);
+  const indicator = economicIndicators.find(i => i.id === indicatorId);
+  if (!indicator) {
+    throw new Error(`Indicator ${indicatorId} not found`);
   }
 
   try {
-    const indicator = economicIndicators.find(i => i.id === indicatorId);
-    if (!indicator) {
-      console.error(`Invalid indicator ID: ${indicatorId}`);
-      throw new Error('Invalid indicator ID');
-    }
+    let data: IndicatorDataPoint[] = [];
+    let source = 'api';
 
-    let dataPoints: IndicatorDataPoint[];
-    let blsCachedAt: string | undefined = undefined;
-
-    if (indicator.source === 'BLS') {
-      if (indicator.id === 'ppi') {
-        // Fetch BLS data and use the 12-month percent change directly
-        const today = new Date();
-        const startYear = '2015'; // reasonable default for PPI
-        const endYear = today.getFullYear();
-        const params = new URLSearchParams({
-          seriesid: indicator.seriesId,
-          startyear: startYear,
-          endyear: endYear.toString(),
-          registrationkey: import.meta.env.VITE_BLS_API_KEY || '',
-          calculations: 'true',
-          annualaverage: 'false'
-        });
-        const url = `${BLS_API_BASE_URL}?${params.toString()}`;
-        const response = await fetch(url);
-        if (!response.ok) throw new Error('Failed to fetch BLS PPI data');
-        const data = await response.json();
-        const raw = data.Results?.series?.[0]?.data || [];
-        dataPoints = raw
-          .filter((point: any) => /^M(0[1-9]|1[0-2])$/.test(point.period))
-          .map((point: any) => {
-            let year = parseInt(point.year, 10);
-            let month = parseInt(point.period.replace('M', ''), 10) + 1;
-            if (month > 12) {
-              month = 1;
-              year += 1;
-            }
-            return {
-              date: `${year}-${month.toString().padStart(2, '0')}-01`,
-              value: point.calculations?.pct_changes?.['12'] ? parseFloat(point.calculations.pct_changes['12']) : null
-            };
-          })
-          .filter((point: any) => point.value !== null && !isNaN(point.value))
-          .sort((a: any, b: any) => new Date(a.date).getTime() - new Date(b.date).getTime());
-      } else if (indicator.id === 'cpi') {
-        const blsResult = await fetchBlsData(indicator.seriesId);
-        if (Array.isArray(blsResult)) {
-          dataPoints = blsResult;
-        } else {
-          dataPoints = blsResult.data;
-          blsCachedAt = blsResult.cachedAt;
-        }
-        // Sort by date ascending (should already be sorted)
-        const yoyPoints: IndicatorDataPoint[] = [];
-        for (let i = 12; i < dataPoints.length; i++) {
-          const prev = dataPoints[i - 12];
-          const curr = dataPoints[i];
-          if (prev && curr && prev.value !== 0) {
-            const pctChange = ((curr.value - prev.value) / prev.value) * 100;
-            yoyPoints.push({ date: curr.date, value: parseFloat(pctChange.toFixed(1)) });
-          }
-        }
-        dataPoints = yoyPoints;
-      } else {
-        const blsResult = await fetchBlsData(indicator.seriesId);
-        if (Array.isArray(blsResult)) {
-          dataPoints = blsResult;
-        } else {
-          dataPoints = blsResult.data;
-          blsCachedAt = blsResult.cachedAt;
+    // Try to fetch from API first
+    if (indicator.source === 'fred') {
+      data = await fetchFredData(indicator.seriesId);
+    } else if (indicator.source === 'bls') {
+      const blsData = await fetchBlsData(indicator.seriesId);
+      if ('data' in blsData) {
+        data = blsData.data;
+        if (blsData.csvFallback) {
+          source = 'csv';
         }
       }
-    } else if (indicator.source === 'MetalPriceAPI') {
-      // Fetch gold price history from MetalPriceAPI (assume you have a Netlify function or direct API call)
-      // For this example, we'll use a Netlify function endpoint: /.netlify/functions/metal-gold-history
-      // The endpoint should return an array of { date: 'YYYY-MM-DD', value: number }
-      const response = await fetch('/.netlify/functions/metal-gold-history');
-      if (!response.ok) {
-        throw new Error('Failed to fetch gold price data');
+    }
+
+    // If API fails, try to get from localStorage
+    if (data.length === 0) {
+      const storedData = getFromLocalStorage(`${LOCAL_STORAGE_PREFIX}${indicatorId}`);
+      if (storedData) {
+        data = storedData.data.data;
+        source = 'cache';
       }
-      const goldData = await response.json();
-      dataPoints = goldData.map((point: any) => ({
-        date: point.date,
-        value: point.value
-      }));
-    } else if (indicator.source === 'Census') {
-      // Fetch US Retail Sales from Netlify function proxy
-      const response = await fetch('/.netlify/functions/census-retail-sales');
-      if (!response.ok) throw new Error('Failed to fetch Census Retail Sales data');
-      dataPoints = await response.json();
-    } else {
-      dataPoints = await fetchFredData(indicator.seriesId);
     }
 
-    if (dataPoints.length === 0) {
-      console.error(`No valid data points for ${indicator.name}`);
-      throw new Error('No valid data points');
+    // If still no data, try CSV fallback
+    if (data.length === 0 && indicator.csvData) {
+      data = indicator.csvData;
+      source = 'csv';
     }
 
-    // Optionally include blsCachedAt in the returned object for downstream use
-    const indicatorData: IndicatorData & { blsCachedAt?: string } = { indicator, data: dataPoints };
-    if (blsCachedAt) {
-      indicatorData.blsCachedAt = blsCachedAt;
+    // Store the data in localStorage if it came from API
+    if (source === 'api' && data.length > 0) {
+      const dataToStore = {
+        data,
+        lastUpdated: new Date().toISOString()
+      };
+      localStorage.setItem(`${LOCAL_STORAGE_PREFIX}${indicatorId}`, JSON.stringify(dataToStore));
+      localStorage.setItem(`${LAST_UPDATED_PREFIX}${indicatorId}`, new Date().toISOString());
     }
 
-    // Store API data locally with timestamp
-    const storedData: StoredData = {
-      data: indicatorData,
-      lastUpdated: new Date().toISOString()
+    return {
+      indicator,
+      data,
+      source
     };
-
-    localStorage.setItem(`${LOCAL_STORAGE_PREFIX}api_${indicatorId}`, JSON.stringify(storedData));
-    localStorage.setItem(`${LAST_UPDATED_PREFIX}${indicatorId}`, new Date().toISOString());
-
-    return indicatorData;
   } catch (error) {
     console.error(`Error fetching data for ${indicatorId}:`, error);
+    
+    // Try to get from localStorage
+    const storedData = getFromLocalStorage(`${LOCAL_STORAGE_PREFIX}${indicatorId}`);
+    if (storedData) {
+      return {
+        indicator,
+        data: storedData.data.data,
+        source: 'cache'
+      };
+    }
+
+    // If no stored data, try CSV fallback
+    if (indicator.csvData) {
+      return {
+        indicator,
+        data: indicator.csvData,
+        source: 'csv'
+      };
+    }
+
     throw error;
   }
 };
