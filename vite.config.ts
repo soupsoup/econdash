@@ -44,6 +44,9 @@ export default defineConfig(({ mode }) => {
       // Only expose non-sensitive environment variables
       'process.env.VITE_SUPABASE_URL': JSON.stringify(env.VITE_SUPABASE_URL),
       'process.env.VITE_SUPABASE_ANON_KEY': JSON.stringify(env.VITE_SUPABASE_ANON_KEY),
+      // Use empty strings for sensitive variables in client-side code
+      'process.env.VITE_METAL_PRICE_API_KEY': JSON.stringify(''),
+      'process.env.FRED_API_KEY': JSON.stringify(''),
     },
     server: {
       host: '0.0.0.0',
