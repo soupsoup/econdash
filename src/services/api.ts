@@ -2,6 +2,7 @@ import { format } from 'date-fns';
 import { IndicatorData, IndicatorDataPoint, EconomicIndicator } from '../types';
 import { economicIndicators } from '../data/indicators';
 import axios from 'axios';
+import { createClient } from '@supabase/supabase-js';
 
 // Update cache prefix to force refresh with new series IDs
 const LOCAL_STORAGE_PREFIX = 'economic_indicator_v3_';
@@ -422,7 +423,40 @@ export const setDataSourcePreference = (indicatorId: string, preference: DataSou
   }
 };
 
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+const supabase = createClient(supabaseUrl, supabaseAnonKey);
+
 export const fetchIndicatorData = async (indicatorId: string): Promise<IndicatorData> => {
+  if (indicatorId === 'egg-prices') {
+    // Fetch all egg price data from Supabase
+    const { data, error } = await supabase
+      .from('egg_prices')
+      .select('date, value, president')
+      .order('date', { ascending: false });
+
+    console.log('Supabase egg_prices fetch:', { data, error });
+
+    if (error) throw new Error('Failed to fetch egg prices from Supabase: ' + error.message);
+
+    // Format to match IndicatorData
+    return {
+      indicator: {
+        id: 'egg-prices',
+        name: 'Egg Prices',
+        description: 'Average Price: Eggs, Grade A, Large (Cost per Dozen) in U.S. City Average',
+        unit: '$/dozen',
+        source: 'Supabase',
+        sourceUrl: '',
+        frequency: 'monthly',
+        higherIsBetter: false,
+        seriesId: 'egg-prices',
+        transform: 'none'
+      },
+      data: data || []
+    };
+  }
+
   // Cleanup: Always remove uploaded CPI data and preference
   if (indicatorId === 'cpi') {
     localStorage.removeItem('economic_indicator_v3_uploaded_cpi');
