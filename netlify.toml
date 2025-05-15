@@ -3,43 +3,14 @@
   publish = "dist"
   environment = { NODE_VERSION = "20" }
 
-# Handle FRED API requests through our Netlify function
-[[redirects]]
-  from = "/api/fred-proxy"
-  to = "/.netlify/functions/fred-proxy"
-  status = 200
-  force = true
-
-[[redirects]]
-  from = "/api/fred/*"
-  to = "/.netlify/functions/fred-proxy"
-  status = 200
-  force = true
-
-# Handle other API routes
-[[redirects]]
-  from = "/api/*"
-  to = "/.netlify/functions/:splat"
-  status = 200
-  force = true
-
-# Handle client-side routing
-[[redirects]]
-  from = "/*"
-  to = "/index.html"
-  status = 200
-
-# Configure functions
-[functions]
-  directory = "netlify/functions"
-  node_bundler = "esbuild"
-  external_node_modules = ["node-fetch"]
+[build.environment]
+  NODE_VERSION = "20"
 
 # Configure secrets scanning
 [secrets]
   scan_enabled = true
   scan_omit_paths = ["node_modules", "dist"]
-  scan_omit_keys = ["VITE_METAL_PRICE_API_KEY", "FRED_API_KEY"]
+  scan_omit_keys = ["VITE_METAL_PRICE_API_KEY", "FRED_API_KEY", "SUPABASE_URL", "SUPABASE_SERVICE_ROLE_KEY"]
 
 # Ignore secrets in build output
 [build.processing]
@@ -58,6 +29,36 @@
 [build.processing.js]
   bundle = true
   minify = true
+
+# Configure redirects
+[[redirects]]
+  from = "/api/fred-proxy"
+  to = "/.netlify/functions/fred-proxy"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/api/fred/*"
+  to = "/.netlify/functions/fred-proxy"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/api/*"
+  to = "/.netlify/functions/:splat"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+
+# Configure functions
+[functions]
+  directory = "netlify/functions"
+  node_bundler = "esbuild"
+  external_node_modules = ["node-fetch"]
 
 [dev]
   framework = "#custom"

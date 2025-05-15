@@ -5,7 +5,6 @@ import path from 'path';
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => {
   // Load env file based on `mode` in the current working directory.
-  // Use empty prefix to load all env regardless of prefix
   const env = loadEnv(mode, process.cwd(), '');
   
   return {
@@ -38,6 +37,11 @@ export default defineConfig(({ mode }) => {
           '@emotion/styled'
         ]
       }
+    },
+    define: {
+      // Only expose non-sensitive environment variables
+      'process.env.VITE_SUPABASE_URL': JSON.stringify(env.VITE_SUPABASE_URL),
+      'process.env.VITE_SUPABASE_ANON_KEY': JSON.stringify(env.VITE_SUPABASE_ANON_KEY),
     },
     server: {
       host: '0.0.0.0',
