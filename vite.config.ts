@@ -42,11 +42,13 @@ export default defineConfig(({ mode }) => {
     },
     define: {
       // Use import.meta.env for environment variables
-      'import.meta.env.VITE_SUPABASE_URL': JSON.stringify(env.VITE_SUPABASE_URL),
-      'import.meta.env.VITE_SUPABASE_ANON_KEY': JSON.stringify(env.VITE_SUPABASE_ANON_KEY),
+      'import.meta.env.VITE_SUPABASE_URL': JSON.stringify(env.VITE_SUPABASE_URL || ''),
+      'import.meta.env.VITE_SUPABASE_ANON_KEY': JSON.stringify(env.VITE_SUPABASE_ANON_KEY || ''),
       // Use empty strings for sensitive variables in client-side code
       'import.meta.env.VITE_METAL_PRICE_API_KEY': JSON.stringify(''),
       'import.meta.env.VITE_FRED_API_KEY': JSON.stringify(''),
+      // Add any other environment variables needed
+      'import.meta.env.VITE_BLS_API_KEY': JSON.stringify(''),
     },
     server: {
       host: '0.0.0.0',
