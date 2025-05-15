@@ -15,6 +15,7 @@ interface IndicatorDetailProps {
 }
 
 const IndicatorDetail: React.FC<IndicatorDetailProps> = ({ indicatorsData }) => {
+  console.log('Rendering IndicatorDetail', { indicatorsData });
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [apiErrors, setApiErrors] = useState<Record<string, string>>({});

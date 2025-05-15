@@ -20,6 +20,7 @@ interface DashboardProps {
 }
 
 export default function Dashboard({ indicatorsData }: DashboardProps) {
+  console.log('Rendering Dashboard', { indicatorsData });
   const [lastUpdated, setLastUpdated] = useState<string | null>(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [visibleCharts] = useLocalStorage<string[]>('visibleCharts', 

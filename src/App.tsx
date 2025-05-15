@@ -79,8 +79,8 @@ function App() {
       <div style={{ padding: '20px' }}>
         <Routes>
           <Route path="/" element={<Dashboard indicatorsData={indicatorsData} />} />
-          <Route path="/indicator/:id" element={<IndicatorDetail indicatorsData={indicatorsData} />} />
-          <Route path="*" element={<Navigate to="/" replace />} />
+          {/* <Route path="/indicator/:id" element={<IndicatorDetail indicatorsData={indicatorsData} />} /> */}
+          {/* <Route path="*" element={<Navigate to="/" replace />} /> */}
         </Routes>
       </div>
     </Router>
