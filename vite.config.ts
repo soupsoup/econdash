@@ -20,12 +20,14 @@ export default defineConfig(({ mode }) => {
     },
     build: {
       sourcemap: false,
+      chunkSizeWarningLimit: 1000,
       rollupOptions: {
         output: {
-          manualChunks(id) {
-            if (id.includes('node_modules')) {
-              return 'vendor';
-            }
+          manualChunks: {
+            'vendor-react': ['react', 'react-dom', 'react-router-dom'],
+            'vendor-mui': ['@mui/material', '@emotion/react', '@emotion/styled'],
+            'vendor-charts': ['recharts', 'd3'],
+            'vendor-utils': ['date-fns', 'axios'],
           }
         },
         external: [
