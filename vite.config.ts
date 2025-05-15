@@ -21,8 +21,10 @@ export default defineConfig(({ mode }) => {
     build: {
       sourcemap: false,
       chunkSizeWarningLimit: 1000,
+      target: 'esnext',
       rollupOptions: {
         output: {
+          format: 'esm',
           manualChunks: {
             'vendor-react': ['react', 'react-dom', 'react-router-dom'],
             'vendor-mui': ['@mui/material'],
