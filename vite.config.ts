@@ -46,7 +46,7 @@ export default defineConfig(({ mode }) => {
       'import.meta.env.VITE_SUPABASE_ANON_KEY': JSON.stringify(env.VITE_SUPABASE_ANON_KEY),
       // Use empty strings for sensitive variables in client-side code
       'import.meta.env.VITE_METAL_PRICE_API_KEY': JSON.stringify(''),
-      'import.meta.env.FRED_API_KEY': JSON.stringify(''),
+      'import.meta.env.VITE_FRED_API_KEY': JSON.stringify(''),
     },
     server: {
       host: '0.0.0.0',
