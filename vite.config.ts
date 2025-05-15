@@ -12,6 +12,7 @@ export default defineConfig(({ mode }) => {
     plugins: [react()],
     optimizeDeps: {
       exclude: ['lucide-react'],
+      include: ['recharts', 'd3', 'chart.js', 'react-chartjs-2']
     },
     resolve: {
       alias: {
@@ -26,7 +27,7 @@ export default defineConfig(({ mode }) => {
           manualChunks: {
             'vendor-react': ['react', 'react-dom', 'react-router-dom'],
             'vendor-mui': ['@mui/material'],
-            'vendor-charts': ['recharts', 'd3'],
+            'vendor-charts': ['chart.js', 'react-chartjs-2'],
             'vendor-utils': ['date-fns', 'axios'],
           }
         },
