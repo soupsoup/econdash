@@ -9,11 +9,6 @@ import PresidentialPeriods from '../components/PresidentialPeriods';
 import DataTable from '../components/DataTable';
 import ApiErrorNotice from '../components/MockDataNotice';
 import { EconomicIndicator, IndicatorData } from '../types';
-import { createClient } from '@supabase/supabase-js';
-
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
-const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 interface IndicatorDetailProps {
   indicatorsData: IndicatorData[];
@@ -231,21 +226,6 @@ const IndicatorDetail: React.FC<IndicatorDetailProps> = ({ indicatorsData }) => 
     setIsEditing(false);
     setEditedDescription('');
   };
-
-  React.useEffect(() => {
-    if (id === 'egg-prices') {
-      supabase
-        .from('egg_prices')
-        .select('date, value, president')
-        .order('date', { ascending: false })
-        .limit(1)
-        .single()
-        .then(({ data, error }) => {
-          if (error) setEggPriceError(error.message);
-          else setEggPrice(data);
-        });
-    }
-  }, [id]);
 
   if (isLoading) {
     return (
@@ -471,22 +451,6 @@ const IndicatorDetail: React.FC<IndicatorDetailProps> = ({ indicatorsData }) => 
             </a>
           </div>
         </div>
-
-        {id === 'egg-prices' && (
-          <div className="mb-4">
-            <h2 className="text-lg font-semibold">Latest Egg Price (from Supabase)</h2>
-            {eggPriceError && <div className="text-red-500">Error: {eggPriceError}</div>}
-            {eggPrice ? (
-              <div>
-                <p><strong>Date:</strong> {eggPrice.date}</p>
-                <p><strong>Value ($/dozen):</strong> {eggPrice.value}</p>
-                {eggPrice.president && <p><strong>President:</strong> {eggPrice.president}</p>}
-              </div>
-            ) : !eggPriceError ? (
-              <div>Loading latest egg price...</div>
-            ) : null}
-          </div>
-        )}
       </main>
 
       <footer className="bg-white border-t border-gray-200 mt-12">
