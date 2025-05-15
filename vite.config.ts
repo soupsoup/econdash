@@ -34,9 +34,7 @@ export default defineConfig(({ mode }) => {
         },
         external: [
           '@mui/material/styles',
-          '@mui/material/CssBaseline',
-          '@emotion/react',
-          '@emotion/styled'
+          '@mui/material/CssBaseline'
         ]
       }
     },
