@@ -1,32 +1,18 @@
 import { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { ThemeProvider } from '@mui/material/styles';
-import CssBaseline from '@mui/material/CssBaseline';
-import { theme } from './theme';
-import Layout from './components/Layout';
 import Dashboard from './pages/Dashboard';
 import IndicatorDetail from './pages/IndicatorDetail';
 import { fetchAllIndicatorsData } from './services/api';
 import { IndicatorData } from './types';
-import { ErrorBoundary } from 'react-error-boundary';
 
-// Add debug logging
+// Add detailed debug logging
 console.log('App.tsx: Environment:', {
   isProd: import.meta.env.PROD,
   nodeEnv: import.meta.env.NODE_ENV,
   hasSupabaseUrl: !!import.meta.env.VITE_SUPABASE_URL,
-  hasSupabaseKey: !!import.meta.env.VITE_SUPABASE_ANON_KEY
+  hasSupabaseKey: !!import.meta.env.VITE_SUPABASE_ANON_KEY,
+  envKeys: Object.keys(import.meta.env)
 });
-
-function ErrorFallback({ error }: { error: Error }) {
-  return (
-    <div role="alert" style={{ padding: '20px', color: 'red' }}>
-      <h2>Something went wrong:</h2>
-      <pre>{error.message}</pre>
-      <pre>{error.stack}</pre>
-    </div>
-  );
-}
 
 function App() {
   const [indicatorsData, setIndicatorsData] = useState<IndicatorData[]>([]);
@@ -55,13 +41,18 @@ function App() {
   }, []);
 
   if (loading) {
-    return <div>Loading...</div>;
+    return (
+      <div style={{ padding: '20px' }}>
+        <h1>Loading...</h1>
+        <p>Please wait while we fetch the data...</p>
+      </div>
+    );
   }
 
   if (error) {
     return (
       <div style={{ padding: '20px', color: 'red' }}>
-        <h2>Error loading application:</h2>
+        <h1>Error loading application:</h1>
         <pre>{error.message}</pre>
         <pre>{error.stack}</pre>
       </div>
@@ -69,20 +60,15 @@ function App() {
   }
 
   return (
-    <ErrorBoundary FallbackComponent={ErrorFallback}>
-      <ThemeProvider theme={theme}>
-        <CssBaseline />
-        <Router>
-          <Layout>
-            <Routes>
-              <Route path="/" element={<Dashboard indicatorsData={indicatorsData} />} />
-              <Route path="/indicator/:id" element={<IndicatorDetail indicatorsData={indicatorsData} />} />
-              <Route path="*" element={<Navigate to="/" replace />} />
-            </Routes>
-          </Layout>
-        </Router>
-      </ThemeProvider>
-    </ErrorBoundary>
+    <Router>
+      <div style={{ padding: '20px' }}>
+        <Routes>
+          <Route path="/" element={<Dashboard indicatorsData={indicatorsData} />} />
+          <Route path="/indicator/:id" element={<IndicatorDetail indicatorsData={indicatorsData} />} />
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      </div>
+    </Router>
   );
 }
 
