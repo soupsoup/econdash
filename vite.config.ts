@@ -19,7 +19,7 @@ export default defineConfig(({ mode }) => {
       },
     },
     build: {
-      sourcemap: false,
+      sourcemap: true,
       chunkSizeWarningLimit: 1000,
       target: 'esnext',
       rollupOptions: {
