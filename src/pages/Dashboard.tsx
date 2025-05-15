@@ -70,67 +70,8 @@ export default function Dashboard({ indicatorsData }: DashboardProps) {
   // Check if we have any valid data to display
   const hasValidData = indicators && indicators.length > 0;
 
+  // Minimal render for debugging
   return (
-    <div className="min-h-screen bg-gray-50">
-      <Header />
-      <main className="container mx-auto px-4 py-8">
-        <BreakingNewsBanner />
-        
-        {isRefreshing && (
-          <div className="fixed top-4 right-4 bg-blue-100 text-blue-800 px-4 py-2 rounded-lg shadow-md flex items-center space-x-2">
-            <RefreshCw className="h-4 w-4 animate-spin" />
-            <span>Updating data...</span>
-          </div>
-        )}
-
-        {isError && (
-          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-6">
-            <div className="flex items-center">
-              <AlertTriangle className="h-5 w-5 mr-2" />
-              <span>Error loading data: {error instanceof Error ? error.message : 'Unknown error'}</span>
-            </div>
-          </div>
-        )}
-
-        <div className="space-y-8">
-          {!isLoading && hasValidData && (
-            <>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                {economicIndicators
-                  .filter(indicator => 
-                    visibleCharts.includes(indicator.id) && 
-                    indicator.id !== 'GOLDAMGBD228NLBM' // Remove FRED gold price indicator
-                  )
-                  .map(indicator => {
-                    const indicatorData = indicators.find(d => d.indicator?.id === indicator.id);
-                    return (
-                      <IndicatorCard
-                        key={indicator.id}
-                        data={indicatorData || { indicator, data: [] }}
-                        isLoading={isLoading || isRefreshing}
-                        refetch={refetch}
-                      />
-                    );
-                  })}
-              </div>
-
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <EconomicCalendar />
-                <NextUpdates />
-              </div>
-            </>
-          )}
-          
-          <PresidentSchedule />
-          
-          {!isLoading && hasValidData && (
-            <div className="space-y-8">
-              <PresidentialComparison indicatorsData={indicators} />
-              <DataSourceInfo />
-            </div>
-          )}
-        </div>
-      </main>
-    </div>
+    <div>Test: Dashboard is rendering</div>
   );
 }
