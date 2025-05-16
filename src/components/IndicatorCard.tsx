@@ -91,9 +91,10 @@ const IndicatorCard: React.FC<IndicatorCardProps> = ({ data, isLoading, refetch 
       previousValue = ((previousCPI - twoPeriodsCPI) / twoPeriodsCPI) * 100;
     }
   } else if (indicator.id === 'cpi' && dataPoints.length >= 2) {
-    // For CPI, use the most recent (last) value
-    currentValue = dataPoints[dataPoints.length - 1]?.value;
-    previousValue = dataPoints[dataPoints.length - 2]?.value;
+    // For CPI, always use the most recent (latest date) value
+    const sortedData = [...dataPoints].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+    currentValue = sortedData[sortedData.length - 1]?.value;
+    previousValue = sortedData[sortedData.length - 2]?.value;
   } else {
     currentValue = dataPoints[0]?.value;
     previousValue = dataPoints[1]?.value;

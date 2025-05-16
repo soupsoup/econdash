@@ -276,6 +276,8 @@ export const fetchIndicatorData = async (indicatorId: string): Promise<Indicator
           president: ''
         };
       }).filter((point: any) => point && !isNaN(point.value));
+      // Debug: print last 5 dates and values
+      console.log('[CPI BLS] Last 5 percentChangeData:', percentChangeData.slice(-5).map((p: any) => ({date: p.date, value: p.value})));
       const indicatorData: IndicatorData = { indicator, data: percentChangeData, source: 'api' };
       // Store API data locally with timestamp
       const storedData: StoredData = {
@@ -375,6 +377,8 @@ export const fetchIndicatorData = async (indicatorId: string): Promise<Indicator
         const date = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-01`;
         return { ...point, date, value: pctChange };
       }).filter(point => !isNaN(point.value));
+      // Debug: print last 5 dates and values
+      console.log('[CPI FRED/CSV] Last 5 percentChangeData:', percentChangeData.slice(-5).map((p: any) => ({date: p.date, value: p.value})));
       formattedData = percentChangeData;
     }
     // --- End CPI-specific logic ---
@@ -435,6 +439,8 @@ export const fetchIndicatorData = async (indicatorId: string): Promise<Indicator
             const date = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-01`;
             return { ...point, date, value: pctChange };
           }).filter((point: any) => !isNaN(point.value));
+          // Debug: print last 5 dates and values
+          console.log('[CPI CSV Fallback] Last 5 percentChangeData:', processedData.slice(-5).map((p: any) => ({date: p.date, value: p.value})));
         }
         return { indicator, data: processedData, source: 'api' } as IndicatorData;
       }
