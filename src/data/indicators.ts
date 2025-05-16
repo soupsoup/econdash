@@ -112,7 +112,7 @@ export const economicIndicators: EconomicIndicator[] = [
   {
     id: 'cpi',
     name: 'Consumer Price Index',
-    description: 'Month-over-month percentage change in Consumer Price Index for All Urban Consumers (CPI-U)',
+    description: '12-month percent change in Consumer Price Index for All Urban Consumers (CPI-U)',
     unit: '%',
     source: 'FederalReserve',
     sourceUrl: 'https://fred.stlouisfed.org/series/CPIAUCSL',
