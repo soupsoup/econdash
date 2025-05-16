@@ -249,13 +249,24 @@ export const fetchIndicatorData = async (indicatorId: string): Promise<Indicator
         throw new Error('Invalid BLS API response');
       }
       const blsData = blsResults.series[0].data;
-      // Map BLS data to IndicatorDataPoint[]
-      const formattedData = blsData.map((point: any) => ({
-        date: `${point.year}-${point.period.substring(1).padStart(2, '0')}-01`,
-        value: parseFloat(point.value),
-        president: ''
-      })).filter((point: IndicatorDataPoint) => !isNaN(point.value));
-      const indicatorData = { indicator, data: formattedData };
+      // Sort by year and period ascending
+      const sortedData = blsData.slice().sort((a: any, b: any) => {
+        const dateA = new Date(`${a.year}-${a.period.substring(1).padStart(2, '0')}-01`);
+        const dateB = new Date(`${b.year}-${b.period.substring(1).padStart(2, '0')}-01`);
+        return dateA.getTime() - dateB.getTime();
+      });
+      // Calculate 12-month percent change
+      const percentChangeData = sortedData.map((point: any, idx: number, arr: any[]) => {
+        if (idx < 12) return null;
+        const prev = arr[idx - 12];
+        const pctChange = ((parseFloat(point.value) - parseFloat(prev.value)) / parseFloat(prev.value)) * 100;
+        return {
+          date: `${point.year}-${point.period.substring(1).padStart(2, '0')}-01`,
+          value: pctChange,
+          president: ''
+        };
+      }).filter((point: any) => point && !isNaN(point.value));
+      const indicatorData = { indicator, data: percentChangeData };
       // Store API data locally with timestamp
       const storedData: StoredData = {
         data: indicatorData,
