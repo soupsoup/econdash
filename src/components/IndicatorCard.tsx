@@ -79,7 +79,7 @@ const IndicatorCard: React.FC<IndicatorCardProps> = ({ data, isLoading, refetch 
   let currentValue: number | undefined;
   let previousValue: number | undefined;
 
-  if (indicator.id === 'monthly-inflation' && dataPoints.length >= 2) {
+  if ((indicator.id === 'monthly-inflation' || indicator.id === 'cpi') && dataPoints.length >= 2) {
     // Calculate month-over-month percentage change
     const currentCPI = dataPoints[0].value;
     const previousCPI = dataPoints[1].value;
@@ -108,8 +108,8 @@ const IndicatorCard: React.FC<IndicatorCardProps> = ({ data, isLoading, refetch 
     if (indicator.id === 'job-creation') {
       // For employment numbers, show in millions with 3 decimal places
       return (value / 1000).toFixed(3);
-    } else if (indicator.id === 'monthly-inflation') {
-      // For monthly inflation, show percentage with one decimal place
+    } else if (indicator.id === 'monthly-inflation' || indicator.id === 'cpi') {
+      // For inflation indicators, show percentage with one decimal place
       return `${value.toFixed(1)}%`;
     } else if (indicator.id === 'stock-market') {
       // For S&P 500, show with 2 decimal places
@@ -126,8 +126,8 @@ const IndicatorCard: React.FC<IndicatorCardProps> = ({ data, isLoading, refetch 
       // For employment changes, show in millions with 3 decimal places
       const changeInMillions = Math.abs(changeValue / 1000).toFixed(3);
       return changeValue >= 0 ? `+${changeInMillions}` : `-${changeInMillions}`;
-    } else if (indicator.id === 'monthly-inflation') {
-      // For monthly inflation, show percentage point change with one decimal
+    } else if (indicator.id === 'monthly-inflation' || indicator.id === 'cpi') {
+      // For inflation indicators, show percentage point change with one decimal
       const formattedChange = Math.abs(changeValue).toFixed(1);
       return `${changeValue >= 0 ? '+' : '-'}${formattedChange} pp`;
     } else {

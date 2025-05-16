@@ -112,14 +112,14 @@ export const economicIndicators: EconomicIndicator[] = [
   {
     id: 'cpi',
     name: 'Consumer Price Index',
-    description: 'Consumer Price Index for All Urban Consumers: All Items (Base: 1982-84=100)',
-    unit: 'index',
+    description: 'Month-over-month percentage change in Consumer Price Index for All Urban Consumers (CPI-U)',
+    unit: '%',
     source: 'FederalReserve',
     sourceUrl: 'https://fred.stlouisfed.org/series/CPIAUCSL',
     frequency: 'monthly',
     higherIsBetter: false,
     seriesId: 'CPIAUCSL',
-    transform: 'none'
+    transform: 'pct_change'
   },
   {
     id: 'egg-prices',
