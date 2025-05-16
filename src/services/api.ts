@@ -234,6 +234,40 @@ export const fetchIndicatorData = async (indicatorId: string): Promise<Indicator
       throw new Error('Invalid indicator ID');
     }
 
+    // --- BLS CPI logic ---
+    if (indicator.id === 'cpi') {
+      // Fetch from BLS proxy
+      const startyear = '2015';
+      const endyear = new Date().getFullYear().toString();
+      const response = await axios.post('/.netlify/functions/bls-proxy', {
+        seriesid: ['CUUR0000SA0'],
+        startyear,
+        endyear
+      });
+      const blsResults = (response.data as any).Results;
+      if (!blsResults || !blsResults.series || !blsResults.series[0]) {
+        throw new Error('Invalid BLS API response');
+      }
+      const blsData = blsResults.series[0].data;
+      // Map BLS data to IndicatorDataPoint[]
+      const formattedData = blsData.map((point: any) => ({
+        date: `${point.year}-${point.period.substring(1).padStart(2, '0')}-01`,
+        value: parseFloat(point.value),
+        president: ''
+      })).filter((point: IndicatorDataPoint) => !isNaN(point.value));
+      const indicatorData = { indicator, data: formattedData };
+      // Store API data locally with timestamp
+      const storedData: StoredData = {
+        data: indicatorData,
+        lastUpdated: new Date().toISOString()
+      };
+      localStorage.setItem(`${LOCAL_STORAGE_PREFIX}api_${indicatorId}`, JSON.stringify(storedData));
+      localStorage.setItem(`${LAST_UPDATED_PREFIX}${indicatorId}`, new Date().toISOString());
+      return indicatorData;
+    }
+    // --- End BLS CPI logic ---
+
+    // FRED logic for other indicators
     const today = new Date().toISOString().split('T')[0];
     const params = new URLSearchParams({
       series_id: indicator.seriesId,
@@ -372,7 +406,7 @@ export const fetchIndicatorData = async (indicatorId: string): Promise<Indicator
             return { ...point, value: pctChange };
           }).filter((point: any) => !isNaN(point.value));
         }
-        return { ...parsed, data: processedData };
+        return parsed;
       }
       return parsed;
     }
