@@ -267,7 +267,6 @@ export const fetchIndicatorData = async (indicatorId: string): Promise<Indicator
             'Accept': 'application/json',
             'Content-Type': 'application/json'
           },
-          // Add timeout and validation
           timeout: 10000,
           validateStatus: (status) => status === 200
         });
@@ -303,14 +302,28 @@ export const fetchIndicatorData = async (indicatorId: string): Promise<Indicator
       throw new Error('Invalid API response format');
     }
 
-    const formattedData = formatFredData(response.data.observations, indicator);
-    
+    let formattedData = formatFredData(response.data.observations, indicator);
+
+    // --- CPI-specific logic: calculate 12-month percent change from index values ---
+    if (indicator.id === 'cpi') {
+      // Sort by date ascending
+      formattedData = formattedData.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+      const percentChangeData = formattedData.map((point, idx, arr) => {
+        if (idx < 12) {
+          return { ...point, value: NaN };
+        }
+        const prev = arr[idx - 12];
+        const pctChange = ((point.value - prev.value) / prev.value) * 100;
+        return { ...point, value: pctChange };
+      }).filter(point => !isNaN(point.value));
+      formattedData = percentChangeData;
+    }
+    // --- End CPI-specific logic ---
+
     if (formattedData.length === 0) {
       console.error(`No valid data points for ${indicator.name}`);
       throw new Error('No valid data points');
     }
-
-    console.log(`Formatted ${formattedData.length} data points for ${indicator.name}`);
 
     const indicatorData = { indicator, data: formattedData };
 
@@ -331,7 +344,6 @@ export const fetchIndicatorData = async (indicatorId: string): Promise<Indicator
       status: (error as any).response?.status,
       config: (error as any).config
     });
-    
     // Try to use locally stored API data if available
     const storedData = localStorage.getItem(`${LOCAL_STORAGE_PREFIX}api_${indicatorId}`);
     if (storedData) {
@@ -339,7 +351,12 @@ export const fetchIndicatorData = async (indicatorId: string): Promise<Indicator
       console.log(`Using locally stored API data from ${parsedData.lastUpdated} for ${indicatorId}`);
       return parsedData.data;
     }
-    
+    // Try to use uploaded CSV fallback if available
+    const uploadedData = localStorage.getItem(`${LOCAL_STORAGE_PREFIX}uploaded_${indicatorId}`);
+    if (uploadedData) {
+      console.log(`Using uploaded CSV fallback for ${indicatorId}`);
+      return JSON.parse(uploadedData);
+    }
     throw error;
   }
 };
