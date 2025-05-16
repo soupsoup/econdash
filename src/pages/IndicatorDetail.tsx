@@ -89,11 +89,11 @@ const IndicatorDetail: React.FC = () => {
     let max = -Infinity;
     let processed = filteredData;
 
-    if (indicatorData.indicator?.id === 'monthly-inflation') {
-      // For monthly inflation, use the raw CPI values for display
+    if (indicatorData.indicator?.id === 'monthly-inflation' || indicatorData.indicator?.id === 'cpi') {
+      // For monthly inflation and CPI, use the raw value for display
       processed = filteredData.map(point => ({
         ...point,
-        value: point.value // Keep the raw CPI value
+        value: point.value // Keep the raw value
       }));
 
       if (processed.length > 0) {
