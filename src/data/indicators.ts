@@ -26,18 +26,6 @@ export const economicIndicators: EconomicIndicator[] = [
     transform: 'none'
   },
   {
-    id: 'monthly-inflation',
-    name: 'Monthly Inflation Rate',
-    description: 'Month-over-month percentage change in Consumer Price Index for All Urban Consumers (CPI-U)',
-    unit: '%',
-    source: 'FederalReserve',
-    sourceUrl: 'https://fred.stlouisfed.org/series/CPIAUCSL',
-    frequency: 'monthly',
-    higherIsBetter: false,
-    seriesId: 'CPIAUCSL',
-    transform: 'pct_change'
-  },
-  {
     id: 'gdp-growth',
     name: 'GDP Growth Rate',
     description: 'Annual percentage change in real Gross Domestic Product',
@@ -110,18 +98,6 @@ export const economicIndicators: EconomicIndicator[] = [
     transform: 'none'
   },
   {
-    id: 'cpi',
-    name: 'Consumer Price Index',
-    description: '12-month percent change in Consumer Price Index for All Urban Consumers (CPI-U)',
-    unit: '%',
-    source: 'FederalReserve',
-    sourceUrl: 'https://fred.stlouisfed.org/series/CPIAUCSL',
-    frequency: 'monthly',
-    higherIsBetter: false,
-    seriesId: 'CPIAUCSL',
-    transform: 'none'
-  },
-  {
     id: 'egg-prices',
     name: 'Egg Prices',
     description: 'Average Price: Eggs, Grade A, Large (Cost per Dozen) in U.S. City Average',
@@ -155,6 +131,18 @@ export const economicIndicators: EconomicIndicator[] = [
     frequency: 'weekly',
     higherIsBetter: false,
     seriesId: 'MORTGAGE30US',
+    transform: 'none'
+  },
+  {
+    id: 'cpi',
+    name: 'Consumer Price Index (12-Month % Change)',
+    description: '12-month percent change in Consumer Price Index for All Urban Consumers (CPI-U)',
+    unit: '%',
+    source: 'Bureau of Labor Statistics',
+    sourceUrl: 'https://www.bls.gov/cpi/',
+    frequency: 'monthly',
+    higherIsBetter: false,
+    seriesId: 'CPI_12M_CHANGE',
     transform: 'none'
   }
 ];
