@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { HashRouter } from 'react-router-dom';
 import Dashboard from './pages/Dashboard';
 import IndicatorDetail from './pages/IndicatorDetail';
 import { fetchAllIndicatorsData } from './services/api';
@@ -14,9 +14,9 @@ console.log('App.tsx: App component is about to render');
 
 function App() {
   return (
-    <BrowserRouter>
-      <div>Test: App is rendering with BrowserRouter</div>
-    </BrowserRouter>
+    <HashRouter>
+      <div>Test: App is rendering with HashRouter</div>
+    </HashRouter>
   );
 }
 
