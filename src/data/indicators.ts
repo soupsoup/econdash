@@ -2,6 +2,18 @@ import { EconomicIndicator } from '../types';
 
 export const economicIndicators: EconomicIndicator[] = [
   {
+    id: 'gold-price',
+    name: 'Gold Price',
+    description: 'Current price of gold per troy ounce in USD and EUR',
+    unit: '$/oz',
+    source: 'MetalPriceAPI',
+    sourceUrl: 'https://metalpriceapi.com',
+    frequency: 'daily',
+    higherIsBetter: false,
+    seriesId: 'XAU',
+    transform: 'none'
+  },
+  {
     id: 'unemployment',
     name: 'Unemployment Rate',
     description: 'Percentage of the labor force that is unemployed and actively seeking employment',

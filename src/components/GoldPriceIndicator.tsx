@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { TrendingUp, TrendingDown } from 'lucide-react';
+import { useLocalStorage } from '../hooks/useLocalStorage';
+import { economicIndicators } from '../data/indicators';
 
 interface MetalPriceData {
   rates: {
@@ -15,6 +17,12 @@ const GoldPriceIndicator: React.FC = () => {
   const [priceData, setPriceData] = useState<MetalPriceData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [visibleCharts] = useLocalStorage<string[]>('visibleCharts', 
+    economicIndicators.map(i => i.id));
+
+  // Check if gold price indicator is visible
+  const isVisible = visibleCharts.includes('gold-price');
+  if (!isVisible) return null;
 
   useEffect(() => {
     const fetchGoldPrice = async () => {
