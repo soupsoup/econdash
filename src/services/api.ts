@@ -355,7 +355,26 @@ export const fetchIndicatorData = async (indicatorId: string): Promise<Indicator
     const uploadedData = localStorage.getItem(`${LOCAL_STORAGE_PREFIX}uploaded_${indicatorId}`);
     if (uploadedData) {
       console.log(`Using uploaded CSV fallback for ${indicatorId}`);
-      return JSON.parse(uploadedData);
+      const parsed = JSON.parse(uploadedData);
+      if (indicatorId === 'cpi' && parsed.data && parsed.data.length > 0) {
+        // Check if values are likely index values (e.g., > 20)
+        const isIndex = parsed.data.some((point: any) => point.value > 20);
+        let processedData = parsed.data;
+        if (isIndex) {
+          // Sort by date ascending
+          processedData = processedData.sort((a: any, b: any) => new Date(a.date).getTime() - new Date(b.date).getTime());
+          processedData = processedData.map((point: any, idx: number, arr: any[]) => {
+            if (idx < 12) {
+              return { ...point, value: NaN };
+            }
+            const prev = arr[idx - 12];
+            const pctChange = ((point.value - prev.value) / prev.value) * 100;
+            return { ...point, value: pctChange };
+          }).filter((point: any) => !isNaN(point.value));
+        }
+        return { ...parsed, data: processedData };
+      }
+      return parsed;
     }
     throw error;
   }
