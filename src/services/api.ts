@@ -260,13 +260,23 @@ export const fetchIndicatorData = async (indicatorId: string): Promise<Indicator
         if (idx < 12) return null;
         const prev = arr[idx - 12];
         const pctChange = ((parseFloat(point.value) - parseFloat(prev.value)) / parseFloat(prev.value)) * 100;
+        // Set date to the first of the next month
+        const year = parseInt(point.year, 10);
+        const month = parseInt(point.period.substring(1).padStart(2, '0'), 10);
+        let nextYear = year;
+        let nextMonth = month + 1;
+        if (nextMonth > 12) {
+          nextMonth = 1;
+          nextYear += 1;
+        }
+        const date = `${nextYear}-${String(nextMonth).padStart(2, '0')}-01`;
         return {
-          date: `${point.year}-${point.period.substring(1).padStart(2, '0')}-01`,
+          date,
           value: pctChange,
           president: ''
         };
       }).filter((point: any) => point && !isNaN(point.value));
-      const indicatorData = { indicator, data: percentChangeData };
+      const indicatorData: IndicatorData = { indicator, data: percentChangeData, source: 'api' };
       // Store API data locally with timestamp
       const storedData: StoredData = {
         data: indicatorData,
@@ -359,7 +369,11 @@ export const fetchIndicatorData = async (indicatorId: string): Promise<Indicator
         }
         const prev = arr[idx - 12];
         const pctChange = ((point.value - prev.value) / prev.value) * 100;
-        return { ...point, value: pctChange };
+        // Set date to the first of the next month
+        const d = new Date(point.date);
+        d.setMonth(d.getMonth() + 1);
+        const date = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-01`;
+        return { ...point, date, value: pctChange };
       }).filter(point => !isNaN(point.value));
       formattedData = percentChangeData;
     }
@@ -370,7 +384,7 @@ export const fetchIndicatorData = async (indicatorId: string): Promise<Indicator
       throw new Error('No valid data points');
     }
 
-    const indicatorData = { indicator, data: formattedData };
+    const indicatorData: IndicatorData = { indicator, data: formattedData, source: 'api' };
 
     // Store API data locally with timestamp
     const storedData: StoredData = {
@@ -401,6 +415,7 @@ export const fetchIndicatorData = async (indicatorId: string): Promise<Indicator
     if (uploadedData) {
       console.log(`Using uploaded CSV fallback for ${indicatorId}`);
       const parsed = JSON.parse(uploadedData);
+      const indicator = economicIndicators.find(i => i.id === indicatorId);
       if (indicatorId === 'cpi' && parsed.data && parsed.data.length > 0) {
         // Check if values are likely index values (e.g., > 20)
         const isIndex = parsed.data.some((point: any) => point.value > 20);
@@ -414,12 +429,16 @@ export const fetchIndicatorData = async (indicatorId: string): Promise<Indicator
             }
             const prev = arr[idx - 12];
             const pctChange = ((point.value - prev.value) / prev.value) * 100;
-            return { ...point, value: pctChange };
+            // Set date to the first of the next month
+            const d = new Date(point.date);
+            d.setMonth(d.getMonth() + 1);
+            const date = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-01`;
+            return { ...point, date, value: pctChange };
           }).filter((point: any) => !isNaN(point.value));
         }
-        return parsed;
+        return { indicator, data: processedData, source: 'api' } as IndicatorData;
       }
-      return parsed;
+      return { indicator, data: parsed.data, source: 'api' } as IndicatorData;
     }
     throw error;
   }

@@ -90,6 +90,10 @@ const IndicatorCard: React.FC<IndicatorCardProps> = ({ data, isLoading, refetch 
       const twoPeriodsCPI = dataPoints[2].value;
       previousValue = ((previousCPI - twoPeriodsCPI) / twoPeriodsCPI) * 100;
     }
+  } else if (indicator.id === 'cpi' && dataPoints.length >= 2) {
+    // For CPI, use the most recent (last) value
+    currentValue = dataPoints[dataPoints.length - 1]?.value;
+    previousValue = dataPoints[dataPoints.length - 2]?.value;
   } else {
     currentValue = dataPoints[0]?.value;
     previousValue = dataPoints[1]?.value;
