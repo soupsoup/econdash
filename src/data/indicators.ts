@@ -119,7 +119,7 @@ export const economicIndicators: EconomicIndicator[] = [
     frequency: 'monthly',
     higherIsBetter: false,
     seriesId: 'CPIAUCSL',
-    transform: 'pct_change'
+    transform: 'none'
   },
   {
     id: 'egg-prices',

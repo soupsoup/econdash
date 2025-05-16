@@ -79,8 +79,8 @@ const IndicatorCard: React.FC<IndicatorCardProps> = ({ data, isLoading, refetch 
   let currentValue: number | undefined;
   let previousValue: number | undefined;
 
-  if ((indicator.id === 'monthly-inflation' || indicator.id === 'cpi') && dataPoints.length >= 2) {
-    // Calculate month-over-month percentage change
+  if (indicator.id === 'monthly-inflation' && dataPoints.length >= 2) {
+    // Calculate month-over-month percentage change for monthly-inflation only
     const currentCPI = dataPoints[0].value;
     const previousCPI = dataPoints[1].value;
     currentValue = ((currentCPI - previousCPI) / previousCPI) * 100;
