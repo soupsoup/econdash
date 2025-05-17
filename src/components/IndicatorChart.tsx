@@ -13,6 +13,7 @@ import {
 import { Line } from 'react-chartjs-2';
 import { IndicatorData } from '../types';
 import { presidents } from '../data/presidents';
+import 'chartjs-adapter-date-fns';
 
 // Register ChartJS components
 ChartJS.register(

@@ -14,6 +14,7 @@ import {
 import { Line } from 'react-chartjs-2';
 import { IndicatorData } from '../types';
 import { getPresidentByDate } from '../data/presidents';
+import 'chartjs-adapter-date-fns';
 
 ChartJS.register(
   CategoryScale,
