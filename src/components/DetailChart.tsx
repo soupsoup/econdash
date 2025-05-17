@@ -8,7 +8,8 @@ import {
   Title,
   Tooltip,
   Legend,
-  ChartOptions
+  ChartOptions,
+  TimeScale
 } from 'chart.js';
 import { Line } from 'react-chartjs-2';
 import { IndicatorData } from '../types';
@@ -21,7 +22,8 @@ ChartJS.register(
   LineElement,
   Title,
   Tooltip,
-  Legend
+  Legend,
+  TimeScale
 );
 
 interface DetailChartProps {
@@ -61,7 +63,7 @@ const DetailChart: React.FC<DetailChartProps> = ({ data, filteredData }) => {
     datasets: [{
       label: data.indicator.name,
       data: sortedData.map(point => ({
-        x: new Date(point.date),
+        x: point.date,
         y: Number(point.value) || null
       })),
       borderColor: '#2563eb',
@@ -71,7 +73,7 @@ const DetailChart: React.FC<DetailChartProps> = ({ data, filteredData }) => {
       pointHoverRadius: 6,
       tension: 0.3,
       segment: {
-        borderColor: (ctx) => segments[ctx.p0DataIndex]?.borderColor || '#999999'
+        borderColor: (ctx: any) => segments[ctx.p0DataIndex]?.borderColor || '#999999'
       }
     }]
   };
@@ -87,13 +89,13 @@ const DetailChart: React.FC<DetailChartProps> = ({ data, filteredData }) => {
         mode: 'index',
         intersect: false,
         callbacks: {
-          title: function(context) {
+          title: function(context: any) {
             if (!context?.[0]?.raw?.x) return 'Unknown Date';
             const date = new Date(context[0].raw.x);
             const president = getPresidentByDate(date.toISOString());
             return `${date.toLocaleDateString()} (${president?.name || 'Unknown'})`;
           },
-          label: function(context) {
+          label: function(context: any) {
             const value = context?.raw?.y;
             if (value === null || value === undefined || isNaN(value)) {
               return `${data?.indicator?.name || 'Value'}: N/A`;
@@ -114,7 +116,14 @@ const DetailChart: React.FC<DetailChartProps> = ({ data, filteredData }) => {
     },
     scales: {
       x: {
-        display: true,
+        type: 'time',
+        time: {
+          unit: 'month',
+          tooltipFormat: 'MMM yyyy',
+          displayFormats: {
+            month: 'MMM yyyy'
+          }
+        },
         grid: {
           display: false
         }
