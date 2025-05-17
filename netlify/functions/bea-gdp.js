@@ -25,11 +25,12 @@ exports.handler = async function(event, context) {
 
   try {
     const response = await axios.get(url, { params });
+    console.log('BEA API raw response:', JSON.stringify(response.data));
     const results = response.data.BEAAPI.Results;
     if (!results || !results.Data) {
       return {
         statusCode: 502,
-        body: JSON.stringify({ error: 'No data returned from BEA' })
+        body: JSON.stringify({ error: 'No data returned from BEA', raw: response.data })
       };
     }
     // Filter for LineDescription = 'Percent change from preceding period'
