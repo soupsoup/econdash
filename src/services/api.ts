@@ -290,6 +290,32 @@ export const fetchIndicatorData = async (indicatorId: string): Promise<Indicator
     }
     // --- End BLS CPI logic ---
 
+    // --- BEA GDP logic ---
+    if (indicator.id === 'gdp-growth') {
+      // Fetch from BEA proxy
+      const response = await axios.get('/.netlify/functions/bea-gdp');
+      const beaData = (response.data as any)?.data || [];
+      if (!Array.isArray(beaData) || beaData.length === 0) {
+        throw new Error('No data returned from BEA GDP function');
+      }
+      // Map to IndicatorDataPoint[]
+      const dataPoints = beaData.map((d: any) => ({
+        date: d.date,
+        value: d.value,
+        president: ''
+      }));
+      const indicatorData: IndicatorData = { indicator, data: dataPoints, source: 'api' };
+      // Store API data locally with timestamp
+      const storedData: StoredData = {
+        data: indicatorData,
+        lastUpdated: new Date().toISOString()
+      };
+      localStorage.setItem(`${LOCAL_STORAGE_PREFIX}api_${indicatorId}`, JSON.stringify(storedData));
+      localStorage.setItem(`${LAST_UPDATED_PREFIX}${indicatorId}`, new Date().toISOString());
+      return indicatorData;
+    }
+    // --- End BEA GDP logic ---
+
     // FRED logic for other indicators
     const today = new Date().toISOString().split('T')[0];
     const params = new URLSearchParams({

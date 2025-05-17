@@ -28,14 +28,14 @@ export const economicIndicators: EconomicIndicator[] = [
   {
     id: 'gdp-growth',
     name: 'GDP Growth Rate',
-    description: 'Annual percentage change in real Gross Domestic Product',
+    description: 'Quarterly percent change in real Gross Domestic Product (GDP), seasonally adjusted annual rate',
     unit: '%',
-    source: 'FederalReserve',
-    sourceUrl: 'https://fred.stlouisfed.org/series/GDPC1',
+    source: 'fred',
+    sourceUrl: 'https://www.bea.gov/data/gdp/gross-domestic-product',
     frequency: 'quarterly',
     higherIsBetter: true,
-    seriesId: 'GDPC1',
-    transform: 'pct_change_year'
+    seriesId: 'BEA_GDP',
+    transform: 'percent_change'
   },
   {
     id: 'job-creation',
