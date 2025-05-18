@@ -27,19 +27,25 @@ exports.handler = async function(event, context) {
     const response = await axios.get(url, { params });
     console.log('BEA API raw response:', JSON.stringify(response.data));
     const results = response.data.BEAAPI.Results;
+    console.log('Full BEA Results.Data:', JSON.stringify(results.Data, null, 2));
     if (!results || !results.Data) {
       return {
         statusCode: 502,
         body: JSON.stringify({ error: 'No data returned from BEA', raw: response.data })
       };
     }
-    // Filter for LineDescription = 'Percent change from preceding period'
-    const gdpData = results.Data.filter(d => d.LineDescription === 'Percent change from preceding period');
-    // Map to { date, value }
-    const formatted = gdpData.map(d => ({
-      date: `${d.TimePeriod}-01`, // e.g., 2025Q1 -> 2025-01-01
-      value: parseFloat(d.DataValue)
-    }));
+    // Filter for LineDescription = 'Gross domestic product, current dollars'
+    const gdpData = results.Data.filter(d => d.LineDescription === 'Gross domestic product, current dollars');
+    // Map to { date, value } with correct date formatting
+    const quarterToMonth = { Q1: '01', Q2: '04', Q3: '07', Q4: '10' };
+    const formatted = gdpData.map(d => {
+      const [year, q] = d.TimePeriod.split('Q');
+      const month = quarterToMonth['Q' + q];
+      return {
+        date: `${year}-${month}-01`,
+        value: parseFloat(d.DataValue)
+      };
+    });
     return {
       statusCode: 200,
       body: JSON.stringify({ data: formatted })

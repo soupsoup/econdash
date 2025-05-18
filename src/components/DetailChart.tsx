@@ -56,6 +56,13 @@ const DetailChart: React.FC<DetailChartProps> = ({ data, filteredData }) => {
   // Sort data chronologically
   const sortedData = [...filteredData].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
 
+  // Dynamically determine min and max dates for x-axis
+  const minDate = sortedData.length > 0 ? sortedData[0].date : undefined;
+  const maxDate = sortedData.length > 0 ? sortedData[sortedData.length - 1].date : undefined;
+
+  // Detect if the indicator is quarterly
+  const isQuarterly = data?.indicator?.frequency === 'quarterly';
+
   const chartData = {
     labels: sortedData.map(point => {
       const date = new Date(point.date);
@@ -119,12 +126,15 @@ const DetailChart: React.FC<DetailChartProps> = ({ data, filteredData }) => {
       x: {
         type: 'time',
         time: {
-          unit: 'month',
-          tooltipFormat: 'MMM yyyy',
+          unit: isQuarterly ? 'quarter' : 'month',
+          tooltipFormat: isQuarterly ? 'QQQ yyyy' : 'MMM yyyy',
           displayFormats: {
+            quarter: 'QQQ yyyy',
             month: 'MMM yyyy'
           }
         },
+        min: minDate,
+        max: maxDate,
         grid: {
           display: false
         }

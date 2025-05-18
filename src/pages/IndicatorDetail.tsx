@@ -70,9 +70,10 @@ const IndicatorDetail: React.FC = () => {
 
   // Calculate cutoff date
   const cutoffDate = subYears(new Date(), timeRange);
+  const minDate = new Date('2005-06-30');
   const filteredData = indicatorData.data.filter(point => {
     const pointDate = new Date(point.date);
-    return pointDate >= cutoffDate;
+    return pointDate >= cutoffDate && pointDate >= minDate;
   });
 
   // Create memoized derived data
