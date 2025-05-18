@@ -79,82 +79,78 @@ const RELEASE_SCHEDULES: ReleaseSchedules = {
   }
 };
 
-export function getNextUpdateDate(indicator: EconomicIndicator): Date {
+export function getNextUpdateDate(indicator: EconomicIndicator): Date | null {
+  if (!indicator || !indicator.frequency || !indicator.id) {
+    return null;
+  }
   const now = new Date();
   const schedule = RELEASE_SCHEDULES[indicator.frequency as keyof typeof RELEASE_SCHEDULES];
+  if (!schedule) return null;
   const specificSchedule = schedule[indicator.id as keyof typeof schedule] || schedule.default;
-  
+  if (!specificSchedule) return null;
+
   let nextUpdate = new Date();
-  
+
   switch (indicator.frequency) {
     case 'monthly': {
       const monthlySchedule = specificSchedule as MonthlySchedule;
-      // Move to next month
+      if (!monthlySchedule) return null;
       nextUpdate.setMonth(now.getMonth() + 1);
       nextUpdate.setDate(monthlySchedule.day);
       nextUpdate.setHours(monthlySchedule.hour, monthlySchedule.minute, 0, 0);
-      
-      // If we're past this month's release, move to next month
       if (now > nextUpdate) {
         nextUpdate.setMonth(nextUpdate.getMonth() + 1);
       }
       break;
     }
-      
     case 'quarterly': {
       const quarterlySchedule = specificSchedule as QuarterlySchedule;
+      if (!quarterlySchedule || !quarterlySchedule.month) return null;
       const quarterMonths = quarterlySchedule.month;
-      let nextMonth = quarterMonths.find(month => 
-        month > now.getMonth() + 1
-      ) || quarterMonths[0];
-      
+      let nextMonth = quarterMonths.find(month => month > now.getMonth() + 1) || quarterMonths[0];
       nextUpdate.setMonth(nextMonth - 1);
       nextUpdate.setDate(quarterlySchedule.day);
       nextUpdate.setHours(quarterlySchedule.hour, quarterlySchedule.minute, 0, 0);
-      
       if (nextMonth <= now.getMonth() + 1) {
         nextUpdate.setFullYear(now.getFullYear() + 1);
       }
       break;
     }
-      
     case 'weekly': {
       const weeklySchedule = specificSchedule as WeeklySchedule;
-      // Move to next occurrence of the specified day (1 = Monday)
+      if (!weeklySchedule) return null;
       const dayOfWeek = weeklySchedule.day;
       const daysUntilNext = (dayOfWeek - now.getDay() + 7) % 7;
       nextUpdate.setDate(now.getDate() + daysUntilNext);
       nextUpdate.setHours(weeklySchedule.hour, weeklySchedule.minute, 0, 0);
-      
       if (now > nextUpdate) {
         nextUpdate.setDate(nextUpdate.getDate() + 7);
       }
       break;
     }
-      
     case 'yearly': {
       const yearlySchedule = specificSchedule as YearlySchedule;
+      if (!yearlySchedule) return null;
       nextUpdate.setMonth(yearlySchedule.month - 1);
       nextUpdate.setDate(yearlySchedule.day);
       nextUpdate.setHours(yearlySchedule.hour, yearlySchedule.minute, 0, 0);
-      
       if (now > nextUpdate) {
         nextUpdate.setFullYear(nextUpdate.getFullYear() + 1);
       }
       break;
     }
-      
     case 'daily': {
       const dailySchedule = specificSchedule as DailySchedule;
+      if (!dailySchedule) return null;
       nextUpdate.setHours(dailySchedule.hour, dailySchedule.minute, 0, 0);
-      
       if (now > nextUpdate) {
         nextUpdate.setDate(nextUpdate.getDate() + 1);
       }
       break;
     }
+    default:
+      return null;
   }
-  
   return nextUpdate;
 }
 

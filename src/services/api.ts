@@ -2,6 +2,7 @@ import { format } from 'date-fns';
 import { IndicatorData, IndicatorDataPoint, EconomicIndicator } from '../types';
 import { economicIndicators } from '../data/indicators';
 import axios from 'axios';
+import { createClient } from '@supabase/supabase-js';
 
 // Update cache prefix to force refresh with new series IDs
 const LOCAL_STORAGE_PREFIX = 'economic_indicator_v3_';
@@ -11,6 +12,11 @@ const CACHE_DURATION = 1000 * 60 * 60; // 1 hour in milliseconds
 
 // Use relative URLs for both development and production
 const FRED_API_BASE_URL = '/.netlify/functions/fred-proxy';
+
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+
+const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 // Debug logging (without sensitive info)
 console.log('API Configuration:', {
@@ -207,7 +213,33 @@ export const setDataSourcePreference = (indicatorId: string, preference: DataSou
   }
 };
 
+export async function fetchSupabaseIndicatorData(indicatorId: string): Promise<IndicatorDataPoint[]> {
+  const { data, error } = await supabase
+    .from('indicator_data')
+    .select('*')
+    .eq('indicator_id', indicatorId)
+    .order('date', { ascending: true });
+
+  if (error) {
+    console.error('Error fetching indicator data from Supabase:', error);
+    return [];
+  }
+
+  return (data || []).map((d: any) => ({
+    date: d.date,
+    value: d.value,
+    president: d.president || undefined
+  }));
+}
+
 export const fetchIndicatorData = async (indicatorId: string): Promise<IndicatorData> => {
+  if (indicatorId === 'umich-consumer-sentiment') {
+    return {
+      indicator: economicIndicators.find(i => i.id === indicatorId)!,
+      data: await fetchSupabaseIndicatorData(indicatorId),
+      source: 'csv'
+    };
+  }
   const preferences = getDataSourcePreferences();
   const useUploadedData = preferences[indicatorId]?.useUploadedData || false;
 

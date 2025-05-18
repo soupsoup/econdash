@@ -14,7 +14,7 @@ const IndicatorDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [apiErrors, setApiErrors] = useState<Record<string, string>>({});
-  const [lastUpdated, setLastUpdated] = useState<string | null>(getLastUpdatedTimestamp());
+  const [lastUpdated, setLastUpdated] = useState<string | null>(getLastUpdatedTimestamp(id || ''));
   const [timeRange, setTimeRange] = useState<number>(10);
   const [viewMode, setViewMode] = useState<'chart' | 'table'>('chart');
   const [isEditing, setIsEditing] = useState(false);
@@ -23,7 +23,10 @@ const IndicatorDetail: React.FC = () => {
   // Add state for admin status (you might want to replace this with proper auth)
   const [isAdmin] = useState(true);
 
-  const { data: indicatorData = { indicator: { id: '', name: '', description: '', unit: '', source: '', frequency: '' } as EconomicIndicator, data: [] }, isLoading, error, refetch } = useQuery(
+  // Only read the saved data source info from localStorage
+  const editedSourceInfo = localStorage.getItem(`indicator-source-info-${id}`);
+
+  const { data: indicatorData = { indicator: { id: '', name: '', description: '', unit: '', source: 'fred', sourceUrl: '', frequency: 'monthly', higherIsBetter: false, seriesId: '', transform: 'none' } as EconomicIndicator, data: [], source: 'api' }, isLoading, error, refetch } = useQuery(
     ['indicatorData', id],
     async () => {
       console.log('Starting fetch for indicator:', id);
@@ -49,7 +52,7 @@ const IndicatorDetail: React.FC = () => {
       retry: 2,
       retryDelay: 1000,
       onSuccess: () => {
-        setLastUpdated(getLastUpdatedTimestamp());
+        setLastUpdated(getLastUpdatedTimestamp(id || ''));
       },
       onError: (err) => {
         console.error('Error fetching indicator data:', err);
@@ -67,6 +70,9 @@ const IndicatorDetail: React.FC = () => {
       }
     }
   );
+
+  // Get indicator after indicatorData is defined
+  const indicator = indicatorData.indicator;
 
   // Calculate cutoff date
   const cutoffDate = subYears(new Date(), timeRange);
@@ -234,8 +240,6 @@ const IndicatorDetail: React.FC = () => {
     );
   }
 
-  const { indicator } = indicatorData;
-
   return (
     <div className="min-h-screen bg-gray-50">
       <header className="bg-white shadow-md">
@@ -381,7 +385,7 @@ const IndicatorDetail: React.FC = () => {
         <div className="bg-white rounded-lg shadow-md p-4">
           <h2 className="text-lg font-semibold text-gray-800 mb-2">Data Source Information</h2>
           <p className="text-gray-600 mb-4">
-            This data is sourced from {indicator.source} and is updated {indicator.frequency}.
+            {editedSourceInfo || `This data is sourced from ${indicator.source} and is updated ${indicator.frequency}.`}
           </p>
           <div className="flex justify-between items-center">
             <div className="text-sm text-gray-500">
