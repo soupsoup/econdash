@@ -68,7 +68,7 @@ export default function LatestPost() {
             <img
               src={featured.image_url}
               alt={featured.title}
-              className="w-full max-h-64 object-cover rounded"
+              className="w-full max-h-[23.28rem] object-cover rounded"
               style={{ background: '#fff' }}
             />
           </div>
