@@ -14,6 +14,7 @@ import { economicIndicators } from '../data/indicators';
 import { IndicatorData } from '../types';
 import { useLocalStorage } from '../hooks/useLocalStorage';
 import { BreakingNewsBanner } from '../components/BreakingNewsBanner';
+import LatestPost from '../components/LatestPost';
 
 export default function Dashboard() {
   const [lastUpdated, setLastUpdated] = useState<string | null>(null);
@@ -73,6 +74,7 @@ export default function Dashboard() {
       <Header />
       <main className="container mx-auto px-4 py-8">
         <BreakingNewsBanner />
+        <LatestPost />
         
         {isRefreshing && (
           <div className="fixed top-4 right-4 bg-blue-100 text-blue-800 px-4 py-2 rounded-lg shadow-md flex items-center space-x-2">
@@ -91,7 +93,7 @@ export default function Dashboard() {
         )}
 
         <div className="space-y-8">
-          {!isLoading && hasValidData && (
+          {!isLoading && hasValidData ? (
             <>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                 <GoldPriceIndicator />
@@ -105,7 +107,7 @@ export default function Dashboard() {
                     return (
                       <IndicatorCard
                         key={indicator.id}
-                        data={indicatorData || { indicator, data: [] }}
+                        data={indicatorData || { indicator, data: [], source: 'api' }}
                         isLoading={isLoading || isRefreshing}
                         refetch={refetch}
                       />
@@ -118,6 +120,32 @@ export default function Dashboard() {
                 <NextUpdates />
               </div>
             </>
+          ) : (
+            !isLoading && (
+              <div className="text-center py-12">
+                <h2 className="text-2xl font-semibold text-gray-800 mb-4">Welcome to America Econ</h2>
+                <p className="text-gray-600 mb-6">
+                  Your dashboard for tracking key economic indicators and presidential impacts.
+                </p>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  <div className="bg-white p-6 rounded-lg shadow">
+                    <h3 className="text-lg font-semibold mb-2">Economic Updates</h3>
+                    <p className="text-gray-600 mb-4">Stay informed with the latest economic news and analysis.</p>
+                    <a href="/posts" className="text-blue-600 hover:text-blue-800">View Updates →</a>
+                  </div>
+                  <div className="bg-white p-6 rounded-lg shadow">
+                    <h3 className="text-lg font-semibold mb-2">Presidential Impact</h3>
+                    <p className="text-gray-600 mb-4">Explore how different presidential administrations have affected the economy.</p>
+                    <a href="/indicator/unemployment" className="text-blue-600 hover:text-blue-800">View Analysis →</a>
+                  </div>
+                  <div className="bg-white p-6 rounded-lg shadow">
+                    <h3 className="text-lg font-semibold mb-2">Economic Calendar</h3>
+                    <p className="text-gray-600 mb-4">Track upcoming economic events and data releases.</p>
+                    <a href="/calendar" className="text-blue-600 hover:text-blue-800">View Calendar →</a>
+                  </div>
+                </div>
+              </div>
+            )
           )}
           
           <PresidentSchedule />

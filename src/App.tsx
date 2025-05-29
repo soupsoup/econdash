@@ -4,6 +4,9 @@ import Dashboard from './pages/Dashboard';
 import IndicatorDetail from './pages/IndicatorDetail';
 import AdminDashboard from './pages/AdminDashboard';
 import AdminLoginPage from './pages/AdminLoginPage';
+import PostFeed from './components/PostFeed';
+import PostDetail from './components/PostDetail';
+import CreatePost from './components/CreatePost';
 import { AuthProvider } from './contexts/AuthContext';
 import ProtectedRoute from './components/ProtectedRoute';
 
@@ -17,6 +20,13 @@ function App() {
         <Route path="/admin/dashboard" element={
           <ProtectedRoute>
             <AdminDashboard />
+          </ProtectedRoute>
+        } />
+        <Route path="/posts" element={<PostFeed />} />
+        <Route path="/post/:id" element={<PostDetail />} />
+        <Route path="/create-post" element={
+          <ProtectedRoute>
+            <CreatePost />
           </ProtectedRoute>
         } />
       </Routes>

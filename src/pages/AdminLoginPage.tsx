@@ -1,20 +1,26 @@
 import React, { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Navigate } from 'react-router-dom'; // <-- Add Navigate import
 import { Lock } from 'lucide-react';
 
 export default function AdminLoginPage() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
-  const { login } = useAuth();
+  const { login, isAdmin, loading } = useAuth(); // <-- Get loading and isAdmin
   const navigate = useNavigate();
+
+  if (loading) return null; // <-- Don't render anything until context is ready
+
+  if (isAdmin) {
+    return <Navigate to="/admin/dashboard" replace />;
+  }
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (login(password)) {
       setPassword('');
       setError('');
-      navigate('/admin/dashboard');
+      // navigate('/admin/dashboard'); // <-- Remove this, reload will handle it
     } else {
       setError('Invalid password');
     }
