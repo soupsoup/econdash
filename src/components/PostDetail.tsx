@@ -14,6 +14,7 @@ interface Post {
   created_at: string;
   author: string;
   summary: string;
+  image_url?: string;
 }
 
 export default function PostDetail() {
@@ -54,31 +55,31 @@ export default function PostDetail() {
   }
 
   return (
-    <div className="max-w-3xl mx-auto p-4">
+    <div className="max-w-2xl mx-auto p-6 bg-white rounded shadow">
       <button
-        onClick={() => navigate(-1)}
-        className="mb-4 text-blue-500 hover:text-blue-700"
+        onClick={() => navigate('/')}
+        className="mb-4 text-blue-600 hover:underline text-sm"
       >
-        ← Back to Feed
+        ← Back to Dashboard
       </button>
-      
-      <article className="bg-white rounded-lg shadow-lg p-6">
-        <h1 className="text-3xl font-bold mb-4">{post.title}</h1>
-        
-        <div className="flex items-center text-gray-600 mb-6">
-          <span className="font-medium">{post.author}</span>
-          <span className="mx-2">•</span>
-          <span>{new Date(post.created_at).toLocaleDateString()}</span>
-        </div>
-
-        <div className="prose max-w-none">
-          {post.content.split('\n').map((paragraph, index) => (
-            <p key={index} className="mb-4">
-              {paragraph}
-            </p>
-          ))}
-        </div>
-      </article>
+      {post?.image_url && (
+        <img
+          src={post.image_url}
+          alt={post.title}
+          className="w-full h-auto rounded mb-4 bg-white"
+          style={{ maxHeight: 400, maxWidth: '100%', objectFit: 'contain' }}
+        />
+      )}
+      <h1 className="text-2xl font-bold mb-2">{post?.title}</h1>
+      <div className="text-gray-500 text-sm mb-4">
+        By {post?.author} • {post?.created_at && new Date(post.created_at).toLocaleString()}
+      </div>
+      <div
+        className="prose max-w-none"
+        dangerouslySetInnerHTML={{
+          __html: (post?.content || '').replace(/\n/g, '<br />'),
+        }}
+      />
     </div>
   );
 } 

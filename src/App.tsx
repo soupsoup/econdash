@@ -7,6 +7,7 @@ import AdminLoginPage from './pages/AdminLoginPage';
 import PostFeed from './components/PostFeed';
 import PostDetail from './components/PostDetail';
 import CreatePost from './components/CreatePost';
+import EditPost from './pages/EditPost';
 import { AuthProvider } from './contexts/AuthContext';
 import ProtectedRoute from './components/ProtectedRoute';
 
@@ -27,6 +28,11 @@ function App() {
         <Route path="/create-post" element={
           <ProtectedRoute>
             <CreatePost />
+          </ProtectedRoute>
+        } />
+        <Route path="/edit-post/:id" element={
+          <ProtectedRoute>
+            <EditPost />
           </ProtectedRoute>
         } />
       </Routes>

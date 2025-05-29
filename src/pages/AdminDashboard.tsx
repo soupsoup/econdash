@@ -12,8 +12,9 @@ import { useLocalStorage } from '../hooks/useLocalStorage';
 import { IndicatorDataPoint } from '../types';
 import { Edit2, Save, X, LogOut, Database, PlusCircle } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { BreakingNewsManager } from '../components/BreakingNewsManager';
+import { createClient } from '@supabase/supabase-js';
 
 export default function AdminDashboard() {
   const [selectedIndicator, setSelectedIndicator] = useState('');
@@ -23,6 +24,8 @@ export default function AdminDashboard() {
   const [isEditingDescription, setIsEditingDescription] = useState(false);
   const { logout } = useAuth();
   const navigate = useNavigate();
+  const [posts, setPosts] = useState<any[]>([]);
+  const [loadingPosts, setLoadingPosts] = useState(true);
   
   const handleLogout = () => {
     logout();
@@ -153,6 +156,31 @@ export default function AdminDashboard() {
       return 'Invalid date';
     }
   };
+
+  const supabase = createClient(
+    import.meta.env.VITE_SUPABASE_URL,
+    import.meta.env.VITE_SUPABASE_ANON_KEY
+  );
+
+  React.useEffect(() => {
+    fetchPosts();
+  }, []);
+
+  async function fetchPosts() {
+    setLoadingPosts(true);
+    try {
+      const { data, error } = await supabase
+        .from('posts')
+        .select('*')
+        .order('created_at', { ascending: false });
+      if (error) throw error;
+      setPosts(data || []);
+    } catch (error) {
+      setPosts([]);
+    } finally {
+      setLoadingPosts(false);
+    }
+  }
 
   return (
     <div className="min-h-screen bg-gray-100 py-6">
@@ -331,6 +359,43 @@ export default function AdminDashboard() {
                 <div className="text-gray-500 text-center py-8">
                   Select an indicator to view its data
                 </div>
+              )}
+            </div>
+
+            <div className="bg-white rounded-lg shadow-md p-4">
+              <h2 className="text-lg font-semibold mb-4">Manage Posts</h2>
+              {loadingPosts ? (
+                <div>Loading posts...</div>
+              ) : posts.length === 0 ? (
+                <div>No posts found.</div>
+              ) : (
+                <table className="w-full text-left">
+                  <thead>
+                    <tr>
+                      <th className="py-2">Title</th>
+                      <th className="py-2">Author</th>
+                      <th className="py-2">Created</th>
+                      <th className="py-2">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {posts.map((post) => (
+                      <tr key={post.id} className="border-t">
+                        <td className="py-2">{post.title}</td>
+                        <td className="py-2">{post.author}</td>
+                        <td className="py-2">{new Date(post.created_at).toLocaleDateString()}</td>
+                        <td className="py-2">
+                          <Link
+                            to={`/edit-post/${post.id}`}
+                            className="text-blue-600 hover:underline mr-2"
+                          >
+                            Edit
+                          </Link>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
               )}
             </div>
           </div>

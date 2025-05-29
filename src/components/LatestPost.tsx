@@ -81,27 +81,29 @@ export default function LatestPost() {
           </button>
         </div>
       </div>
-      <div>
+      <div className="flex items-start gap-4">
         {post.image_url && (
-          <div className="mb-4">
+          <div className="flex-shrink-0 w-32 h-32 bg-white rounded overflow-hidden flex items-center justify-center">
             <img 
-              src={post.image_url} 
+              src={post.image_url + '?width=120&height=120&fit=contain&background=white'}
               alt={post.title}
-              className="w-full h-48 object-cover rounded-lg"
+              className="w-full h-full object-contain"
             />
           </div>
         )}
-        <h4 className="text-xl font-bold mb-1">{post.title}</h4>
-        <div className="text-gray-600 text-sm mb-2">
-          {post.author} • {new Date(post.created_at).toLocaleDateString()}
+        <div className="flex-1">
+          <h4 className="text-xl font-bold mb-1">{post.title}</h4>
+          <div className="text-gray-600 text-sm mb-2">
+            {post.author} • {new Date(post.created_at).toLocaleDateString()}
+          </div>
+          <p className="mb-2">{post.summary}</p>
+          <a
+            href={`/post/${post.id}`}
+            className="text-blue-600 hover:underline text-sm"
+          >
+            Read more
+          </a>
         </div>
-        <p className="mb-2">{post.summary}</p>
-        <a
-          href={`/post/${post.id}`}
-          className="text-blue-600 hover:underline text-sm"
-        >
-          Read more
-        </a>
       </div>
       <div className="text-xs text-gray-400 mt-2 text-right">
         {currentIndex + 1} of {posts.length}
