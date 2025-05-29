@@ -16,6 +16,18 @@ interface Post {
   image_url: string | null;
 }
 
+function timeAgo(dateString: string) {
+  const now = new Date();
+  const date = new Date(dateString);
+  const diff = Math.floor((now.getTime() - date.getTime()) / 60000); // minutes
+  if (diff < 1) return 'just now';
+  if (diff < 60) return `${diff} min`;
+  const hours = Math.floor(diff / 60);
+  if (hours < 24) return `${hours} hr`;
+  const days = Math.floor(hours / 24);
+  return `${days}d`;
+}
+
 export default function LatestPost() {
   const [posts, setPosts] = useState<Post[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -34,79 +46,70 @@ export default function LatestPost() {
         .order('created_at', { ascending: false });
       if (error) throw error;
       setPosts(data || []);
-      setCurrentIndex(0);
     } catch (error) {
-      console.error('Error fetching posts:', error);
+      setPosts([]);
     } finally {
       setLoading(false);
     }
   }
 
-  function handlePrev() {
-    setCurrentIndex((prev) => Math.max(prev - 1, 0));
-  }
+  if (loading) return <div>Loading updates...</div>;
+  if (!posts.length) return <div>No updates found.</div>;
 
-  function handleNext() {
-    setCurrentIndex((prev) => Math.min(prev + 1, posts.length - 1));
-  }
-
-  if (loading) {
-    return <div className="p-4 bg-white rounded-lg shadow">Loading latest post...</div>;
-  }
-
-  if (!posts.length) {
-    return <div className="p-4 bg-white rounded-lg shadow">No posts available.</div>;
-  }
-
-  const post = posts[currentIndex];
+  const featured = posts[0];
+  const latest = posts.slice(1, 8); // next 7 posts
 
   return (
-    <div className="p-4 bg-white rounded-lg shadow max-w-xl mx-auto mb-8">
-      <div className="flex justify-between items-center mb-2">
-        <h3 className="text-lg font-semibold">Latest Update</h3>
-        <div className="space-x-2">
-          <button
-            onClick={handlePrev}
-            disabled={currentIndex === 0}
-            className="px-2 py-1 bg-gray-200 rounded disabled:opacity-50"
-          >
-            Previous
-          </button>
-          <button
-            onClick={handleNext}
-            disabled={currentIndex === posts.length - 1}
-            className="px-2 py-1 bg-gray-200 rounded disabled:opacity-50"
-          >
-            Next
-          </button>
-        </div>
-      </div>
-      <div className="flex items-start gap-4">
-        {post.image_url && (
-          <div className="flex-shrink-0 w-32 h-32 bg-white rounded overflow-hidden flex items-center justify-center">
-            <img 
-              src={post.image_url + '?width=120&height=120&fit=contain&background=white'}
-              alt={post.title}
-              className="w-full h-full object-contain"
+    <div className="flex flex-col md:flex-row gap-8 bg-white rounded shadow p-6">
+      {/* Featured Post */}
+      <div className="flex-1 min-w-0">
+        {featured.image_url && (
+          <div className="mb-4">
+            <img
+              src={featured.image_url}
+              alt={featured.title}
+              className="w-full h-64 object-cover rounded"
+              style={{ background: '#fff' }}
             />
           </div>
         )}
-        <div className="flex-1">
-          <h4 className="text-xl font-bold mb-1">{post.title}</h4>
-          <div className="text-gray-600 text-sm mb-2">
-            {post.author} • {new Date(post.created_at).toLocaleDateString()}
-          </div>
-          <p className="mb-2">{post.summary}</p>
-          <a
-            href={`/post/${post.id}`}
-            className="text-blue-600 hover:underline text-sm"
-          >
-            Read more
-          </a>
+        <div className="mb-2 text-xs text-gray-500">
+          {featured.author} • {new Date(featured.created_at).toLocaleDateString()}
         </div>
+        <h2 className="text-2xl font-bold mb-2">{featured.title}</h2>
+        <div className="mb-4 text-gray-700 text-lg">
+          {featured.summary}
+        </div>
+        <a
+          href={`/post/${featured.id}`}
+          className="inline-block text-blue-600 hover:underline font-semibold"
+        >
+          Read more →
+        </a>
       </div>
-      <div className="text-xs text-gray-400 mt-2 text-right">
-        {currentIndex + 1} of {posts.length}
+
+      {/* Latest Sidebar */}
+      <div className="w-full md:w-80 flex-shrink-0 border-t md:border-t-0 md:border-l border-gray-200 pl-0 md:pl-8 mt-8 md:mt-0">
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-xl font-bold text-red-600">Latest</h3>
+          <button className="text-xs border rounded px-2 py-1 text-gray-600">All categories</button>
+        </div>
+        <ul className="divide-y divide-gray-200">
+          {latest.map((post) => (
+            <li key={post.id} className="py-3 flex flex-col">
+              <div className="text-xs text-gray-400 mb-1">{timeAgo(post.created_at)}</div>
+              <a
+                href={`/post/${post.id}`}
+                className="text-base font-medium text-gray-900 hover:text-blue-600"
+              >
+                {post.title}
+              </a>
+            </li>
+          ))}
+        </ul>
+        <div className="mt-4 text-right">
+          <a href="/posts" className="text-blue-600 hover:underline text-sm">See all latest &rarr;</a>
+        </div>
       </div>
     </div>
   );
