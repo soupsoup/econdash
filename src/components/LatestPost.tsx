@@ -60,32 +60,34 @@ export default function LatestPost() {
   const latest = posts.slice(1, 8); // next 7 posts
 
   return (
-    <div className="flex flex-col md:flex-row gap-8 bg-white rounded shadow p-6">
+    <div className="flex flex-col md:flex-row gap-8 bg-white rounded shadow p-6 min-h-[22rem]">
       {/* Featured Post */}
-      <div className="flex-1 min-w-0">
+      <div className="flex-1 min-w-0 flex flex-col">
         {featured.image_url && (
-          <div className="mb-4">
+          <div className="mb-4 h-auto">
             <img
               src={featured.image_url}
               alt={featured.title}
-              className="w-full h-64 object-cover rounded"
+              className="w-full max-h-64 object-cover rounded"
               style={{ background: '#fff' }}
             />
           </div>
         )}
-        <div className="mb-2 text-xs text-gray-500">
-          {featured.author} • {new Date(featured.created_at).toLocaleDateString()}
+        <div className="flex flex-col justify-end flex-none">
+          <div className="mb-2 text-xs text-gray-500">
+            {featured.author} • {new Date(featured.created_at).toLocaleDateString()}
+          </div>
+          <h2 className="text-2xl font-bold mb-2">{featured.title}</h2>
+          <div className="mb-4 text-gray-700 text-lg">
+            {featured.summary}
+          </div>
+          <a
+            href={`/post/${featured.id}`}
+            className="inline-block text-blue-600 hover:underline font-semibold"
+          >
+            Read more →
+          </a>
         </div>
-        <h2 className="text-2xl font-bold mb-2">{featured.title}</h2>
-        <div className="mb-4 text-gray-700 text-lg">
-          {featured.summary}
-        </div>
-        <a
-          href={`/post/${featured.id}`}
-          className="inline-block text-blue-600 hover:underline font-semibold"
-        >
-          Read more →
-        </a>
       </div>
 
       {/* Latest Sidebar */}

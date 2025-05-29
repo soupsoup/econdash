@@ -12,6 +12,7 @@ interface Post {
   id: string;
   title: string;
   content: string;
+  summary: string;
   author: string;
   created_at: string;
   image_url?: string;
@@ -23,6 +24,7 @@ export default function EditPost() {
   const [post, setPost] = useState<Post | null>(null);
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
+  const [summary, setSummary] = useState('');
   const [author, setAuthor] = useState('');
   const [imageUrl, setImageUrl] = useState('');
   const [imageFile, setImageFile] = useState<File | null>(null);
@@ -47,6 +49,7 @@ export default function EditPost() {
       setPost(data);
       setTitle(data.title);
       setContent(data.content);
+      setSummary(data.summary || '');
       setAuthor(data.author);
       setImageUrl(data.image_url || '');
     } catch (error) {
@@ -70,6 +73,7 @@ export default function EditPost() {
       const postData = {
         title,
         content,
+        summary,
         author,
         image_url: imageUrl || null,
         updated_at: new Date().toISOString(),
@@ -158,6 +162,18 @@ export default function EditPost() {
             onChange={(e) => setTitle(e.target.value)}
             className="w-full p-2 border rounded"
             required
+          />
+        </div>
+
+        <div>
+          <label className="block mb-2">Summary:</label>
+          <input
+            type="text"
+            value={summary}
+            onChange={(e) => setSummary(e.target.value)}
+            className="w-full p-2 border rounded"
+            required
+            maxLength={200}
           />
         </div>
 
