@@ -241,7 +241,7 @@ export const fetchIndicatorData = async (indicatorId: string): Promise<Indicator
     };
   }
   const preferences = getDataSourcePreferences();
-  const useUploadedData = preferences[indicatorId]?.useUploadedData || false;
+  const useUploadedData = indicatorId === 'egg-prices' ? false : (preferences[indicatorId]?.useUploadedData || false);
 
   console.log(`Fetching data for indicator ${indicatorId}:`, {
     useUploadedData,

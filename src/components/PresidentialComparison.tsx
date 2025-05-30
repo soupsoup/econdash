@@ -102,7 +102,7 @@ const PresidentialComparison: React.FC<PresidentialComparisonProps> = ({ indicat
                   }}
                 ></div>
                 <span className="relative ml-2 text-sm font-medium">
-                  {average?.toFixed(2)} {indicatorData.indicator.unit}
+                  {indicatorData.indicator.id === 'job-creation' ? (average / 1000).toFixed(3) : average?.toFixed(2)} {indicatorData.indicator.unit}
                 </span>
               </div>
             </div>

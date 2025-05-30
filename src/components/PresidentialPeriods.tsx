@@ -77,8 +77,8 @@ const PresidentialPeriods: React.FC<PresidentialPeriodsProps> = ({ data }) => {
   // Format value based on indicator type
   const formatValue = (value: number) => {
     if (indicator.id === 'job-creation') {
-      // For job creation, show whole numbers with commas
-      return Math.round(value).toLocaleString();
+      // For job creation, show in millions with 3 decimal places
+      return (value / 1000).toFixed(3);
     } else if (indicator.id === 'stock-market') {
       // For S&P 500, show with commas and 2 decimal places
       return value.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
@@ -91,8 +91,8 @@ const PresidentialPeriods: React.FC<PresidentialPeriodsProps> = ({ data }) => {
   // Format change value based on indicator type
   const formatChange = (value: number) => {
     if (indicator.id === 'job-creation') {
-      // For job creation, show whole numbers with commas
-      return Math.round(value).toLocaleString();
+      // For job creation, show change in millions with 3 decimal places
+      return (value / 1000).toFixed(3);
     } else if (indicator.id === 'stock-market') {
       // For S&P 500, show with commas and 2 decimal places
       return value.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
