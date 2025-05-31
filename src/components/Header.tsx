@@ -14,7 +14,8 @@ export default function Header({ lastUpdated, hasNewData, onRefresh }: HeaderPro
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-16">
           <div className="flex items-center space-x-4">
-            <Link to="/" className="text-xl font-bold text-gray-800">
+            <Link to="/" className="flex items-center text-xl font-bold text-gray-800">
+              <img src="/attached_assets/america-econ-logo.png" alt="America Econ Logo" className="h-10 w-10 mr-2" />
               America Econ
             </Link>
             <nav className="hidden md:flex space-x-4">
