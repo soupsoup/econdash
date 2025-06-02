@@ -2,8 +2,14 @@ const fetch = require('node-fetch');
 const { parseString } = require('xml2js');
 const fs = require('fs');
 const path = require('path');
+const { createClient } = require('@supabase/supabase-js');
 const settingsPath = path.join(__dirname, 'wire-settings.json');
 const manualWirePath = path.join(__dirname, 'wire-manual.json');
+
+const supabase = createClient(
+  process.env.SUPABASE_URL,
+  process.env.SUPABASE_ANON_KEY
+);
 
 exports.handler = async function(event, context) {
   const mode = process.env.NODE_ENV === 'production' ? 'prod' : 'dev';
@@ -11,8 +17,12 @@ exports.handler = async function(event, context) {
   if (mode === 'prod') {
     if (event.httpMethod === 'GET') {
       try {
-        const data = fs.readFileSync(manualWirePath, 'utf8');
-        return { statusCode: 200, body: data };
+        const { data, error } = await supabase
+          .from('wire_posts')
+          .select('*')
+          .order('timestamp', { ascending: false });
+        if (error) throw error;
+        return { statusCode: 200, body: JSON.stringify({ posts: data }) };
       } catch (err) {
         return { statusCode: 500, body: JSON.stringify({ error: err.message }) };
       }
@@ -20,9 +30,12 @@ exports.handler = async function(event, context) {
     if (event.httpMethod === 'POST') {
       try {
         const body = JSON.parse(event.body);
-        const dataToWrite = JSON.stringify({ posts: body.posts || [] }, null, 2);
-        fs.writeFileSync(manualWirePath, dataToWrite);
-        return { statusCode: 200, body: dataToWrite };
+        const { data, error } = await supabase
+          .from('wire_posts')
+          .insert(body.posts)
+          .select();
+        if (error) throw error;
+        return { statusCode: 200, body: JSON.stringify({ posts: data }) };
       } catch (err) {
         return { statusCode: 500, body: JSON.stringify({ error: err.message }) };
       }

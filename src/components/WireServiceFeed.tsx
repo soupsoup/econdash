@@ -1,7 +1,13 @@
 import React, { useEffect, useState, useRef } from 'react';
+import { createClient } from '@supabase/supabase-js';
+
+const supabase = createClient(
+  import.meta.env.VITE_SUPABASE_URL,
+  import.meta.env.VITE_SUPABASE_ANON_KEY
+);
 
 interface WirePost {
-  id: string | number;
+  id: string;
   username: string;
   timestamp: string;
   text: string;
@@ -13,13 +19,29 @@ export default function WireServiceFeed() {
   const [intervalSec, setIntervalSec] = useState(60);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
 
-  const fetchPosts = () => {
-    fetch('/api/wire')
-      .then(res => res.json())
-      .then(data => {
-        setPosts(data.posts || []);
-        setLoading(false);
-      });
+  const fetchPosts = async () => {
+    if (process.env.NODE_ENV === 'production') {
+      try {
+        const { data, error } = await supabase
+          .from('wire_posts')
+          .select('*')
+          .order('timestamp', { ascending: false });
+        if (error) throw error;
+        setPosts(data || []);
+      } catch (err) {
+        console.error('Error fetching wire posts from Supabase:', err);
+      }
+    } else {
+      fetch('/api/wire')
+        .then(res => res.json())
+        .then(data => {
+          setPosts(data.posts || []);
+        })
+        .catch(err => {
+          console.error('Error fetching wire posts from Nitter:', err);
+        });
+    }
+    setLoading(false);
   };
 
   useEffect(() => {

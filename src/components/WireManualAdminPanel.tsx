@@ -1,7 +1,13 @@
 import React, { useEffect, useState } from 'react';
+import { createClient } from '@supabase/supabase-js';
+
+const supabase = createClient(
+  import.meta.env.VITE_SUPABASE_URL,
+  import.meta.env.VITE_SUPABASE_ANON_KEY
+);
 
 interface WirePost {
-  id: string | number;
+  id: string;
   username: string;
   timestamp: string;
   text: string;
@@ -13,31 +19,40 @@ export default function WireManualAdminPanel() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const [username, setUsername] = useState('admin');
-  const [editingId, setEditingId] = useState<string | number | null>(null);
+  const [editingId, setEditingId] = useState<string | null>(null);
   const [editText, setEditText] = useState('');
   const [editUsername, setEditUsername] = useState('');
 
   useEffect(() => {
-    fetch('/api/wire')
-      .then(res => res.json())
-      .then(data => setPosts(data.posts || []));
+    fetchWirePosts();
   }, []);
 
-  const savePosts = async (newPosts: WirePost[]) => {
+  async function fetchWirePosts() {
+    try {
+      const { data, error } = await supabase
+        .from('wire_posts')
+        .select('*')
+        .order('timestamp', { ascending: false });
+      if (error) throw error;
+      setPosts(data || []);
+    } catch (err: any) {
+      setError(err.message);
+    }
+  }
+
+  const addPost = async () => {
+    if (!text.trim()) return;
     setSaving(true);
     setError('');
     try {
-      const res = await fetch('/api/wire', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ posts: newPosts }),
-      });
-      if (!res.ok) throw new Error('Failed to save');
-      const getRes = await fetch('/api/wire');
-      const data = await getRes.json();
-      setPosts(data.posts || []);
+      const { data, error } = await supabase
+        .from('wire_posts')
+        .insert([{ username, text }])
+        .select()
+        .single();
+      if (error) throw error;
+      setPosts([data, ...posts]);
       setText('');
-      setEditingId(null);
     } catch (err: any) {
       setError(err.message);
     } finally {
@@ -45,20 +60,21 @@ export default function WireManualAdminPanel() {
     }
   };
 
-  const addPost = () => {
-    if (!text.trim()) return;
-    const newPost: WirePost = {
-      id: Date.now(),
-      username,
-      timestamp: new Date().toISOString(),
-      text,
-    };
-    savePosts([newPost, ...posts]);
-  };
-
-  const deletePost = (id: string | number) => {
-    const newPosts = posts.filter(p => p.id !== id);
-    savePosts(newPosts);
+  const deletePost = async (id: string) => {
+    setSaving(true);
+    setError('');
+    try {
+      const { error } = await supabase
+        .from('wire_posts')
+        .delete()
+        .eq('id', id);
+      if (error) throw error;
+      setPosts(posts.filter(p => p.id !== id));
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setSaving(false);
+    }
   };
 
   const startEdit = (post: WirePost) => {
@@ -67,11 +83,24 @@ export default function WireManualAdminPanel() {
     setEditUsername(post.username);
   };
 
-  const saveEdit = (id: string | number) => {
-    const newPosts = posts.map(p =>
-      p.id === id ? { ...p, text: editText, username: editUsername } : p
-    );
-    savePosts(newPosts);
+  const saveEdit = async (id: string) => {
+    setSaving(true);
+    setError('');
+    try {
+      const { data, error } = await supabase
+        .from('wire_posts')
+        .update({ text: editText, username: editUsername })
+        .eq('id', id)
+        .select()
+        .single();
+      if (error) throw error;
+      setPosts(posts.map(p => p.id === id ? data : p));
+      setEditingId(null);
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setSaving(false);
+    }
   };
 
   const cancelEdit = () => {
