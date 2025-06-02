@@ -16,6 +16,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { BreakingNewsManager } from '../components/BreakingNewsManager';
 import { createClient } from '@supabase/supabase-js';
 import WireAdminPanel from '../components/WireAdminPanel';
+import WireManualAdminPanel from '../components/WireManualAdminPanel';
 
 export default function AdminDashboard() {
   const [selectedIndicator, setSelectedIndicator] = useState('');
@@ -402,7 +403,7 @@ export default function AdminDashboard() {
 
             <div className="bg-white rounded-lg shadow-md p-4">
               <h2 className="text-lg font-semibold mb-4">Wire Service Admin</h2>
-              <WireAdminPanel />
+              {process.env.NODE_ENV === 'production' ? <WireManualAdminPanel /> : <WireAdminPanel />}
             </div>
           </div>
         </div>

@@ -3,9 +3,32 @@ const { parseString } = require('xml2js');
 const fs = require('fs');
 const path = require('path');
 const settingsPath = path.join(__dirname, 'wire-settings.json');
+const manualWirePath = path.join(__dirname, 'wire-manual.json');
 
 exports.handler = async function(event, context) {
-  const nitterApi = process.env.VITE_NITTER_API || 'http://localhost:8080';
+  const mode = process.env.NODE_ENV === 'production' ? 'prod' : 'dev';
+
+  if (mode === 'prod') {
+    if (event.httpMethod === 'GET') {
+      try {
+        const data = fs.readFileSync(manualWirePath, 'utf8');
+        return { statusCode: 200, body: data };
+      } catch (err) {
+        return { statusCode: 500, body: JSON.stringify({ error: err.message }) };
+      }
+    }
+    if (event.httpMethod === 'POST') {
+      try {
+        fs.writeFileSync(manualWirePath, event.body);
+        return { statusCode: 200, body: event.body };
+      } catch (err) {
+        return { statusCode: 500, body: JSON.stringify({ error: err.message }) };
+      }
+    }
+    return { statusCode: 405, body: 'Method Not Allowed' };
+  }
+
+  // DEV: Nitter logic
   let settings = { accounts: ['DeItaone'], interval: 60 };
   try {
     if (fs.existsSync(settingsPath)) {
@@ -19,7 +42,7 @@ exports.handler = async function(event, context) {
 
   for (const username of accounts) {
     try {
-      const url = `${nitterApi}/${username}/rss`;
+      const url = `${process.env.VITE_NITTER_API || 'http://localhost:8080'}/${username}/rss`;
       const response = await fetch(url);
       const xml = await response.text();
       await parseString(xml, (err, result) => {
