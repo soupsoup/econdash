@@ -33,7 +33,9 @@ export default function WireManualAdminPanel() {
         body: JSON.stringify({ posts: newPosts }),
       });
       if (!res.ok) throw new Error('Failed to save');
-      setPosts(newPosts);
+      const getRes = await fetch('/api/wire');
+      const data = await getRes.json();
+      setPosts(data.posts || []);
       setText('');
       setEditingId(null);
     } catch (err: any) {

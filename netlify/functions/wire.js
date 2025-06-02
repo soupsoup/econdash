@@ -19,8 +19,10 @@ exports.handler = async function(event, context) {
     }
     if (event.httpMethod === 'POST') {
       try {
-        fs.writeFileSync(manualWirePath, event.body);
-        return { statusCode: 200, body: event.body };
+        const body = JSON.parse(event.body);
+        const dataToWrite = JSON.stringify({ posts: body.posts || [] }, null, 2);
+        fs.writeFileSync(manualWirePath, dataToWrite);
+        return { statusCode: 200, body: dataToWrite };
       } catch (err) {
         return { statusCode: 500, body: JSON.stringify({ error: err.message }) };
       }
