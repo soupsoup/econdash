@@ -14,6 +14,7 @@ import { IndicatorData } from '../types';
 import { useLocalStorage } from '../hooks/useLocalStorage';
 import { BreakingNewsBanner } from '../components/BreakingNewsBanner';
 import LatestPost from '../components/LatestPost';
+import WireServiceFeed from '../components/WireServiceFeed';
 
 export default function Dashboard() {
   const [lastUpdated, setLastUpdated] = useState<string | null>(null);
@@ -75,6 +76,9 @@ export default function Dashboard() {
         <BreakingNewsBanner />
         <div className="mt-6">
           <LatestPost />
+        </div>
+        <div className="mt-6">
+          <WireServiceFeed />
         </div>
         <div className="mb-8" />
         
