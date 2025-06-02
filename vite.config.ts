@@ -157,10 +157,15 @@ export default defineConfig(({ mode }) => {
             });
           }
         },
-        '/.netlify/functions': {
-          target: 'http://localhost:8888',
+        '/api/wire': {
+          target: 'http://localhost:8888/.netlify/functions/wire',
           changeOrigin: true,
-          secure: false,
+          rewrite: (path) => path.replace(/^\/api\/wire/, ''),
+        },
+        '/api/wire-settings': {
+          target: 'http://localhost:8888/.netlify/functions/wire-settings',
+          changeOrigin: true,
+          rewrite: (path) => path.replace(/^\/api\/wire-settings/, ''),
         },
       }
     }

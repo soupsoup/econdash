@@ -15,6 +15,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { useNavigate, Link } from 'react-router-dom';
 import { BreakingNewsManager } from '../components/BreakingNewsManager';
 import { createClient } from '@supabase/supabase-js';
+import WireAdminPanel from '../components/WireAdminPanel';
 
 export default function AdminDashboard() {
   const [selectedIndicator, setSelectedIndicator] = useState('');
@@ -397,6 +398,11 @@ export default function AdminDashboard() {
                   </tbody>
                 </table>
               )}
+            </div>
+
+            <div className="bg-white rounded-lg shadow-md p-4">
+              <h2 className="text-lg font-semibold mb-4">Wire Service Admin</h2>
+              <WireAdminPanel />
             </div>
           </div>
         </div>

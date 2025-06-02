@@ -20,12 +20,14 @@
     "dotenv": "^16.5.0",
     "http-proxy-middleware": "^2.0.6",
     "lucide-react": "^0.344.0",
+    "node-fetch": "^3.3.2",
     "react": "^18.3.1",
     "react-chartjs-2": "^5.2.0",
     "react-dom": "^18.3.1",
     "react-query": "^3.39.3",
     "react-router-dom": "^6.22.3",
-    "sass": "^1.89.0"
+    "sass": "^1.89.0",
+    "xml2js": "^0.6.2"
   },
   "devDependencies": {
     "@eslint/js": "^9.9.1",
