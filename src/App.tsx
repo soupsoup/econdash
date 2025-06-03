@@ -8,6 +8,7 @@ import PostFeed from './components/PostFeed';
 import PostDetail from './components/PostDetail';
 import CreatePost from './components/CreatePost';
 import EditPost from './pages/EditPost';
+import WirePage from './pages/WirePage';
 import { AuthProvider } from './contexts/AuthContext';
 import ProtectedRoute from './components/ProtectedRoute';
 
@@ -35,6 +36,7 @@ function App() {
             <EditPost />
           </ProtectedRoute>
         } />
+        <Route path="/wire" element={<WirePage />} />
       </Routes>
     </AuthProvider>
   );
