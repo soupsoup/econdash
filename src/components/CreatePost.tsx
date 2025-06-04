@@ -18,6 +18,7 @@ export default function CreatePost() {
   const [imageUrl, setImageUrl] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [focalPoint, setFocalPoint] = useState({ x: 50, y: 50 });
+  const [imageDisplayHeight, setImageDisplayHeight] = useState(300);
 
   const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
@@ -57,6 +58,7 @@ export default function CreatePost() {
             image_url: uploadedImageUrl,
             image_focal_x: focalPoint.x,
             image_focal_y: focalPoint.y,
+            image_display_height: imageDisplayHeight,
             created_at: new Date().toISOString(),
           },
         ])
@@ -140,6 +142,22 @@ export default function CreatePost() {
               focalPoint={focalPoint}
               setFocalPoint={setFocalPoint}
             />
+          </div>
+        )}
+
+        {/* Image Height Slider */}
+        {imageUrl && (
+          <div className="mb-4">
+            <label className="block mb-2 font-medium">Image Display Height (px)</label>
+            <input
+              type="range"
+              min={100}
+              max={600}
+              value={imageDisplayHeight}
+              onChange={e => setImageDisplayHeight(Number(e.target.value))}
+              className="w-full"
+            />
+            <div className="text-xs text-gray-500 mb-2">{imageDisplayHeight}px</div>
           </div>
         )}
 

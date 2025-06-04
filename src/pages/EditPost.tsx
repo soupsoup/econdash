@@ -19,6 +19,7 @@ interface Post {
   image_url?: string;
   image_focal_x?: number;
   image_focal_y?: number;
+  image_display_height?: number;
 }
 
 export default function EditPost() {
@@ -32,6 +33,7 @@ export default function EditPost() {
   const [imageUrl, setImageUrl] = useState('');
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [focalPoint, setFocalPoint] = useState({ x: 50, y: 50 });
+  const [imageDisplayHeight, setImageDisplayHeight] = useState(300);
   const [loading, setLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
 
@@ -60,6 +62,7 @@ export default function EditPost() {
         x: data.image_focal_x !== undefined ? data.image_focal_x : 50,
         y: data.image_focal_y !== undefined ? data.image_focal_y : 50,
       });
+      setImageDisplayHeight(data.image_display_height !== undefined ? data.image_display_height : 300);
     } catch (error) {
       alert('Failed to load post.');
     } finally {
@@ -100,6 +103,7 @@ export default function EditPost() {
         image_url: uploadedImageUrl || null,
         image_focal_x: focalPoint.x,
         image_focal_y: focalPoint.y,
+        image_display_height: imageDisplayHeight,
         updated_at: new Date().toISOString(),
       };
 
@@ -237,6 +241,22 @@ export default function EditPost() {
               focalPoint={focalPoint}
               setFocalPoint={setFocalPoint}
             />
+          </div>
+        )}
+
+        {/* Image Height Slider */}
+        {imageUrl && (
+          <div className="mb-4">
+            <label className="block mb-2 font-medium">Image Display Height (px)</label>
+            <input
+              type="range"
+              min={100}
+              max={600}
+              value={imageDisplayHeight}
+              onChange={e => setImageDisplayHeight(Number(e.target.value))}
+              className="w-full"
+            />
+            <div className="text-xs text-gray-500 mb-2">{imageDisplayHeight}px</div>
           </div>
         )}
 

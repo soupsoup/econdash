@@ -16,6 +16,7 @@ interface Post {
   image_url?: string;
   image_focal_x?: number;
   image_focal_y?: number;
+  image_display_height?: number;
 }
 
 export default function PostDetail() {
@@ -50,6 +51,11 @@ export default function PostDetail() {
     return `${x}% ${y}%`;
   };
 
+  // Get image height or default to 300px
+  const getImageHeight = (post: Post) => {
+    return post.image_display_height !== undefined ? `${post.image_display_height}px` : '300px';
+  };
+
   if (!post) {
     return <div className="max-w-4xl mx-auto p-6">Loading...</div>;
   }
@@ -67,8 +73,8 @@ export default function PostDetail() {
           <img
             src={post.image_url}
             alt={post.title}
-            className="w-full h-auto rounded cursor-pointer transition-transform hover:scale-[1.02]"
-            style={{ maxHeight: 400, objectFit: 'contain', objectPosition: getObjectPosition(post) }}
+            className="w-full rounded cursor-pointer transition-transform hover:scale-[1.02]"
+            style={{ objectFit: 'contain', objectPosition: getObjectPosition(post), height: getImageHeight(post), maxHeight: '600px' }}
             onClick={() => setIsImageExpanded(true)}
           />
         </div>
@@ -98,8 +104,8 @@ export default function PostDetail() {
           <img
             src={post.image_url}
             alt={post.title}
-            className="max-w-full max-h-[90vh] object-contain"
-            style={{ objectPosition: getObjectPosition(post) }}
+            className="max-w-full object-contain"
+            style={{ objectPosition: getObjectPosition(post), height: getImageHeight(post), maxHeight: '90vh' }}
             onClick={(e) => e.stopPropagation()}
           />
         </div>

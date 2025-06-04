@@ -16,6 +16,7 @@ interface Post {
   image_url: string | null;
   image_focal_x?: number;
   image_focal_y?: number;
+  image_display_height?: number;
 }
 
 function timeAgo(dateString: string) {
@@ -67,6 +68,10 @@ export default function LatestPost() {
     const y = post.image_focal_y !== undefined ? post.image_focal_y : 50;
     return `${x}% ${y}%`;
   };
+  // Get image height or default to 300px
+  const getImageHeight = (post: Post) => {
+    return post.image_display_height !== undefined ? `${post.image_display_height}px` : '300px';
+  };
 
   return (
     <div className="flex flex-col md:flex-row gap-8 bg-white rounded shadow p-6 min-h-[22rem]">
@@ -77,8 +82,8 @@ export default function LatestPost() {
             <img
               src={featured.image_url}
               alt={featured.title}
-              className="w-full max-h-[23.28rem] object-cover rounded"
-              style={{ background: '#fff', objectPosition: getObjectPosition(featured) }}
+              className="w-full object-cover rounded"
+              style={{ background: '#fff', objectPosition: getObjectPosition(featured), height: getImageHeight(featured), maxHeight: '600px' }}
             />
           </div>
         )}
