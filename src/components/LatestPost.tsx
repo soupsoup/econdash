@@ -14,6 +14,8 @@ interface Post {
   author: string;
   summary: string;
   image_url: string | null;
+  image_focal_x?: number;
+  image_focal_y?: number;
 }
 
 function timeAgo(dateString: string) {
@@ -59,6 +61,13 @@ export default function LatestPost() {
   const featured = posts[0];
   const latest = posts.slice(1, 8); // next 7 posts
 
+  // Get focal point or default to 50%
+  const getObjectPosition = (post: Post) => {
+    const x = post.image_focal_x !== undefined ? post.image_focal_x : 50;
+    const y = post.image_focal_y !== undefined ? post.image_focal_y : 50;
+    return `${x}% ${y}%`;
+  };
+
   return (
     <div className="flex flex-col md:flex-row gap-8 bg-white rounded shadow p-6 min-h-[22rem]">
       {/* Featured Post */}
@@ -69,7 +78,7 @@ export default function LatestPost() {
               src={featured.image_url}
               alt={featured.title}
               className="w-full max-h-[23.28rem] object-cover rounded"
-              style={{ background: '#fff' }}
+              style={{ background: '#fff', objectPosition: getObjectPosition(featured) }}
             />
           </div>
         )}

@@ -14,6 +14,8 @@ interface Post {
   author: string;
   created_at: string;
   image_url?: string;
+  image_focal_x?: number;
+  image_focal_y?: number;
 }
 
 export default function PostDetail() {
@@ -41,6 +43,13 @@ export default function PostDetail() {
     fetchPost();
   }, [id]);
 
+  // Get focal point or default to 50%
+  const getObjectPosition = (post: Post) => {
+    const x = post.image_focal_x !== undefined ? post.image_focal_x : 50;
+    const y = post.image_focal_y !== undefined ? post.image_focal_y : 50;
+    return `${x}% ${y}%`;
+  };
+
   if (!post) {
     return <div className="max-w-4xl mx-auto p-6">Loading...</div>;
   }
@@ -59,7 +68,7 @@ export default function PostDetail() {
             src={post.image_url}
             alt={post.title}
             className="w-full h-auto rounded cursor-pointer transition-transform hover:scale-[1.02]"
-            style={{ maxHeight: 400, objectFit: 'contain' }}
+            style={{ maxHeight: 400, objectFit: 'contain', objectPosition: getObjectPosition(post) }}
             onClick={() => setIsImageExpanded(true)}
           />
         </div>
@@ -90,6 +99,7 @@ export default function PostDetail() {
             src={post.image_url}
             alt={post.title}
             className="max-w-full max-h-[90vh] object-contain"
+            style={{ objectPosition: getObjectPosition(post) }}
             onClick={(e) => e.stopPropagation()}
           />
         </div>

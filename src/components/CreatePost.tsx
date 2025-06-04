@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { createClient } from '@supabase/supabase-js';
 import { useNavigate } from 'react-router-dom';
+import FocalPointSelector from './FocalPointSelector';
 
 const supabase = createClient(
   import.meta.env.VITE_SUPABASE_URL,
@@ -14,18 +15,23 @@ export default function CreatePost() {
   const [summary, setSummary] = useState('');
   const [author, setAuthor] = useState('');
   const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imageUrl, setImageUrl] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [focalPoint, setFocalPoint] = useState({ x: 50, y: 50 });
 
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       setImageFile(e.target.files[0]);
+      // Show preview
+      const url = URL.createObjectURL(e.target.files[0]);
+      setImageUrl(url);
     }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
-    let imageUrl = '';
+    let uploadedImageUrl = '';
 
     try {
       // Upload image if present
@@ -37,7 +43,7 @@ export default function CreatePost() {
           .upload(fileName, imageFile, { upsert: false });
         if (storageError) throw storageError;
         const { data: publicUrlData } = supabase.storage.from('post-images').getPublicUrl(fileName);
-        imageUrl = publicUrlData.publicUrl;
+        uploadedImageUrl = publicUrlData.publicUrl;
       }
 
       const { data, error } = await supabase
@@ -48,7 +54,9 @@ export default function CreatePost() {
             content,
             summary,
             author,
-            image_url: imageUrl,
+            image_url: uploadedImageUrl,
+            image_focal_x: focalPoint.x,
+            image_focal_y: focalPoint.y,
             created_at: new Date().toISOString(),
           },
         ])
@@ -123,6 +131,17 @@ export default function CreatePost() {
             className="w-full"
           />
         </div>
+
+        {/* Focal Point Selector */}
+        {imageUrl && (
+          <div className="mb-4">
+            <FocalPointSelector
+              imageUrl={imageUrl}
+              focalPoint={focalPoint}
+              setFocalPoint={setFocalPoint}
+            />
+          </div>
+        )}
 
         <button
           type="submit"

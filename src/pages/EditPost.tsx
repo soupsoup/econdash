@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { createClient } from '@supabase/supabase-js';
 import { Bold, List } from 'lucide-react';
+import FocalPointSelector from '../components/FocalPointSelector';
 
 const supabase = createClient(
   import.meta.env.VITE_SUPABASE_URL,
@@ -16,6 +17,8 @@ interface Post {
   author: string;
   created_at: string;
   image_url?: string;
+  image_focal_x?: number;
+  image_focal_y?: number;
 }
 
 export default function EditPost() {
@@ -28,6 +31,7 @@ export default function EditPost() {
   const [author, setAuthor] = useState('');
   const [imageUrl, setImageUrl] = useState('');
   const [imageFile, setImageFile] = useState<File | null>(null);
+  const [focalPoint, setFocalPoint] = useState({ x: 50, y: 50 });
   const [loading, setLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
 
@@ -52,6 +56,10 @@ export default function EditPost() {
       setSummary(data.summary || '');
       setAuthor(data.author);
       setImageUrl(data.image_url || '');
+      setFocalPoint({
+        x: data.image_focal_x !== undefined ? data.image_focal_x : 50,
+        y: data.image_focal_y !== undefined ? data.image_focal_y : 50,
+      });
     } catch (error) {
       alert('Failed to load post.');
     } finally {
@@ -62,6 +70,8 @@ export default function EditPost() {
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       setImageFile(e.target.files[0]);
+      const url = URL.createObjectURL(e.target.files[0]);
+      setImageUrl(url);
     }
   };
 
@@ -70,12 +80,26 @@ export default function EditPost() {
     setIsSaving(true);
 
     try {
+      let uploadedImageUrl = imageUrl;
+      if (imageFile) {
+        const fileExt = imageFile.name.split('.').pop();
+        const fileName = `${Date.now()}-${Math.random().toString(36).substring(2, 8)}.${fileExt}`;
+        const { data: storageData, error: storageError } = await supabase.storage
+          .from('post-images')
+          .upload(fileName, imageFile, { upsert: false });
+        if (storageError) throw storageError;
+        const { data: publicUrlData } = supabase.storage.from('post-images').getPublicUrl(fileName);
+        uploadedImageUrl = publicUrlData.publicUrl;
+      }
+
       const postData = {
         title,
         content,
         summary,
         author,
-        image_url: imageUrl || null,
+        image_url: uploadedImageUrl || null,
+        image_focal_x: focalPoint.x,
+        image_focal_y: focalPoint.y,
         updated_at: new Date().toISOString(),
       };
 
@@ -197,7 +221,24 @@ export default function EditPost() {
             className="w-full p-2 border rounded"
             placeholder="https://example.com/image.jpg"
           />
+          <input
+            type="file"
+            accept="image/*"
+            onChange={handleImageChange}
+            className="w-full mt-2"
+          />
         </div>
+
+        {/* Focal Point Selector */}
+        {imageUrl && (
+          <div className="mb-4">
+            <FocalPointSelector
+              imageUrl={imageUrl}
+              focalPoint={focalPoint}
+              setFocalPoint={setFocalPoint}
+            />
+          </div>
+        )}
 
         <div>
           <div className="flex items-center justify-between mb-2">
