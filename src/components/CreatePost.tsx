@@ -19,6 +19,7 @@ export default function CreatePost() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [focalPoint, setFocalPoint] = useState({ x: 50, y: 50 });
   const [imageDisplayHeight, setImageDisplayHeight] = useState(300);
+  const [storyType, setStoryType] = useState<'lead' | 'minor'>('minor');
 
   const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
@@ -47,6 +48,11 @@ export default function CreatePost() {
         uploadedImageUrl = publicUrlData.publicUrl;
       }
 
+      // If setting as lead, update all other posts to minor
+      if (storyType === 'lead') {
+        await supabase.from('posts').update({ story_type: 'minor' }).eq('story_type', 'lead');
+      }
+
       const { data, error } = await supabase
         .from('posts')
         .insert([
@@ -60,6 +66,7 @@ export default function CreatePost() {
             image_focal_y: focalPoint.y,
             image_display_height: imageDisplayHeight,
             created_at: new Date().toISOString(),
+            story_type: storyType,
           },
         ])
         .select()
@@ -122,6 +129,18 @@ export default function CreatePost() {
             className="w-full p-2 border rounded h-64"
             required
           />
+        </div>
+
+        <div>
+          <label className="block mb-2 font-medium">Story Type</label>
+          <select
+            value={storyType}
+            onChange={e => setStoryType(e.target.value as 'lead' | 'minor')}
+            className="w-full p-2 border rounded"
+          >
+            <option value="minor">Minor Story</option>
+            <option value="lead">Lead Story</option>
+          </select>
         </div>
 
         <div>

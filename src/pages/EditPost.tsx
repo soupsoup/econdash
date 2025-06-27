@@ -20,6 +20,7 @@ interface Post {
   image_focal_x?: number;
   image_focal_y?: number;
   image_display_height?: number;
+  story_type: string; // 'lead' or 'minor'
 }
 
 export default function EditPost() {
@@ -36,6 +37,7 @@ export default function EditPost() {
   const [imageDisplayHeight, setImageDisplayHeight] = useState(300);
   const [loading, setLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
+  const [storyType, setStoryType] = useState<'lead' | 'minor'>('minor');
 
   useEffect(() => {
     if (id) {
@@ -63,6 +65,7 @@ export default function EditPost() {
         y: data.image_focal_y !== undefined ? data.image_focal_y : 50,
       });
       setImageDisplayHeight(data.image_display_height !== undefined ? data.image_display_height : 300);
+      setStoryType(data.story_type || 'minor');
     } catch (error) {
       alert('Failed to load post.');
     } finally {
@@ -95,6 +98,11 @@ export default function EditPost() {
         uploadedImageUrl = publicUrlData.publicUrl;
       }
 
+      // If setting as lead, update all other posts to minor
+      if (storyType === 'lead') {
+        await supabase.from('posts').update({ story_type: 'minor' }).eq('story_type', 'lead');
+      }
+
       const postData = {
         title,
         content,
@@ -105,6 +113,7 @@ export default function EditPost() {
         image_focal_y: focalPoint.y,
         image_display_height: imageDisplayHeight,
         updated_at: new Date().toISOString(),
+        story_type: storyType,
       };
 
       if (id) {
@@ -259,6 +268,19 @@ export default function EditPost() {
             <div className="text-xs text-gray-500 mb-2">{imageDisplayHeight}px</div>
           </div>
         )}
+
+        {/* Story Type Selector */}
+        <div>
+          <label className="block mb-2">Story Type:</label>
+          <select
+            value={storyType}
+            onChange={e => setStoryType(e.target.value as 'lead' | 'minor')}
+            className="w-full p-2 border rounded"
+          >
+            <option value="minor">Minor Story</option>
+            <option value="lead">Lead Story</option>
+          </select>
+        </div>
 
         <div>
           <div className="flex items-center justify-between mb-2">

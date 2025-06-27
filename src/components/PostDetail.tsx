@@ -17,6 +17,7 @@ interface Post {
   image_focal_x?: number;
   image_focal_y?: number;
   image_display_height?: number;
+  story_type: string; // 'lead' or 'minor'
 }
 
 export default function PostDetail() {

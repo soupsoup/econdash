@@ -14,6 +14,7 @@ interface Post {
   created_at: string;
   author: string;
   summary: string;
+  story_type: string; // 'lead' or 'minor'
 }
 
 export default function PostFeed() {
@@ -56,7 +57,12 @@ export default function PostFeed() {
           >
             <div className="flex items-start space-x-4">
               <div className="flex-1">
-                <h3 className="text-lg font-semibold mb-2">{post.title}</h3>
+                <h3 className="text-lg font-semibold mb-2 flex items-center">
+                  {post.title}
+                  {post.story_type === 'lead' && (
+                    <span className='ml-2 px-2 py-0.5 bg-red-500 text-white text-xs rounded'>Lead Story</span>
+                  )}
+                </h3>
                 <p className="text-gray-600 mb-2">{post.summary}</p>
                 <div className="flex items-center text-sm text-gray-500">
                   <span>{post.author}</span>

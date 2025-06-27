@@ -17,6 +17,7 @@ interface Post {
   image_focal_x?: number;
   image_focal_y?: number;
   image_display_height?: number;
+  story_type: string; // 'lead' or 'minor'
 }
 
 function timeAgo(dateString: string) {
@@ -59,8 +60,10 @@ export default function LatestPost() {
   if (loading) return <div>Loading updates...</div>;
   if (!posts.length) return <div>No updates found.</div>;
 
-  const featured = posts[0];
-  const latest = posts.slice(1, 8); // next 7 posts
+  // Find the lead story
+  const featured = posts.find(post => post.story_type === 'lead') || posts[0];
+  // Minor stories: all except the featured
+  const latest = posts.filter(post => post.id !== featured.id).slice(0, 7);
 
   // Get focal point or default to 50%
   const getObjectPosition = (post: Post) => {
