@@ -144,5 +144,65 @@ export const economicIndicators: EconomicIndicator[] = [
     higherIsBetter: true,
     seriesId: '',
     transform: 'none'
+  },
+  {
+    id: 'industrial-production-mfg',
+    name: 'Manufacturing Industrial Production',
+    description: 'Federal Reserve index of real manufacturing output (2017 = 100), seasonally adjusted',
+    unit: 'index',
+    source: 'fred',
+    sourceUrl: 'https://fred.stlouisfed.org/series/IPMAN',
+    frequency: 'monthly',
+    higherIsBetter: true,
+    seriesId: 'IPMAN',
+    transform: 'none'
+  },
+  {
+    id: 'capacity-utilization-mfg',
+    name: 'Manufacturing Capacity Utilization',
+    description: 'Percent of manufacturing capacity in use, Federal Reserve, seasonally adjusted',
+    unit: '%',
+    source: 'fred',
+    sourceUrl: 'https://fred.stlouisfed.org/series/MCUMFN',
+    frequency: 'monthly',
+    higherIsBetter: true,
+    seriesId: 'MCUMFN',
+    transform: 'none'
+  },
+  {
+    id: 'manufacturing-employment',
+    name: 'Manufacturing Employment',
+    description: 'All employees in manufacturing, thousands of jobs, seasonally adjusted (BLS)',
+    unit: 'thousands',
+    source: 'fred',
+    sourceUrl: 'https://fred.stlouisfed.org/series/MANEMP',
+    frequency: 'monthly',
+    higherIsBetter: true,
+    seriesId: 'MANEMP',
+    transform: 'none'
+  },
+  {
+    id: 'core-capital-goods-orders',
+    name: 'Core Capital Goods Orders',
+    description: 'New orders for nondefense capital goods excluding aircraft, millions of dollars (Census), a gauge of business investment',
+    unit: '$M',
+    source: 'fred',
+    sourceUrl: 'https://fred.stlouisfed.org/series/NEWORDER',
+    frequency: 'monthly',
+    higherIsBetter: true,
+    seriesId: 'NEWORDER',
+    transform: 'none'
+  },
+  {
+    id: 'empire-state-manufacturing',
+    name: 'Empire State Manufacturing Survey',
+    description: 'NY Fed general business conditions diffusion index; above 0 means expansion',
+    unit: 'index',
+    source: 'fred',
+    sourceUrl: 'https://fred.stlouisfed.org/series/GACDISA066MSFRBNY',
+    frequency: 'monthly',
+    higherIsBetter: true,
+    seriesId: 'GACDISA066MSFRBNY',
+    transform: 'none'
   }
 ];
