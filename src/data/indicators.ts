@@ -134,15 +134,15 @@ export const economicIndicators: EconomicIndicator[] = [
     transform: 'none'
   },
   {
-    id: 'umich-consumer-sentiment',
-    name: 'UMich Consumer Sentiment',
-    description: 'University of Michigan Consumer Sentiment Index (monthly, CSV upload)',
-    unit: 'index',
+    id: 'jobless-claims',
+    name: 'Initial Jobless Claims',
+    description: 'New filings for unemployment insurance each week, seasonally adjusted. A fast read on layoffs.',
+    unit: 'claims',
     source: 'fred',
-    sourceUrl: '',
-    frequency: 'monthly',
-    higherIsBetter: true,
-    seriesId: '',
+    sourceUrl: 'https://fred.stlouisfed.org/series/ICSA',
+    frequency: 'weekly',
+    higherIsBetter: false,
+    seriesId: 'ICSA',
     transform: 'none'
   },
   {

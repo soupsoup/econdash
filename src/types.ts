@@ -5,7 +5,7 @@ export interface EconomicIndicator {
   unit: string;
   source: 'fred' | 'bls' | 'census' | 'metal';
   sourceUrl: string;
-  frequency: 'monthly' | 'quarterly' | 'annual';
+  frequency: 'weekly' | 'monthly' | 'quarterly' | 'annual';
   higherIsBetter: boolean;
   seriesId: string;
   transform: 'none' | 'percent_change' | 'yoy';

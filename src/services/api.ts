@@ -233,13 +233,6 @@ export async function fetchSupabaseIndicatorData(indicatorId: string): Promise<I
 }
 
 export const fetchIndicatorData = async (indicatorId: string): Promise<IndicatorData> => {
-  if (indicatorId === 'umich-consumer-sentiment') {
-    return {
-      indicator: economicIndicators.find(i => i.id === indicatorId)!,
-      data: await fetchSupabaseIndicatorData(indicatorId),
-      source: 'csv'
-    };
-  }
   const preferences = getDataSourcePreferences();
   const useUploadedData = indicatorId === 'egg-prices' ? false : (preferences[indicatorId]?.useUploadedData || false);
 
