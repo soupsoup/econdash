@@ -5,7 +5,6 @@ import PresidentialComparison from '../components/PresidentialComparison';
 import DataSourceInfo from '../components/DataSourceInfo';
 import NextUpdates from '../components/NextUpdates';
 import PresidentSchedule from '../components/PresidentSchedule';
-import EconomicCalendar from '../components/EconomicCalendar';
 import { useQuery } from 'react-query';
 import { fetchAllIndicatorsData, checkForDataUpdates } from '../services/api';
 import { AlertTriangle, RefreshCw } from 'lucide-react';
@@ -133,10 +132,7 @@ export default function Dashboard() {
                 );
               })}
 
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-12 gap-y-10">
-                <EconomicCalendar />
-                <NextUpdates />
-              </div>
+              <NextUpdates />
             </>
           ) : (
             !isLoading && (
