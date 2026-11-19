@@ -1,6 +1,7 @@
 import React from 'react';
 import { useQuery } from 'react-query';
 import axios from 'axios';
+import { Link } from 'react-router-dom';
 
 interface NewsItem {
   title: string;
@@ -29,18 +30,25 @@ function timeAgo(iso: string | null): string {
   return days < 7 ? `${days}d ago` : new Date(iso).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 }
 
-export default function NewsFeed() {
+interface NewsFeedProps {
+  /** Show only the newest N headlines (all of them when omitted). */
+  limit?: number;
+  /** Lay the list out in two columns and link to the full list on /posts. */
+  compact?: boolean;
+}
+
+export default function NewsFeed({ limit, compact = false }: NewsFeedProps) {
   const { data, isLoading, isError } = useQuery('newsFeed', fetchNews, {
     staleTime: 1000 * 60 * 5,
     refetchInterval: 1000 * 60 * 10,
     retry: 1,
   });
 
-  const items = data?.items ?? [];
+  const items = (data?.items ?? []).slice(0, limit);
   const sources = Array.from(new Set(items.map(i => i.source)));
 
   return (
-    <section className="mt-16">
+    <section className={compact ? 'mt-14' : 'mt-16'}>
       <div className="flex flex-wrap items-baseline justify-between gap-x-6 gap-y-1 border-b-[3px] border-ink pb-2">
         <h2 className="section-title !text-5xl sm:!text-6xl">In the news</h2>
         {sources.length > 0 && (
@@ -53,7 +61,7 @@ export default function NewsFeed() {
       {isLoading && <p className="py-6 eyebrow">Loading headlines...</p>}
       {isError && <p className="py-6 text-ink-soft">Headlines are unavailable right now. Please try again shortly.</p>}
 
-      <ul>
+      <ul className={compact ? 'grid grid-cols-1 lg:grid-cols-2 lg:gap-x-10' : ''}>
         {items.map(item => (
           <li key={item.link} className="border-b border-rule">
             <a
@@ -74,6 +82,14 @@ export default function NewsFeed() {
           </li>
         ))}
       </ul>
+
+      {compact && items.length > 0 && (
+        <div className="mt-5">
+          <Link to="/posts" className="font-display font-bold text-lg tracking-[0.1em] uppercase border-b-2 border-ink pb-0.5">
+            More headlines →
+          </Link>
+        </div>
+      )}
     </section>
   );
 }

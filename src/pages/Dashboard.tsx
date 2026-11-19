@@ -12,6 +12,7 @@ import { economicIndicators } from '../data/indicators';
 import { IndicatorData } from '../types';
 import { useVisibleCharts } from '../hooks/useVisibleCharts';
 import { BreakingNewsBanner } from '../components/BreakingNewsBanner';
+import NewsFeed from '../components/NewsFeed';
 import FrontPage, { FRONT_PAGE_IDS } from '../components/FrontPage';
 import LatestPost from '../components/LatestPost';
 
@@ -98,6 +99,8 @@ export default function Dashboard() {
           {!isLoading && hasValidData ? (
             <>
               <FrontPage indicators={indicators} />
+
+              <NewsFeed limit={8} compact />
 
               <LatestPost />
 
