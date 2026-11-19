@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { IndicatorData } from '../types';
 import { presidents } from '../data/presidents';
-import { BarChart, TrendingUp, TrendingDown } from 'lucide-react';
 
 interface PresidentialComparisonProps {
   indicatorsData: IndicatorData[];
@@ -11,7 +10,7 @@ const PresidentialComparison: React.FC<PresidentialComparisonProps> = ({ indicat
   const [selectedIndicator, setSelectedIndicator] = useState<string>(indicatorsData[0]?.indicator.id || '');
   
   if (indicatorsData.length === 0) {
-    return <div className="text-center py-8">Loading comparison data...</div>;
+    return <div className="text-center py-8 text-ink-soft">Loading comparison data...</div>;
   }
   
   const indicatorData = indicatorsData.find(data => data.indicator.id === selectedIndicator);
@@ -61,17 +60,14 @@ const PresidentialComparison: React.FC<PresidentialComparisonProps> = ({ indicat
   const maxValue = Math.max(...presidentialAverages.map(item => item.average || 0));
   
   return (
-    <div className="bg-white rounded-lg shadow-md p-6">
+    <section className="border-t-4 border-double border-ink pt-5">
       <div className="flex flex-col-reverse sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
-        <h2 className="text-xl font-bold text-gray-800 flex items-center">
-          <BarChart className="h-5 w-5 mr-2 text-blue-600" />
-          Presidential Comparison
-        </h2>
+        <h2 className="section-title">Presidential Comparison</h2>
         
         <select
           value={selectedIndicator}
           onChange={(e) => setSelectedIndicator(e.target.value)}
-          className="w-full sm:w-auto border border-gray-300 rounded-md px-3 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="w-full sm:w-auto bg-paper border border-ink px-3 py-2 font-mono text-xs uppercase tracking-wide focus:outline-none focus:ring-2 focus:ring-accent"
         >
           {indicatorsData.map(data => (
             <option key={data.indicator.id} value={data.indicator.id}>
@@ -84,9 +80,9 @@ const PresidentialComparison: React.FC<PresidentialComparisonProps> = ({ indicat
       <div className="space-y-4">
         {presidentialAverages.map(({ president, average, presidencyId }) => (
           <div key={presidencyId} className="flex items-center">
-            <div className="w-32 text-sm font-medium">
+            <div className="w-32 shrink-0 text-sm font-semibold">
               {president.name}
-              <span className="text-xs text-gray-500 block">
+              <span className="font-mono text-[11px] text-ink-soft block">
                 {president.term.start.substring(0, 4)}
                 {president.term.end ? `-${president.term.end.substring(0, 4)}` : '-Present'}
               </span>
@@ -110,38 +106,32 @@ const PresidentialComparison: React.FC<PresidentialComparisonProps> = ({ indicat
         ))}
       </div>
       
-      <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div className="bg-green-50 p-4 rounded-md border border-green-100">
-          <div className="flex items-center text-green-700 mb-2">
-            <TrendingUp className="h-4 w-4 mr-2" />
-            <h3 className="font-semibold">Best Performance</h3>
-          </div>
-          <p className="text-sm text-gray-700">
-            <span className="font-medium">{bestPresident?.president.name}</span> had the 
+      <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-6">
+        <div className="border-t-2 border-ink pt-3">
+          <div className="eyebrow !text-good mb-2">▲ Best performance</div>
+          <p className="text-base text-ink-soft">
+            <span className="font-semibold text-ink">{bestPresident?.president.name}</span> had the 
             {indicatorData.indicator.higherIsBetter ? ' highest ' : ' lowest '}
             average {indicatorData.indicator.name.toLowerCase()} at 
-            <span className="font-medium"> {bestPresident?.average?.toFixed(2)} {indicatorData.indicator.unit}</span>
+            <span className="font-semibold text-ink"> {bestPresident?.average?.toFixed(2)} {indicatorData.indicator.unit}</span>
           </p>
         </div>
         
-        <div className="bg-red-50 p-4 rounded-md border border-red-100">
-          <div className="flex items-center text-red-700 mb-2">
-            <TrendingDown className="h-4 w-4 mr-2" />
-            <h3 className="font-semibold">Worst Performance</h3>
-          </div>
-          <p className="text-sm text-gray-700">
-            <span className="font-medium">{worstPresident?.president.name}</span> had the 
+        <div className="border-t-2 border-ink pt-3">
+          <div className="eyebrow !text-accent mb-2">▼ Worst performance</div>
+          <p className="text-base text-ink-soft">
+            <span className="font-semibold text-ink">{worstPresident?.president.name}</span> had the 
             {indicatorData.indicator.higherIsBetter ? ' lowest ' : ' highest '}
             average {indicatorData.indicator.name.toLowerCase()} at 
-            <span className="font-medium"> {worstPresident?.average?.toFixed(2)} {indicatorData.indicator.unit}</span>
+            <span className="font-semibold text-ink"> {worstPresident?.average?.toFixed(2)} {indicatorData.indicator.unit}</span>
           </p>
         </div>
       </div>
       
-      <div className="mt-4 text-xs text-gray-500">
+      <div className="mt-6 font-mono text-[11px] text-ink-soft">
         Note: Averages are calculated based on available data during each presidential term.
       </div>
-    </div>
+    </section>
   );
 };
 

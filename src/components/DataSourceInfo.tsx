@@ -1,95 +1,65 @@
 import React from 'react';
-import { ExternalLink, Database, RefreshCw, Key } from 'lucide-react';
+
+const SOURCES = [
+  {
+    name: 'Bureau of Labor Statistics (BLS)',
+    blurb: 'The principal fact-finding agency of the U.S. government for labor economics and statistics, within the Department of Labor.',
+    href: 'https://www.bls.gov/data/',
+    link: 'Visit BLS Data',
+  },
+  {
+    name: 'Federal Reserve Economic Data (FRED)',
+    blurb: 'A database of hundreds of thousands of economic time series from national, international, public and private sources, run by the St. Louis Fed.',
+    href: 'https://fred.stlouisfed.org/',
+    link: 'Visit FRED',
+  },
+  {
+    name: 'U.S. Energy Information Administration (EIA)',
+    blurb: 'Collects, analyzes and publishes independent and impartial energy information to support sound policymaking and efficient markets.',
+    href: 'https://www.eia.gov/tools/api/index.php',
+    link: 'Visit EIA Data',
+  },
+];
 
 const DataSourceInfo: React.FC = () => {
   return (
-    <div className="bg-white rounded-lg shadow-md p-6">
-      <h2 className="text-xl font-bold text-gray-800 flex items-center mb-4">
-        <Database className="h-5 w-5 mr-2 text-blue-600" />
-        Data Sources
-      </h2>
-      
-      <div className="space-y-4">
-        <div className="border-b pb-4">
-          <h3 className="font-medium text-gray-800 mb-2">Bureau of Labor Statistics (BLS)</h3>
-          <p className="text-sm text-gray-600 mb-2">
-            The BLS is a unit of the United States Department of Labor that serves as the principal fact-finding agency for the U.S. government in the field of labor economics and statistics.
-          </p>
-          <div className="flex items-center text-xs text-gray-500 mb-2">
-            <Key className="h-3 w-3 mr-1" />
-            <span>API access configured</span>
-          </div>
-          <a 
-            href="https://www.bls.gov/data/" 
-            target="_blank" 
-            rel="noopener noreferrer"
-            className="text-blue-600 hover:text-blue-800 flex items-center text-sm"
-          >
-            <span className="mr-1">Visit BLS Data</span>
-            <ExternalLink className="h-3 w-3" />
-          </a>
-        </div>
-        
-        <div className="border-b pb-4">
-          <h3 className="font-medium text-gray-800 mb-2">Federal Reserve Economic Data (FRED)</h3>
-          <p className="text-sm text-gray-600 mb-2">
-            FRED is an online database consisting of hundreds of thousands of economic data time series from scores of national, international, public, and private sources.
-          </p>
-          <div className="flex items-center text-xs text-gray-500 mb-2">
-            <Key className="h-3 w-3 mr-1" />
-            <span>API access configured</span>
-          </div>
-          <a 
-            href="https://fred.stlouisfed.org/" 
-            target="_blank" 
-            rel="noopener noreferrer"
-            className="text-blue-600 hover:text-blue-800 flex items-center text-sm"
-          >
-            <span className="mr-1">Visit FRED</span>
-            <ExternalLink className="h-3 w-3" />
-          </a>
-        </div>
-        
-        <div>
-          <h3 className="font-medium text-gray-800 mb-2">U.S. Energy Information Administration (EIA)</h3>
-          <p className="text-sm text-gray-600 mb-2">
-            The EIA collects, analyzes, and disseminates independent and impartial energy information to promote sound policymaking, efficient markets, and public understanding.
-          </p>
-          <div className="flex items-center text-xs text-gray-500 mb-2">
-            <Key className="h-3 w-3 mr-1" />
-            <span>API access configured</span>
-          </div>
-          <a 
-            href="https://www.eia.gov/tools/api/index.php" 
-            target="_blank" 
-            rel="noopener noreferrer"
-            className="text-blue-600 hover:text-blue-800 flex items-center text-sm"
-          >
-            <span className="mr-1">Visit EIA Data</span>
-            <ExternalLink className="h-3 w-3" />
-          </a>
-        </div>
+    <section className="border-t-4 border-double border-ink pt-5">
+      <div className="flex items-baseline justify-between gap-3 mb-6">
+        <h2 className="section-title">Data Sources</h2>
+        <span className="eyebrow">Where the numbers come from</span>
       </div>
-      
-      <div className="mt-6 bg-blue-50 p-4 rounded-md border border-blue-100">
-        <div className="flex items-start">
-          <RefreshCw className="h-5 w-5 text-blue-600 mr-3 mt-0.5" />
-          <div>
-            <h3 className="font-medium text-gray-800 mb-1">Data Update Schedule</h3>
-            <p className="text-sm text-gray-600">
-              This dashboard checks for new data daily from all sources. Different economic indicators are updated at different frequencies:
-            </p>
-            <ul className="text-sm text-gray-600 mt-2 space-y-1 list-disc list-inside">
-              <li>Daily: Stock market indices</li>
-              <li>Weekly: Gas prices</li>
-              <li>Monthly: Unemployment, inflation, job creation</li>
-              <li>Quarterly: GDP growth, federal debt</li>
-              <li>Yearly: Median household income</li>
-            </ul>
+
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-x-10 gap-y-8">
+        {SOURCES.map(source => (
+          <div key={source.name} className="border-t-2 border-ink pt-3">
+            <h3 className="font-display font-extrabold text-xl leading-tight">{source.name}</h3>
+            <p className="mt-2 text-base leading-snug text-ink-soft">{source.blurb}</p>
+            <a
+              href={source.href}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="mt-3 inline-block font-mono text-xs uppercase tracking-wider border-b border-ink"
+            >
+              {source.link} ↗
+            </a>
           </div>
-        </div>
+        ))}
       </div>
-    </div>
+
+      <div className="mt-10 py-5 border-y border-ink">
+        <div className="eyebrow !text-accent">Update schedule</div>
+        <p className="mt-2 text-base text-ink-soft max-w-3xl">
+          This dashboard checks for new data daily from all sources. Different indicators are published at different frequencies:
+        </p>
+        <dl className="mt-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-x-8 gap-y-3 text-base">
+          <div><dt className="eyebrow">Daily</dt><dd>Stock market indices</dd></div>
+          <div><dt className="eyebrow">Weekly</dt><dd>Gas prices, mortgage rates</dd></div>
+          <div><dt className="eyebrow">Monthly</dt><dd>Unemployment, inflation, jobs, manufacturing</dd></div>
+          <div><dt className="eyebrow">Quarterly</dt><dd>GDP growth, federal debt</dd></div>
+          <div><dt className="eyebrow">Yearly</dt><dd>Median household income</dd></div>
+        </dl>
+      </div>
+    </section>
   );
 };
 

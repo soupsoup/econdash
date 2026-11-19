@@ -26,21 +26,21 @@ export const BreakingNewsBanner: React.FC = () => {
   if (!news || !isVisible) return null;
 
   return (
-    <div className="bg-yellow-50 border-b border-yellow-200">
+    <div className="bg-ink text-paper">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center">
-            <AlertTriangle className="h-5 w-5 text-yellow-500 mr-2" />
-            <p className="text-sm text-yellow-800">
+            <AlertTriangle className="h-5 w-5 text-paper mr-2" />
+            <p className="text-sm text-paper">
               {news.message}
-              <span className="text-xs text-yellow-600 ml-2">
+              <span className="text-xs text-paper/70 ml-2">
                 ({new Date(news.timestamp).toLocaleString()})
               </span>
             </p>
           </div>
           <button
             onClick={() => setIsVisible(false)}
-            className="text-yellow-600 hover:text-yellow-800"
+            className="text-paper/70 hover:text-paper"
             aria-label="Dismiss breaking news"
           >
             <X className="h-4 w-4" />

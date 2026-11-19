@@ -77,7 +77,7 @@ export default function LatestPost() {
   };
 
   return (
-    <div className="flex flex-col md:flex-row gap-8 bg-white rounded shadow p-6 min-h-[22rem]">
+    <div className="flex flex-col md:flex-row gap-8 border-t-4 border-double border-ink pt-5 min-h-[22rem]">
       {/* Featured Post */}
       <div className="flex-1 min-w-0 flex flex-col">
         {featured.image_url && (
@@ -85,22 +85,22 @@ export default function LatestPost() {
             <img
               src={featured.image_url}
               alt={featured.title}
-              className="w-full object-cover rounded"
+              className="w-full object-cover"
               style={{ background: '#fff', objectPosition: getObjectPosition(featured), height: getImageHeight(featured), maxHeight: '600px' }}
             />
           </div>
         )}
         <div className="flex flex-col justify-end flex-none">
-          <div className="mb-2 text-xs text-gray-500">
+          <div className="mb-2 text-xs text-ink-soft">
             {featured.author} • {new Date(featured.created_at).toLocaleDateString()}
           </div>
-          <h2 className="text-2xl font-bold mb-2">{featured.title}</h2>
-          <div className="mb-4 text-gray-700 text-lg">
+          <h2 className="font-display font-extrabold text-3xl leading-tight tracking-tight mb-2">{featured.title}</h2>
+          <div className="mb-4 text-ink-soft text-lg">
             {featured.summary}
           </div>
           <a
             href={`/post/${featured.id}`}
-            className="inline-block text-blue-600 hover:underline font-semibold"
+            className="inline-block font-mono text-xs uppercase tracking-wider border-b border-ink"
           >
             Read more →
           </a>
@@ -108,18 +108,18 @@ export default function LatestPost() {
       </div>
 
       {/* Latest Sidebar */}
-      <div className="w-full md:w-80 flex-shrink-0 border-t md:border-t-0 md:border-l border-gray-200 pl-0 md:pl-8 mt-8 md:mt-0">
+      <div className="w-full md:w-80 flex-shrink-0 border-t md:border-t-0 md:border-l border-rule pl-0 md:pl-8 mt-8 md:mt-0">
         <div className="flex items-center justify-between mb-4">
-          <h3 className="text-xl font-bold text-red-600">Latest</h3>
-          <button className="text-xs border rounded px-2 py-1 text-gray-600">All categories</button>
+          <h3 className="eyebrow !text-accent !text-sm">Latest</h3>
+          <button className="font-mono text-[11px] uppercase border border-ink px-2 py-1">All categories</button>
         </div>
-        <ul className="divide-y divide-gray-200">
+        <ul className="divide-y divide-rule">
           {latest.map((post) => (
             <li key={post.id} className="py-3 flex flex-col">
-              <div className="text-xs text-gray-400 mb-1">{timeAgo(post.created_at)}</div>
+              <div className="text-xs text-ink-soft mb-1">{timeAgo(post.created_at)}</div>
               <a
                 href={`/post/${post.id}`}
-                className="text-base font-medium text-gray-900 hover:text-blue-600"
+                className="text-base font-medium text-ink hover:text-accent"
               >
                 {post.title}
               </a>
@@ -127,7 +127,7 @@ export default function LatestPost() {
           ))}
         </ul>
         <div className="mt-4 text-right">
-          <a href="/posts" className="text-blue-600 hover:underline text-sm">See all latest &rarr;</a>
+          <a href="/posts" className="font-mono text-xs uppercase tracking-wider border-b border-ink">See all latest &rarr;</a>
         </div>
       </div>
     </div>

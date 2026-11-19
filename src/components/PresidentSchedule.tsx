@@ -1,6 +1,5 @@
 import React from 'react';
 import { useQuery, QueryFunction } from 'react-query';
-import { Calendar } from 'lucide-react';
 import axios from 'axios';
 
 interface ScheduleEvent {
@@ -85,11 +84,11 @@ const PresidentSchedule: React.FC = () => {
 
   if (isLoading) {
     return (
-      <div className="bg-white rounded-lg shadow-md p-6 animate-pulse">
-        <div className="h-6 bg-gray-200 rounded w-1/4 mb-4"></div>
+      <div className="border-t-4 border-double border-ink pt-5 animate-pulse">
+        <div className="h-6 bg-rule rounded w-1/4 mb-4"></div>
         <div className="space-y-3">
-          <div className="h-4 bg-gray-200 rounded w-3/4"></div>
-          <div className="h-4 bg-gray-200 rounded w-2/3"></div>
+          <div className="h-4 bg-rule rounded w-3/4"></div>
+          <div className="h-4 bg-rule rounded w-2/3"></div>
         </div>
       </div>
     );
@@ -97,8 +96,8 @@ const PresidentSchedule: React.FC = () => {
 
   if (isError) {
     return (
-      <div className="bg-white rounded-lg shadow-md p-6">
-        <div className="text-red-600">
+      <div className="border-t-4 border-double border-ink pt-5">
+        <div className="text-accent">
           Unable to load President's schedule at this time.
           <br />
           <small>{error?.message}</small>
@@ -118,40 +117,40 @@ const PresidentSchedule: React.FC = () => {
   }, {} as Record<string, ScheduleEvent[]>) || {};
 
   return (
-    <div className="bg-white rounded-lg shadow-md p-6">
-      <div className="flex items-center mb-6">
-        <Calendar className="h-6 w-6 text-blue-600 mr-2" />
-        <h2 className="text-xl font-semibold">President's Schedule</h2>
+    <section className="border-t-4 border-double border-ink pt-5">
+      <div className="flex items-baseline justify-between gap-3 mb-6">
+        <h2 className="section-title">President's Schedule</h2>
+        <span className="eyebrow">Today and tomorrow</span>
       </div>
 
       {(!scheduleData || scheduleData.length === 0) ? (
-        <p className="text-gray-600">No scheduled events for today or tomorrow.</p>
+        <p className="text-ink-soft">No scheduled events for today or tomorrow.</p>
       ) : (
-        <div className="space-y-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-8">
           {Object.entries(eventsByDate).map(([date, events]) => (
             <div key={date} className="space-y-4">
-              <h3 className="text-lg font-semibold text-gray-700 border-b border-gray-200 pb-2">
+              <h3 className="font-display font-extrabold text-xl border-b border-ink pb-2">
                 {formatDate(events[0])}
               </h3>
-              <div className="space-y-4">
+              <div>
                 {events.map((event, index) => (
                   <div 
                     key={`${event.time}-${index}`}
-                    className="p-4 bg-gray-50 rounded-lg border border-gray-100"
+                    className="py-4 border-b border-rule"
                   >
                     <div className="flex justify-between items-start mb-2">
-                      <span className="font-semibold text-blue-900">
+                      <span className="font-mono text-xs uppercase tracking-wider text-accent">
                         {event.time_formatted || 'All Day'}
                       </span>
                       {event.coverage && (
-                        <span className="text-sm text-gray-600 bg-gray-200 px-2 py-1 rounded">
+                        <span className="font-mono text-[11px] uppercase tracking-wide text-ink-soft border border-rule px-2 py-0.5">
                           {event.coverage}
                         </span>
                       )}
                     </div>
-                    <p className="text-gray-800 mb-2">{event.details}</p>
+                    <p className="text-ink mb-1 leading-snug">{event.details}</p>
                     {event.location && (
-                      <p className="text-sm text-gray-600">
+                      <p className="text-sm text-ink-soft">
                         Location: {event.location}
                       </p>
                     )}
@@ -162,7 +161,7 @@ const PresidentSchedule: React.FC = () => {
           ))}
         </div>
       )}
-    </div>
+    </section>
   );
 };
 

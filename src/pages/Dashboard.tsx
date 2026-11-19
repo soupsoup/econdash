@@ -15,7 +15,6 @@ import { useVisibleCharts } from '../hooks/useVisibleCharts';
 import { BreakingNewsBanner } from '../components/BreakingNewsBanner';
 import FrontPage, { FRONT_PAGE_IDS } from '../components/FrontPage';
 import LatestPost from '../components/LatestPost';
-import WireServiceFeed from '../components/WireServiceFeed';
 
 const INDICATOR_GROUPS = [
   { title: 'More Indicators', note: 'Growth, inflation, debt, income', ids: (id: string) => !FRONT_PAGE_IDS.includes(id) },
@@ -81,14 +80,14 @@ export default function Dashboard() {
         <div className="mb-8" />
         
         {isRefreshing && (
-          <div className="fixed top-4 right-4 bg-blue-100 text-blue-800 px-4 py-2 rounded-lg shadow-md flex items-center space-x-2">
+          <div className="fixed top-4 right-4 bg-ink text-paper font-mono text-xs uppercase tracking-wide px-4 py-2 shadow-md flex items-center space-x-2">
             <RefreshCw className="h-4 w-4 animate-spin" />
             <span>Updating data...</span>
           </div>
         )}
 
         {isError && (
-          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-6">
+          <div className="border-y-2 border-accent text-accent px-1 py-3 relative mb-6">
             <div className="flex items-center">
               <AlertTriangle className="h-5 w-5 mr-2" />
               <span>Error loading data: {error instanceof Error ? error.message : 'Unknown error'}</span>
@@ -96,15 +95,12 @@ export default function Dashboard() {
           </div>
         )}
 
-        <div className="space-y-8">
+        <div className="space-y-12">
           {!isLoading && hasValidData ? (
             <>
               <FrontPage indicators={indicators} />
 
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
-                <LatestPost />
-                <WireServiceFeed />
-              </div>
+              <LatestPost />
 
               {INDICATOR_GROUPS.map(group => {
                 const items = economicIndicators.filter(
@@ -137,7 +133,7 @@ export default function Dashboard() {
                 );
               })}
 
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-12 gap-y-10">
                 <EconomicCalendar />
                 <NextUpdates />
               </div>
@@ -173,7 +169,7 @@ export default function Dashboard() {
           <PresidentSchedule />
           
           {!isLoading && hasValidData && (
-            <div className="space-y-8">
+            <div className="space-y-12">
               <PresidentialComparison indicatorsData={indicators} />
               <DataSourceInfo />
             </div>

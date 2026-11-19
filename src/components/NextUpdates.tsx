@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { economicIndicators } from '../data/indicators';
 import { getNextUpdateDate, formatDateTime } from '../utils/dateUtils';
-import { Clock } from 'lucide-react';
 import { useVisibleCharts } from '../hooks/useVisibleCharts';
 
 interface UpdateInfo {
@@ -25,7 +24,7 @@ class ErrorBoundary extends React.Component<{ children: React.ReactNode }, { has
   }
   render() {
     if (this.state.hasError) {
-      return <div className="bg-red-100 text-red-800 p-4 rounded">An error occurred while loading updates. Please try again later.</div>;
+      return <div className="border-y-2 border-accent text-accent py-3">An error occurred while loading updates. Please try again later.</div>;
     }
     return this.props.children;
   }
@@ -92,34 +91,34 @@ const NextUpdates: React.FC = () => {
 
   return (
     <ErrorBoundary>
-      <div className="bg-white rounded-lg shadow-md p-6">
-        <div className="flex items-center mb-6">
-          <Clock className="h-6 w-6 text-blue-600 mr-2" />
-          <h2 className="text-xl font-semibold">Upcoming Data Updates</h2>
+      <section className="border-t-4 border-double border-ink pt-5 min-w-0">
+        <div className="flex items-baseline justify-between gap-3 mb-4">
+          <h2 className="section-title">Upcoming Data Updates</h2>
+          <span className="eyebrow">Release schedule</span>
         </div>
-        
+
         {updates.length > 0 && (
-          <div className="mb-8 p-4 bg-blue-50 rounded-lg border border-blue-100">
-            <p className="text-lg text-blue-900">
-              Next update: <span className="font-semibold">{updates[0].name}</span>
-              <br />
-              Time until update: <span className="font-semibold">{timeUntilNextUpdate}</span>
-            </p>
+          <div className="mb-2 py-4 border-y border-ink">
+            <div className="eyebrow !text-accent">Next release</div>
+            <div className="mt-1 flex flex-wrap items-baseline justify-between gap-x-6 gap-y-1">
+              <span className="font-display font-extrabold text-2xl tracking-tight">{updates[0].name}</span>
+              <span className="font-mono text-sm">in {timeUntilNextUpdate}</span>
+            </div>
           </div>
         )}
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+        <ul>
           {updates.map(update => (
-            <div 
-              key={update.id} 
-              className="bg-gray-50 rounded-lg p-4 border border-gray-100"
+            <li
+              key={update.id}
+              className="flex flex-wrap justify-between gap-x-6 gap-y-1 py-3 border-b border-rule"
             >
-              <h3 className="font-semibold text-gray-800 mb-2">{update.name}</h3>
-              <p className="text-gray-600 text-sm">{formatDateTime(update.nextUpdate)}</p>
-            </div>
+              <span className="font-semibold">{update.name}</span>
+              <span className="font-mono text-xs text-ink-soft sm:text-right">{formatDateTime(update.nextUpdate)}</span>
+            </li>
           ))}
-        </div>
-      </div>
+        </ul>
+      </section>
     </ErrorBoundary>
   );
 };
