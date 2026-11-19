@@ -13,20 +13,12 @@ import { economicIndicators } from '../data/indicators';
 import { IndicatorData } from '../types';
 import { useVisibleCharts } from '../hooks/useVisibleCharts';
 import { BreakingNewsBanner } from '../components/BreakingNewsBanner';
+import FrontPage, { FRONT_PAGE_IDS } from '../components/FrontPage';
 import LatestPost from '../components/LatestPost';
 import WireServiceFeed from '../components/WireServiceFeed';
 
-const MANUFACTURING_IDS = new Set([
-  'industrial-production-mfg',
-  'capacity-utilization-mfg',
-  'manufacturing-employment',
-  'core-capital-goods-orders',
-  'empire-state-manufacturing',
-]);
-
 const INDICATOR_GROUPS = [
-  { title: 'The Big Numbers', note: 'Jobs, prices, housing, markets', ids: (id: string) => !MANUFACTURING_IDS.has(id) },
-  { title: 'Manufacturing', note: 'Output, capacity, jobs, orders', ids: (id: string) => MANUFACTURING_IDS.has(id) },
+  { title: 'More Indicators', note: 'Growth, inflation, debt, income', ids: (id: string) => !FRONT_PAGE_IDS.includes(id) },
 ];
 
 export default function Dashboard() {
@@ -86,12 +78,6 @@ export default function Dashboard() {
       <Header />
       <main className="container mx-auto px-4 py-8 max-w-6xl">
         <BreakingNewsBanner />
-        <div className="mt-6">
-          <LatestPost />
-        </div>
-        <div className="mt-6">
-          <WireServiceFeed />
-        </div>
         <div className="mb-8" />
         
         {isRefreshing && (
@@ -113,6 +99,13 @@ export default function Dashboard() {
         <div className="space-y-8">
           {!isLoading && hasValidData ? (
             <>
+              <FrontPage indicators={indicators} />
+
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
+                <LatestPost />
+                <WireServiceFeed />
+              </div>
+
               {INDICATOR_GROUPS.map(group => {
                 const items = economicIndicators.filter(
                   indicator =>
