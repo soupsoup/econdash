@@ -16,6 +16,19 @@ import { BreakingNewsBanner } from '../components/BreakingNewsBanner';
 import LatestPost from '../components/LatestPost';
 import WireServiceFeed from '../components/WireServiceFeed';
 
+const MANUFACTURING_IDS = new Set([
+  'industrial-production-mfg',
+  'capacity-utilization-mfg',
+  'manufacturing-employment',
+  'core-capital-goods-orders',
+  'empire-state-manufacturing',
+]);
+
+const INDICATOR_GROUPS = [
+  { title: 'The Big Numbers', note: 'Jobs, prices, housing, markets', ids: (id: string) => !MANUFACTURING_IDS.has(id) },
+  { title: 'Manufacturing', note: 'Output, capacity, jobs, orders', ids: (id: string) => MANUFACTURING_IDS.has(id) },
+];
+
 export default function Dashboard() {
   const [lastUpdated, setLastUpdated] = useState<string | null>(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -70,9 +83,9 @@ export default function Dashboard() {
   const hasValidData = indicators && indicators.length > 0;
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-paper">
       <Header />
-      <main className="container mx-auto px-4 py-8">
+      <main className="container mx-auto px-4 py-8 max-w-6xl">
         <BreakingNewsBanner />
         <div className="mt-6">
           <LatestPost />
@@ -101,24 +114,36 @@ export default function Dashboard() {
         <div className="space-y-8">
           {!isLoading && hasValidData ? (
             <>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                {economicIndicators
-                  .filter(indicator => 
-                    visibleCharts.includes(indicator.id) && 
+              {INDICATOR_GROUPS.map(group => {
+                const items = economicIndicators.filter(
+                  indicator =>
+                    group.ids(indicator.id) &&
+                    visibleCharts.includes(indicator.id) &&
                     indicator.id !== 'GOLDAMGBD228NLBM' // Remove FRED gold price indicator
-                  )
-                  .map(indicator => {
-                    const indicatorData = indicators.find(d => d.indicator?.id === indicator.id);
-                    return (
-                      <IndicatorCard
-                        key={indicator.id}
-                        data={indicatorData || { indicator, data: [], source: 'api' }}
-                        isLoading={isLoading || isRefreshing}
-                        refetch={refetch}
-                      />
-                    );
-                  })}
-              </div>
+                );
+                if (items.length === 0) return null;
+                return (
+                  <section key={group.title}>
+                    <div className="flex items-baseline justify-between border-b-4 border-double border-ink pb-2 mb-6">
+                      <h2 className="section-title">{group.title}</h2>
+                      <span className="eyebrow hidden sm:inline">{group.note}</span>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-10 gap-y-4">
+                      {items.map(indicator => {
+                        const indicatorData = indicators.find(d => d.indicator?.id === indicator.id);
+                        return (
+                          <IndicatorCard
+                            key={indicator.id}
+                            data={indicatorData || { indicator, data: [], source: 'api' }}
+                            isLoading={isLoading || isRefreshing}
+                            refetch={refetch}
+                          />
+                        );
+                      })}
+                    </div>
+                  </section>
+                );
+              })}
 
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <EconomicCalendar />
@@ -128,25 +153,25 @@ export default function Dashboard() {
           ) : (
             !isLoading && (
               <div className="text-center py-12">
-                <h2 className="text-2xl font-semibold text-gray-800 mb-4">Welcome to America Econ</h2>
-                <p className="text-gray-600 mb-6">
+                <h2 className="text-2xl font-semibold text-ink mb-4">Welcome to The Economy</h2>
+                <p className="text-ink-soft mb-6">
                   Your dashboard for tracking key economic indicators and presidential impacts.
                 </p>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  <div className="bg-white p-6 rounded-lg shadow">
+                  <div className="border-t-2 border-ink pt-4">
                     <h3 className="text-lg font-semibold mb-2">Economic Updates</h3>
-                    <p className="text-gray-600 mb-4">Stay informed with the latest economic news and analysis.</p>
-                    <a href="/posts" className="text-blue-600 hover:text-blue-800">View Updates →</a>
+                    <p className="text-ink-soft mb-4">Stay informed with the latest economic news and analysis.</p>
+                    <a href="/posts" className="text-accent hover:underline">View Updates →</a>
                   </div>
-                  <div className="bg-white p-6 rounded-lg shadow">
+                  <div className="border-t-2 border-ink pt-4">
                     <h3 className="text-lg font-semibold mb-2">Presidential Impact</h3>
-                    <p className="text-gray-600 mb-4">Explore how different presidential administrations have affected the economy.</p>
-                    <a href="/indicator/unemployment" className="text-blue-600 hover:text-blue-800">View Analysis →</a>
+                    <p className="text-ink-soft mb-4">Explore how different presidential administrations have affected the economy.</p>
+                    <a href="/indicator/unemployment" className="text-accent hover:underline">View Analysis →</a>
                   </div>
-                  <div className="bg-white p-6 rounded-lg shadow">
+                  <div className="border-t-2 border-ink pt-4">
                     <h3 className="text-lg font-semibold mb-2">Economic Calendar</h3>
-                    <p className="text-gray-600 mb-4">Track upcoming economic events and data releases.</p>
-                    <a href="/calendar" className="text-blue-600 hover:text-blue-800">View Calendar →</a>
+                    <p className="text-ink-soft mb-4">Track upcoming economic events and data releases.</p>
+                    <a href="/calendar" className="text-accent hover:underline">View Calendar →</a>
                   </div>
                 </div>
               </div>

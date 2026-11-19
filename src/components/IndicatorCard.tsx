@@ -13,10 +13,10 @@ interface IndicatorCardProps {
 const IndicatorCard: React.FC<IndicatorCardProps> = ({ data, isLoading, refetch }) => {
   if (isLoading) {
     return (
-      <div className="bg-white rounded-lg shadow-md p-6 animate-pulse">
-        <div className="h-6 bg-gray-200 rounded w-3/4 mb-4"></div>
-        <div className="h-4 bg-gray-200 rounded w-full mb-6"></div>
-        <div className="h-40 bg-gray-200 rounded w-full"></div>
+      <div className="border-t-2 border-ink pt-4 pb-6 animate-pulse">
+        <div className="h-6 bg-rule rounded w-3/4 mb-4"></div>
+        <div className="h-4 bg-rule rounded w-full mb-6"></div>
+        <div className="h-40 bg-rule rounded w-full"></div>
       </div>
     );
   }
@@ -24,16 +24,16 @@ const IndicatorCard: React.FC<IndicatorCardProps> = ({ data, isLoading, refetch 
   // If data is null, show a loading state
   if (!data) {
     return (
-      <div className="bg-white rounded-lg shadow-md p-6">
+      <div className="border-t-2 border-ink pt-4 pb-6">
         <div className="flex justify-between items-start mb-4">
           <div>
-            <h3 className="text-lg font-semibold text-gray-800">Loading...</h3>
-            <p className="text-sm text-gray-600">Fetching indicator data</p>
+            <h3 className="font-mono text-xs uppercase tracking-widest text-ink">Loading...</h3>
+            <p className="text-sm text-ink-soft">Fetching indicator data</p>
           </div>
         </div>
 
-        <div className="flex items-center justify-center h-40 bg-gray-50 rounded-md">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+        <div className="flex items-center justify-center h-40 bg-black/5 rounded-md">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-ink"></div>
         </div>
       </div>
     );
@@ -44,11 +44,11 @@ const IndicatorCard: React.FC<IndicatorCardProps> = ({ data, isLoading, refetch 
   // Check if we have data
   if (!dataPoints || dataPoints.length === 0) {
     return (
-      <div className="bg-white rounded-lg shadow-md p-6">
+      <div className="border-t-2 border-ink pt-4 pb-6">
         <div className="flex justify-between items-start mb-4">
           <div>
-            <h3 className="text-lg font-semibold text-gray-800">{indicator.name}</h3>
-            <p className="text-sm text-gray-600">{indicator.description}</p>
+            <h3 className="font-mono text-xs uppercase tracking-widest text-ink">{indicator.name}</h3>
+            <p className="mt-1 text-sm leading-snug text-ink-soft">{indicator.description}</p>
           </div>
         </div>
 
@@ -59,13 +59,13 @@ const IndicatorCard: React.FC<IndicatorCardProps> = ({ data, isLoading, refetch 
           </div>
         </div>
 
-        <div className="mt-4 text-xs text-gray-500 flex justify-between items-center">
+        <div className="mt-4 font-mono text-[11px] uppercase tracking-wide text-ink-soft flex justify-between items-center">
           <div>
             <span>Source: {indicator.source}</span>
           </div>
           <Link 
             to={`/indicator/${indicator.id}`}
-            className="text-blue-600 hover:text-blue-800 flex items-center text-xs"
+            className="text-ink hover:text-accent flex items-center text-xs"
           >
             <span className="mr-1">Details</span>
             <ArrowUpRight className="h-3 w-3" />
@@ -142,16 +142,16 @@ const IndicatorCard: React.FC<IndicatorCardProps> = ({ data, isLoading, refetch 
   };
 
   return (
-    <div className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow">
+    <div className="border-t-2 border-ink pt-4 pb-6">
       <div className="flex justify-between items-center mb-4">
         <div>
-          <h3 className="text-lg font-semibold text-gray-800">{indicator.name}</h3>
-          <p className="text-sm text-gray-600">{indicator.description}</p>
+          <h3 className="font-mono text-xs uppercase tracking-widest text-ink">{indicator.name}</h3>
+          <p className="mt-1 text-sm leading-snug text-ink-soft">{indicator.description}</p>
         </div>
         <div className="flex space-x-2">
           <Link 
             to={`/indicator/${indicator.id}`}
-            className="text-blue-600 hover:text-blue-800 flex items-center text-sm"
+            className="text-ink hover:text-accent flex items-center text-sm"
             title="View detailed data"
           >
             <Maximize2 className="h-4 w-4" />
@@ -160,7 +160,7 @@ const IndicatorCard: React.FC<IndicatorCardProps> = ({ data, isLoading, refetch 
             href={indicator.sourceUrl} 
             target="_blank" 
             rel="noopener noreferrer"
-            className="text-blue-600 hover:text-blue-800 flex items-center text-sm"
+            className="text-ink hover:text-accent flex items-center text-sm"
             title="View source data"
           >
             <ExternalLink className="h-4 w-4" />
@@ -169,12 +169,12 @@ const IndicatorCard: React.FC<IndicatorCardProps> = ({ data, isLoading, refetch 
       </div>
 
       <div className="flex items-baseline mb-6">
-        <span className="text-3xl font-bold mr-2">
+        <span className="font-display font-extrabold text-5xl tracking-tight mr-3">
           {formatValue(currentValue)}
         </span>
 
         {change !== 0 && previousValue && (
-          <div className={`flex items-center text-sm ${isPositiveChange ? 'text-green-600' : 'text-red-600'}`}>
+          <div className={`flex items-center text-sm ${isPositiveChange ? 'text-good' : 'text-accent'}`}>
             {isPositiveChange ? (
               <ArrowUpRight className="h-4 w-4 mr-1" />
             ) : (
@@ -191,7 +191,7 @@ const IndicatorCard: React.FC<IndicatorCardProps> = ({ data, isLoading, refetch 
         <DetailChart data={data} filteredData={data?.data} /> {/* Added filteredData prop */}
       </div>
 
-      <div className="mt-4 text-xs text-gray-500 flex justify-between items-center">
+      <div className="mt-4 font-mono text-[11px] uppercase tracking-wide text-ink-soft flex justify-between items-center">
         <div>
           <span>Updated {indicator.frequency}</span>
           <span className="mx-2">•</span>
@@ -199,7 +199,7 @@ const IndicatorCard: React.FC<IndicatorCardProps> = ({ data, isLoading, refetch 
         </div>
         <Link 
           to={`/indicator/${indicator.id}`}
-          className="text-blue-600 hover:text-blue-800 flex items-center text-xs"
+          className="text-ink hover:text-accent flex items-center text-xs"
         >
           <span className="mr-1">Details</span>
           <ArrowUpRight className="h-3 w-3" />

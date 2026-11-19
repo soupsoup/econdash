@@ -1,3 +1,21 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-paper text-ink font-serif;
+  }
+  a:hover {
+    @apply text-accent;
+  }
+}
+
+@layer components {
+  .eyebrow {
+    @apply font-mono text-xs uppercase tracking-widest text-ink-soft;
+  }
+  .section-title {
+    @apply font-display font-extrabold text-3xl tracking-tight;
+  }
+}
