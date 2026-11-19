@@ -1,0 +1,21 @@
+[Unit]
+Description=PostgREST for America Econ on 127.0.0.1:54392
+After=network-online.target postgresql.service
+Wants=postgresql.service
+
+[Service]
+User=postgrest
+Group=postgrest
+ExecStart=/usr/local/bin/postgrest /etc/americaecon-postgrest.conf
+# Reloads the schema cache, e.g. after a migration.
+ExecReload=/bin/kill -USR1 $MAINPID
+Restart=always
+RestartSec=3
+MemoryMax=200M
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target

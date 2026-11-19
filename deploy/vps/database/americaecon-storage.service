@@ -1,0 +1,22 @@
+[Unit]
+Description=America Econ image storage (stand-in for Supabase Storage)
+After=network-online.target
+
+[Service]
+User=americaecon
+Group=americaecon
+EnvironmentFile=/etc/americaecon-storage.env
+Environment=HOST=127.0.0.1
+Environment=PORT=54393
+ExecStart=/usr/bin/node /var/www/americaecon/deploy/vps/database/storage-server.mjs
+Restart=always
+RestartSec=3
+MemoryMax=150M
+NoNewPrivileges=true
+ProtectSystem=strict
+ReadWritePaths=/var/lib/americaecon-storage
+ProtectHome=true
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target

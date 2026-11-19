@@ -1,0 +1,26 @@
+[Unit]
+Description=America Econ functions (were Netlify functions)
+After=network-online.target americaecon-postgrest.service
+Wants=network-online.target
+
+[Service]
+User=americaecon
+Group=americaecon
+WorkingDirectory=/var/www/americaecon
+EnvironmentFile=/etc/americaecon.env
+Environment=NODE_ENV=production
+Environment=HOST=127.0.0.1
+Environment=PORT=4425
+ExecStart=/usr/bin/node server/netlify-shim.mjs
+Restart=on-failure
+RestartSec=3
+MemoryMax=200M
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+PrivateTmp=true
+# wire-settings saves its file beside the function, as it did in development.
+ReadWritePaths=/var/www/americaecon/netlify/functions
+
+[Install]
+WantedBy=multi-user.target

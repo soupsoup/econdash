@@ -1,0 +1,17 @@
+[Unit]
+Description=Deploy the newest americaecon commit if main changed
+After=network-online.target
+
+[Service]
+Type=oneshot
+User=americaecon
+Group=americaecon
+WorkingDirectory=/var/www/americaecon
+# VITE_* are compiled into the site at build time.
+EnvironmentFile=/etc/americaecon.env
+Environment=NODE_OPTIONS=--max-old-space-size=1024
+ExecStart=/var/www/americaecon/deploy/vps/deploy.sh
+Nice=10
+CPUWeight=20
+IOSchedulingClass=idle
+TimeoutStartSec=15min
