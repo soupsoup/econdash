@@ -131,8 +131,6 @@ export default function Dashboard() {
                   </section>
                 );
               })}
-
-              <NextUpdates />
             </>
           ) : (
             !isLoading && (
@@ -162,7 +160,10 @@ export default function Dashboard() {
             )
           )}
           
-          <PresidentSchedule />
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-12 gap-y-10">
+            <NextUpdates />
+            <PresidentSchedule />
+          </div>
           
           {!isLoading && hasValidData && (
             <div className="space-y-12">

@@ -117,7 +117,7 @@ const PresidentSchedule: React.FC = () => {
   }, {} as Record<string, ScheduleEvent[]>) || {};
 
   return (
-    <section className="border-t-4 border-double border-ink pt-5">
+    <section className="border-t-4 border-double border-ink pt-5 min-w-0">
       <div className="flex items-baseline justify-between gap-3 mb-6">
         <h2 className="section-title">President's Schedule</h2>
         <span className="eyebrow">Today and tomorrow</span>
@@ -126,7 +126,7 @@ const PresidentSchedule: React.FC = () => {
       {(!scheduleData || scheduleData.length === 0) ? (
         <p className="text-ink-soft">No scheduled events for today or tomorrow.</p>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-8">
+        <div className="space-y-8">
           {Object.entries(eventsByDate).map(([date, events]) => (
             <div key={date} className="space-y-4">
               <h3 className="font-display font-extrabold text-xl border-b border-ink pb-2">
