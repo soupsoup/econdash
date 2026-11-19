@@ -188,8 +188,8 @@ function ManufacturingStrip({ all }: { all: IndicatorData[] }) {
           const d = change(r);
           return (
             <Link key={m.id} to={`/indicator/${m.id}`}
-              className="px-4 first:pl-0 py-5 border-b border-ink border-r last:border-r-0 border-r-rule hover:bg-black/5">
-              <div className="eyebrow !text-[11px]">{m.label}</div>
+              className="flex flex-col px-4 first:pl-0 py-5 border-b border-ink border-r last:border-r-0 border-r-rule hover:bg-black/5">
+              <div className="eyebrow !text-[11px] flex-1">{m.label}</div>
               <div className="mt-1.5 font-display font-extrabold text-4xl sm:text-5xl tracking-tight">{m.value(r.latest.value)}</div>
               {r.prev && (
                 <div className={`text-[15px] ${tone(r, d)}`}>

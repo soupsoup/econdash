@@ -142,8 +142,8 @@ const IndicatorCard: React.FC<IndicatorCardProps> = ({ data, isLoading, refetch 
   };
 
   return (
-    <div className="border-t-2 border-ink pt-4 pb-6">
-      <div className="flex justify-between items-center mb-4">
+    <div className="border-t-2 border-ink pt-4 pb-6 flex flex-col h-full">
+      <div className="flex justify-between items-start gap-3 mb-4 flex-1">
         <div>
           <h3 className="font-mono text-xs uppercase tracking-widest text-ink">{indicator.name}</h3>
           <p className="mt-1 text-sm leading-snug text-ink-soft">{indicator.description}</p>
