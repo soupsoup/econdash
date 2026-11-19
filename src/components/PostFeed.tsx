@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { createClient } from '@supabase/supabase-js';
 import { Link } from 'react-router-dom';
 import Header from './Header';
+import NewsFeed from './NewsFeed';
 
 const supabase = createClient(
   import.meta.env.VITE_SUPABASE_URL,
@@ -79,6 +80,8 @@ export default function PostFeed() {
             </Link>
           ))}
         </div>
+
+        <NewsFeed />
       </main>
     </div>
   );
