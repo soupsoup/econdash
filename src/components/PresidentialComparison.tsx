@@ -60,14 +60,14 @@ const PresidentialComparison: React.FC<PresidentialComparisonProps> = ({ indicat
   const maxValue = Math.max(...presidentialAverages.map(item => item.average || 0));
   
   return (
-    <section className="border-t-4 border-double border-ink pt-5">
+    <section id="presidential-comparison" className="border-t-[3px] border-ink pt-5 scroll-mt-6">
       <div className="flex flex-col-reverse sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
         <h2 className="section-title">Presidential Comparison</h2>
         
         <select
           value={selectedIndicator}
           onChange={(e) => setSelectedIndicator(e.target.value)}
-          className="w-full sm:w-auto bg-paper border border-ink px-3 py-2 font-mono text-xs uppercase tracking-wide focus:outline-none focus:ring-2 focus:ring-accent"
+          className="w-full sm:w-auto bg-paper border border-ink px-3 py-2 font-mono text-sm uppercase tracking-wide focus:outline-none focus:ring-2 focus:ring-accent"
         >
           {indicatorsData.map(data => (
             <option key={data.indicator.id} value={data.indicator.id}>
@@ -82,7 +82,7 @@ const PresidentialComparison: React.FC<PresidentialComparisonProps> = ({ indicat
           <div key={presidencyId} className="flex items-center">
             <div className="w-32 shrink-0 text-sm font-semibold">
               {president.name}
-              <span className="font-mono text-[11px] text-ink-soft block">
+              <span className="font-mono text-sm text-ink-soft block">
                 {president.term.start.substring(0, 4)}
                 {president.term.end ? `-${president.term.end.substring(0, 4)}` : '-Present'}
               </span>
@@ -128,7 +128,7 @@ const PresidentialComparison: React.FC<PresidentialComparisonProps> = ({ indicat
         </div>
       </div>
       
-      <div className="mt-6 font-mono text-[11px] text-ink-soft">
+      <div className="mt-6 font-mono text-sm text-ink-soft">
         Note: Averages are calculated based on available data during each presidential term.
       </div>
     </section>

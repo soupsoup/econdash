@@ -31,7 +31,7 @@ const EditModal: React.FC<{
 
   return (
     <div className="fixed inset-0 bg-ink/70 flex items-center justify-center z-50">
-      <div className="bg-paper border-t-4 border-double border-ink p-6 max-w-md w-full">
+      <div className="bg-paper border-t-[3px] border-ink p-6 max-w-md w-full">
         <div className="flex justify-between items-center mb-4">
           <h3 className="font-display font-extrabold text-2xl">Edit Data Point</h3>
           <button onClick={onClose} className="text-ink-soft hover:text-accent">
@@ -75,13 +75,13 @@ const EditModal: React.FC<{
         <div className="mt-6 flex justify-end space-x-3">
           <button
             onClick={onClose}
-            className="px-4 py-2 font-mono text-xs uppercase tracking-wider border border-ink hover:bg-black/5"
+            className="px-4 py-2 font-mono text-sm uppercase tracking-wider border border-ink hover:bg-white/5"
           >
             Cancel
           </button>
           <button
             onClick={handleSave}
-            className="px-4 py-2 font-mono text-xs uppercase tracking-wider bg-ink text-paper hover:bg-accent flex items-center"
+            className="px-4 py-2 font-mono text-sm uppercase tracking-wider bg-ink text-paper hover:bg-accent flex items-center"
           >
             <Save className="h-4 w-4 mr-2" />
             Save
@@ -180,7 +180,7 @@ const DataTable: React.FC<DataTableProps> = ({ data, indicator, onDelete, onEdit
 
   return (
     <div className="overflow-x-auto">
-      <div className="mb-4 font-mono text-xs text-ink-soft">
+      <div className="mb-4 font-mono text-sm text-ink-soft">
         <p>Data Source: {dataSource || 'Uploaded Data'}</p>
         {lastApiUpdate && <p>Last API Update: {new Date(parseInt(lastApiUpdate)).toLocaleDateString()}</p>}
       </div>
@@ -223,7 +223,7 @@ const DataTable: React.FC<DataTableProps> = ({ data, indicator, onDelete, onEdit
         </thead>
         <tbody className="divide-y divide-rule">
           {paginatedData.map((point, index) => (
-            <tr key={point.date} className={index % 2 === 0 ? '' : 'bg-black/[0.03]'}>
+            <tr key={point.date} className={index % 2 === 0 ? '' : 'bg-white/[0.04]'}>
               <td className="px-4 py-3 whitespace-nowrap">
                 {format(new Date(point.date), 'MMM d, yyyy')}
               </td>
@@ -269,17 +269,17 @@ const DataTable: React.FC<DataTableProps> = ({ data, indicator, onDelete, onEdit
             <button
               onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
               disabled={currentPage === 1}
-              className="relative inline-flex items-center px-3 py-2 border border-ink font-mono text-xs uppercase tracking-wider hover:bg-black/5 disabled:opacity-40"
+              className="relative inline-flex items-center px-3 py-2 border border-ink font-mono text-sm uppercase tracking-wider hover:bg-white/5 disabled:opacity-40"
             >
               Previous
             </button>
-            <span className="relative inline-flex items-center px-4 py-2 border border-ink bg-ink text-paper font-mono text-xs uppercase tracking-wider">
+            <span className="relative inline-flex items-center px-4 py-2 border border-ink bg-ink text-paper font-mono text-sm uppercase tracking-wider">
               Page {currentPage} of {totalPages}
             </span>
             <button
               onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
               disabled={currentPage === totalPages}
-              className="relative inline-flex items-center px-3 py-2 border border-ink font-mono text-xs uppercase tracking-wider hover:bg-black/5 disabled:opacity-40"
+              className="relative inline-flex items-center px-3 py-2 border border-ink font-mono text-sm uppercase tracking-wider hover:bg-white/5 disabled:opacity-40"
             >
               Next
             </button>

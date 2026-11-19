@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { createClient } from '@supabase/supabase-js';
 import { Link } from 'react-router-dom';
+import Header from './Header';
 
 const supabase = createClient(
   import.meta.env.VITE_SUPABASE_URL,
@@ -42,38 +43,43 @@ export default function PostFeed() {
   }
 
   if (loading) {
-    return <div className="flex justify-center p-4">Loading posts...</div>;
+    return (
+      <div className="min-h-screen bg-paper">
+        <Header />
+        <div className="container mx-auto px-4 max-w-6xl py-12 eyebrow">Loading posts...</div>
+      </div>
+    );
   }
 
   return (
-    <div className="max-w-2xl mx-auto p-4">
-      <h2 className="text-2xl font-bold mb-6">Economic Updates</h2>
-      <div className="space-y-4">
-        {posts.map((post) => (
-          <Link 
-            to={`/post/${post.id}`} 
-            key={post.id}
-            className="block bg-white rounded-lg shadow p-4 hover:shadow-md transition-shadow"
-          >
-            <div className="flex items-start space-x-4">
-              <div className="flex-1">
-                <h3 className="text-lg font-semibold mb-2 flex items-center">
-                  {post.title}
-                  {post.story_type === 'lead' && (
-                    <span className='ml-2 px-2 py-0.5 bg-red-500 text-white text-xs rounded'>Lead Story</span>
-                  )}
-                </h3>
-                <p className="text-gray-600 mb-2">{post.summary}</p>
-                <div className="flex items-center text-sm text-gray-500">
-                  <span>{post.author}</span>
-                  <span className="mx-2">•</span>
-                  <span>{new Date(post.created_at).toLocaleDateString()}</span>
-                </div>
+    <div className="min-h-screen bg-paper">
+      <Header />
+      <main className="container mx-auto px-4 max-w-6xl pt-10 pb-16">
+        <div className="eyebrow !text-accent !text-xl">The latest</div>
+        <h1 className="mt-2 font-display font-extrabold text-7xl sm:text-9xl leading-[0.9] tracking-tight">
+          Economic updates
+        </h1>
+        <div className="mt-10 border-t-[3px] border-ink">
+          {posts.map((post) => (
+            <Link
+              to={`/post/${post.id}`}
+              key={post.id}
+              className="block py-6 border-b border-rule hover:bg-white/5 hover:text-inherit"
+            >
+              <div className="flex flex-wrap items-center gap-3">
+                {post.story_type === 'lead' && (
+                  <span className="bg-flag text-white px-2.5 py-0.5 font-display font-bold text-sm tracking-[0.1em] uppercase">Lead story</span>
+                )}
+                <span className="eyebrow">
+                  {post.author} · {new Date(post.created_at).toLocaleDateString()}
+                </span>
               </div>
-            </div>
-          </Link>
-        ))}
-      </div>
+              <h2 className="mt-2 font-display font-extrabold text-4xl sm:text-5xl leading-none tracking-tight">{post.title}</h2>
+              {post.summary && <p className="mt-3 text-xl leading-snug text-ink-soft max-w-3xl">{post.summary}</p>}
+            </Link>
+          ))}
+        </div>
+      </main>
     </div>
   );
-} 
+}

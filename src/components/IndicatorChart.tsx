@@ -32,7 +32,7 @@ interface IndicatorChartProps {
 
 const IndicatorChart: React.FC<IndicatorChartProps> = ({ data }) => {
   if (!data || !data.indicator) {
-    return <div className="text-gray-500 text-center py-8">No data available</div>;
+    return <div className="text-ink-soft text-center py-8">No data available</div>;
   }
   
   const { indicator, data: dataPoints } = data;

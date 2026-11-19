@@ -84,7 +84,7 @@ const PresidentSchedule: React.FC = () => {
 
   if (isLoading) {
     return (
-      <div className="border-t-4 border-double border-ink pt-5 animate-pulse">
+      <div className="border-t-[3px] border-ink pt-5 animate-pulse">
         <div className="h-6 bg-rule rounded w-1/4 mb-4"></div>
         <div className="space-y-3">
           <div className="h-4 bg-rule rounded w-3/4"></div>
@@ -96,7 +96,7 @@ const PresidentSchedule: React.FC = () => {
 
   if (isError) {
     return (
-      <div className="border-t-4 border-double border-ink pt-5">
+      <div className="border-t-[3px] border-ink pt-5">
         <div className="text-accent">
           Unable to load President's schedule at this time.
           <br />
@@ -117,7 +117,7 @@ const PresidentSchedule: React.FC = () => {
   }, {} as Record<string, ScheduleEvent[]>) || {};
 
   return (
-    <section className="border-t-4 border-double border-ink pt-5 min-w-0">
+    <section className="border-t-[3px] border-ink pt-5 min-w-0">
       <div className="flex items-baseline justify-between gap-3 mb-6">
         <h2 className="section-title">President's Schedule</h2>
         <span className="eyebrow">Today and tomorrow</span>
@@ -139,11 +139,11 @@ const PresidentSchedule: React.FC = () => {
                     className="py-4 border-b border-rule"
                   >
                     <div className="flex justify-between items-start mb-2">
-                      <span className="font-mono text-xs uppercase tracking-wider text-accent">
+                      <span className="font-mono text-sm uppercase tracking-wider text-accent">
                         {event.time_formatted || 'All Day'}
                       </span>
                       {event.coverage && (
-                        <span className="font-mono text-[11px] uppercase tracking-wide text-ink-soft border border-rule px-2 py-0.5">
+                        <span className="font-mono text-sm uppercase tracking-wide text-ink-soft border border-rule px-2 py-0.5">
                           {event.coverage}
                         </span>
                       )}

@@ -210,12 +210,12 @@ const IndicatorDetail: React.FC = () => {
           <div className="eyebrow !text-accent">Error</div>
           <h1 className="mt-2 font-display font-extrabold text-4xl tracking-tight">We couldn't load this data</h1>
           <p className="mt-3 text-lg text-ink-soft">The economic data for this indicator could not be retrieved.</p>
-          <p className="mt-6 font-mono text-xs border-y border-accent text-accent py-3 overflow-auto max-h-48">
+          <p className="mt-6 font-mono text-sm border-y border-accent text-accent py-3 overflow-auto max-h-48">
             {error instanceof Error ? error.message : 'Unknown error'}
           </p>
           <button
             onClick={() => navigate('/')}
-            className="mt-6 font-mono text-xs uppercase tracking-wider border border-ink px-4 py-2 hover:bg-ink hover:text-paper"
+            className="mt-6 font-mono text-sm uppercase tracking-wider border border-ink px-4 py-2 hover:bg-ink hover:text-paper"
           >
             ← Back to dashboard
           </button>
@@ -225,9 +225,9 @@ const IndicatorDetail: React.FC = () => {
   }
 
   const rangeLabel = timeRange === 1 ? 'Last year' : `Last ${timeRange} years`;
-  const pillBase = 'font-mono text-xs uppercase tracking-wider px-3 py-2 border border-ink';
+  const pillBase = 'font-mono text-sm uppercase tracking-wider px-3 py-2 border border-ink';
   const pillOn = 'bg-ink text-paper';
-  const pillOff = 'bg-transparent hover:bg-black/5';
+  const pillOff = 'bg-transparent hover:bg-white/5';
 
   return (
     <div className="min-h-screen bg-paper">
@@ -241,7 +241,7 @@ const IndicatorDetail: React.FC = () => {
           ← Back to dashboard
         </button>
 
-        <section className="mt-6 flex flex-wrap items-end justify-between gap-x-10 gap-y-5 pb-6 border-b-4 border-double border-ink">
+        <section className="mt-6 flex flex-wrap items-end justify-between gap-x-10 gap-y-5 pb-6 border-b-[3px] border-ink">
           <div className="flex-[3_1_520px] min-w-0">
             <div className="eyebrow !text-accent">
               {indicator.frequency} · {indicator.source}
@@ -268,7 +268,7 @@ const IndicatorDetail: React.FC = () => {
           </div>
 
           <div className="flex-[1_1_220px] flex flex-col items-start sm:items-end gap-3">
-            <div className="font-mono text-xs uppercase tracking-wide text-ink-soft">
+            <div className="font-mono text-sm uppercase tracking-wide text-ink-soft">
               {lastUpdated ? `Last updated ${new Date(lastUpdated).toLocaleDateString()}` : 'No update information'}
             </div>
             <button onClick={exportCSV} className={`${pillBase} ${pillOff}`}>
@@ -293,7 +293,7 @@ const IndicatorDetail: React.FC = () => {
               key={stat.label}
               className={`py-5 pr-4 ${i > 0 ? 'lg:pl-5' : ''} ${i % 2 === 1 ? 'pl-4 lg:pl-5' : ''} border-r border-rule last:border-r-0`}
             >
-              <div className="eyebrow !text-[11px]">{stat.label}</div>
+              <div className="eyebrow !text-sm">{stat.label}</div>
               <div className="mt-1.5 font-display font-extrabold text-3xl sm:text-4xl tracking-tight">
                 {Number.isFinite(stat.value) && processedData.length > 0 ? formatValue(stat.value) : 'N/A'}
               </div>
@@ -340,12 +340,12 @@ const IndicatorDetail: React.FC = () => {
               <div className="h-[400px]">
                 <DetailChart data={indicatorData} filteredData={processedData} />
               </div>
-              <div className="mt-2 font-mono text-[11px] text-ink-soft">
+              <div className="mt-2 font-mono text-sm text-ink-soft">
                 Line color shows the party of the sitting president. Source: {indicator.source.toUpperCase()}, series {indicator.seriesId || 'n/a'}.
               </div>
             </section>
 
-            <section className="mt-12 border-t-4 border-double border-ink pt-5">
+            <section className="mt-12 border-t-[3px] border-ink pt-5">
               <div className="flex items-baseline justify-between gap-3 mb-6">
                 <h2 className="section-title">Presidential Performance</h2>
                 <span className="eyebrow hidden sm:inline">By administration</span>
@@ -362,7 +362,7 @@ const IndicatorDetail: React.FC = () => {
           </section>
         )}
 
-        <section className="mt-12 border-t-4 border-double border-ink pt-5">
+        <section className="mt-12 border-t-[3px] border-ink pt-5">
           <div className="flex items-baseline justify-between gap-3 mb-4">
             <h2 className="section-title">Data Source</h2>
             <span className="eyebrow hidden sm:inline">Where this comes from</span>
@@ -371,7 +371,7 @@ const IndicatorDetail: React.FC = () => {
             {editedSourceInfo || `This data is sourced from ${indicator.source.toUpperCase()} and is updated ${indicator.frequency}.`}
           </p>
           <div className="mt-4 flex flex-wrap items-center justify-between gap-3 py-3 border-y border-rule">
-            <div className="font-mono text-xs uppercase tracking-wide text-ink-soft">
+            <div className="font-mono text-sm uppercase tracking-wide text-ink-soft">
               Source: {indicator.source} · Updated {indicator.frequency}
             </div>
             {indicator.sourceUrl && (
@@ -379,7 +379,7 @@ const IndicatorDetail: React.FC = () => {
                 href={indicator.sourceUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="font-mono text-xs uppercase tracking-wider border-b border-ink"
+                className="font-mono text-sm uppercase tracking-wider border-b border-ink"
               >
                 Visit official source ↗
               </a>
@@ -389,7 +389,7 @@ const IndicatorDetail: React.FC = () => {
       </main>
 
       <footer className="mt-12 border-t border-ink">
-        <div className="container mx-auto px-4 max-w-6xl py-6 flex flex-wrap justify-between gap-2 font-mono text-xs text-ink-soft">
+        <div className="container mx-auto px-4 max-w-6xl py-6 flex flex-wrap justify-between gap-2 font-mono text-sm text-ink-soft">
           <span>The Economy © {new Date().getFullYear()}</span>
           <span>Data: Federal Reserve Economic Data (FRED), BLS, BEA, Census</span>
         </div>

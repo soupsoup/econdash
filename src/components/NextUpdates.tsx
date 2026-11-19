@@ -91,7 +91,7 @@ const NextUpdates: React.FC = () => {
 
   return (
     <ErrorBoundary>
-      <section className="border-t-4 border-double border-ink pt-5 min-w-0">
+      <section className="border-t-[3px] border-ink pt-5 min-w-0">
         <div className="flex items-baseline justify-between gap-3 mb-4">
           <h2 className="section-title">Upcoming Data Updates</h2>
           <span className="eyebrow">Release schedule</span>
@@ -114,7 +114,7 @@ const NextUpdates: React.FC = () => {
               className="flex flex-wrap justify-between gap-x-6 gap-y-1 py-3 border-b border-rule"
             >
               <span className="font-semibold">{update.name}</span>
-              <span className="font-mono text-xs text-ink-soft sm:text-right">{formatDateTime(update.nextUpdate)}</span>
+              <span className="font-mono text-sm text-ink-soft sm:text-right">{formatDateTime(update.nextUpdate)}</span>
             </li>
           ))}
         </ul>

@@ -3,19 +3,35 @@
 @tailwind utilities;
 
 @layer base {
+  html {
+    @apply bg-paper;
+  }
   body {
     @apply bg-paper text-ink font-serif;
   }
   a:hover {
     @apply text-accent;
   }
+  .font-display {
+    text-transform: uppercase;
+  }
+  /* Admin and form screens still use light cards; keep their text readable. */
+  .bg-white,
+  .bg-gray-50,
+  .bg-gray-100,
+  .bg-gray-200 {
+    color: #1f2937;
+  }
 }
 
 @layer components {
   .eyebrow {
-    @apply font-mono text-xs uppercase tracking-widest text-ink-soft;
+    @apply font-mono text-sm font-bold uppercase tracking-[0.14em] text-ink-soft;
   }
   .section-title {
-    @apply font-display font-extrabold text-3xl tracking-tight;
+    @apply font-display font-extrabold text-4xl sm:text-5xl tracking-tight leading-none;
+  }
+  .stripe {
+    background: repeating-linear-gradient(90deg, #d7263d 0 80px, #f4eedc 80px 160px, #0f1f3d 160px 240px);
   }
 }

@@ -74,12 +74,12 @@ export default function Dashboard() {
   return (
     <div className="min-h-screen bg-paper">
       <Header />
-      <main className="container mx-auto px-4 py-8 max-w-6xl">
+      <main className="container mx-auto px-4 pt-10 pb-16 max-w-6xl">
         <BreakingNewsBanner />
         <div className="mb-8" />
         
         {isRefreshing && (
-          <div className="fixed top-4 right-4 bg-ink text-paper font-mono text-xs uppercase tracking-wide px-4 py-2 shadow-md flex items-center space-x-2">
+          <div className="fixed top-4 right-4 bg-ink text-paper font-mono text-sm uppercase tracking-wide px-4 py-2 shadow-md flex items-center space-x-2">
             <RefreshCw className="h-4 w-4 animate-spin" />
             <span>Updating data...</span>
           </div>
@@ -111,7 +111,7 @@ export default function Dashboard() {
                 if (items.length === 0) return null;
                 return (
                   <section key={group.title}>
-                    <div className="flex items-baseline justify-between border-b-4 border-double border-ink pb-2 mb-6">
+                    <div className="flex items-baseline justify-between border-b-[3px] border-ink pb-2 mb-6">
                       <h2 className="section-title">{group.title}</h2>
                       <span className="eyebrow hidden sm:inline">{group.note}</span>
                     </div>

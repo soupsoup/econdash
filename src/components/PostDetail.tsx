@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { createClient } from '@supabase/supabase-js';
+import Header from './Header';
 
 const supabase = createClient(
   import.meta.env.VITE_SUPABASE_URL,
@@ -58,43 +59,51 @@ export default function PostDetail() {
   };
 
   if (!post) {
-    return <div className="max-w-4xl mx-auto p-6">Loading...</div>;
+    return (
+      <div className="min-h-screen bg-paper">
+        <Header />
+        <div className="container mx-auto px-4 max-w-4xl py-12 eyebrow">Loading...</div>
+      </div>
+    );
   }
 
   return (
-    <div className="max-w-4xl mx-auto p-6 bg-white rounded shadow">
-      <button
-        onClick={() => navigate('/')}
-        className="mb-4 text-blue-600 hover:underline text-sm"
-      >
-        ← Back to Dashboard
-      </button>
-      {post?.image_url && (
-        <div className="mb-4">
-          <img
-            src={post.image_url}
-            alt={post.title}
-            className="w-full rounded cursor-pointer transition-transform hover:scale-[1.02]"
-            style={{ objectFit: 'contain', objectPosition: getObjectPosition(post), height: getImageHeight(post), maxHeight: '600px' }}
-            onClick={() => setIsImageExpanded(true)}
-          />
+    <div className="min-h-screen bg-paper">
+      <Header />
+      <article className="container mx-auto px-4 max-w-4xl pt-10 pb-16">
+        <button
+          onClick={() => navigate('/')}
+          className="eyebrow border-b border-ink pb-0.5 hover:text-accent"
+        >
+          ← Back to scoreboard
+        </button>
+        <h1 className="mt-6 font-display font-extrabold text-5xl sm:text-7xl leading-[0.95] tracking-tight">{post?.title}</h1>
+        <div className="mt-4 eyebrow">
+          By {post?.author} · {post?.created_at && new Date(post.created_at).toLocaleString()}
         </div>
-      )}
-      <h1 className="text-2xl font-bold mb-2">{post?.title}</h1>
-      <div className="text-gray-500 text-sm mb-4">
-        By {post?.author} • {post?.created_at && new Date(post.created_at).toLocaleString()}
-      </div>
-      <div
-        className="prose max-w-none"
-        dangerouslySetInnerHTML={{
-          __html: (post?.content || '')
-            .replace(/\n/g, '<br />')
-            .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-            .replace(/^• (.*?)$/gm, '<li>$1</li>')
-            .replace(/(<li>.*?<\/li>)/g, '<ul>$1</ul>')
-            .replace(/<\/ul><ul>/g, ''),
-        }}
-      />
+        {post?.image_url && (
+          <div className="mt-8">
+            <img
+              src={post.image_url}
+              alt={post.title}
+              className="w-full cursor-pointer transition-transform hover:scale-[1.01]"
+              style={{ objectFit: 'contain', objectPosition: getObjectPosition(post), height: getImageHeight(post), maxHeight: '600px' }}
+              onClick={() => setIsImageExpanded(true)}
+            />
+          </div>
+        )}
+        <div
+          className="mt-8 border-t-[3px] border-ink pt-6 text-xl leading-relaxed text-ink [&_ul]:list-disc [&_ul]:pl-6"
+          dangerouslySetInnerHTML={{
+            __html: (post?.content || '')
+              .replace(/\n/g, '<br />')
+              .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+              .replace(/^• (.*?)$/gm, '<li>$1</li>')
+              .replace(/(<li>.*?<\/li>)/g, '<ul>$1</ul>')
+              .replace(/<\/ul><ul>/g, ''),
+          }}
+        />
+      </article>
 
       {/* Image Modal */}
       {isImageExpanded && post.image_url && (

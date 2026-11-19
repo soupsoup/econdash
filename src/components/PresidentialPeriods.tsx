@@ -128,7 +128,7 @@ const PresidentialPeriods: React.FC<PresidentialPeriodsProps> = ({ data }) => {
                     />
                     {president.name}
                   </h3>
-                  <p className="font-mono text-[11px] uppercase tracking-wide text-ink-soft mt-1">
+                  <p className="font-mono text-sm uppercase tracking-wide text-ink-soft mt-1">
                     {president.term.start} to {president.term.end || 'Present'}
                   </p>
                 </div>
@@ -140,21 +140,21 @@ const PresidentialPeriods: React.FC<PresidentialPeriodsProps> = ({ data }) => {
 
               <dl className="mt-4 grid grid-cols-2 sm:grid-cols-4 gap-x-4 gap-y-3 pb-4 border-b border-rule">
                 <div>
-                  <dt className="eyebrow !text-[11px]">Start</dt>
+                  <dt className="eyebrow !text-sm">Start</dt>
                   <dd className="font-semibold">{formatValue(stats.startValue)} {indicator.unit}</dd>
                 </div>
                 <div>
-                  <dt className="eyebrow !text-[11px]">End</dt>
+                  <dt className="eyebrow !text-sm">End</dt>
                   <dd className="font-semibold">{formatValue(stats.endValue)} {indicator.unit}</dd>
                 </div>
                 <div>
-                  <dt className="eyebrow !text-[11px]">Net change</dt>
+                  <dt className="eyebrow !text-sm">Net change</dt>
                   <dd className={`font-semibold ${tone}`}>
                     {stats.netChange > 0 ? '+' : ''}{formatChange(stats.netChange)} {indicator.unit}
                   </dd>
                 </div>
                 <div>
-                  <dt className="eyebrow !text-[11px]">Annualized</dt>
+                  <dt className="eyebrow !text-sm">Annualized</dt>
                   <dd className={`font-semibold ${tone}`}>
                     {stats.annualizedChange > 0 ? '+' : ''}{stats.annualizedChange.toFixed(2)}%
                   </dd>
@@ -163,15 +163,15 @@ const PresidentialPeriods: React.FC<PresidentialPeriodsProps> = ({ data }) => {
 
               <dl className="pt-3 grid grid-cols-3 gap-4">
                 <div>
-                  <dt className="eyebrow !text-[11px]">Average</dt>
+                  <dt className="eyebrow !text-sm">Average</dt>
                   <dd>{formatValue(stats.average)} {indicator.unit}</dd>
                 </div>
                 <div>
-                  <dt className="eyebrow !text-[11px]">Minimum</dt>
+                  <dt className="eyebrow !text-sm">Minimum</dt>
                   <dd>{formatValue(stats.min)} {indicator.unit}</dd>
                 </div>
                 <div>
-                  <dt className="eyebrow !text-[11px]">Maximum</dt>
+                  <dt className="eyebrow !text-sm">Maximum</dt>
                   <dd>{formatValue(stats.max)} {indicator.unit}</dd>
                 </div>
               </dl>

@@ -139,18 +139,18 @@ const DetailChart: React.FC<DetailChartProps> = ({ data, filteredData }) => {
           display: false
         },
         ticks: {
-          color: '#4A453C',
-          font: { family: '"IBM Plex Mono", monospace', size: 11 }
+          color: '#CFCBBB',
+          font: { family: '"Barlow Condensed", sans-serif', size: 13 }
         }
       },
       y: {
         display: true,
         grid: {
-          color: '#D9D1BE'
+          color: '#2C3F66'
         },
         ticks: {
-          color: '#4A453C',
-          font: { family: '"IBM Plex Mono", monospace', size: 11 }
+          color: '#CFCBBB',
+          font: { family: '"Barlow Condensed", sans-serif', size: 13 }
         }
       }
     }

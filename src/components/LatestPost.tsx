@@ -77,7 +77,7 @@ export default function LatestPost() {
   };
 
   return (
-    <div className="flex flex-col md:flex-row gap-8 border-t-4 border-double border-ink pt-5 min-h-[22rem]">
+    <div className="flex flex-col md:flex-row gap-8 border-t-[3px] border-ink pt-5 min-h-[22rem]">
       {/* Featured Post */}
       <div className="flex-1 min-w-0 flex flex-col">
         {featured.image_url && (
@@ -100,7 +100,7 @@ export default function LatestPost() {
           </div>
           <a
             href={`/post/${featured.id}`}
-            className="inline-block font-mono text-xs uppercase tracking-wider border-b border-ink"
+            className="inline-block font-mono text-sm uppercase tracking-wider border-b border-ink"
           >
             Read more →
           </a>
@@ -111,7 +111,7 @@ export default function LatestPost() {
       <div className="w-full md:w-80 flex-shrink-0 border-t md:border-t-0 md:border-l border-rule pl-0 md:pl-8 mt-8 md:mt-0">
         <div className="flex items-center justify-between mb-4">
           <h3 className="eyebrow !text-accent !text-sm">Latest</h3>
-          <button className="font-mono text-[11px] uppercase border border-ink px-2 py-1">All categories</button>
+          <button className="font-mono text-sm uppercase border border-ink px-2 py-1">All categories</button>
         </div>
         <ul className="divide-y divide-rule">
           {latest.map((post) => (
@@ -127,7 +127,7 @@ export default function LatestPost() {
           ))}
         </ul>
         <div className="mt-4 text-right">
-          <a href="/posts" className="font-mono text-xs uppercase tracking-wider border-b border-ink">See all latest &rarr;</a>
+          <a href="/posts" className="font-mono text-sm uppercase tracking-wider border-b border-ink">See all latest &rarr;</a>
         </div>
       </div>
     </div>

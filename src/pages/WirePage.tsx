@@ -50,35 +50,35 @@ export default function WirePage() {
   };
 
   if (loading) return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-paper">
       <Header />
-      <main className="container mx-auto px-4 py-8">
-        <div>Loading wire posts...</div>
+      <main className="container mx-auto px-4 max-w-6xl pt-10 pb-16">
+        <div className="eyebrow">Loading wire posts...</div>
       </main>
     </div>
   );
 
   if (error) return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-paper">
       <Header />
-      <main className="container mx-auto px-4 py-8">
-        <div className="text-red-600">{error}</div>
+      <main className="container mx-auto px-4 max-w-6xl pt-10 pb-16">
+        <div className="text-accent">{error}</div>
       </main>
     </div>
   );
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-paper">
       <Header />
-      <main className="container mx-auto px-4 py-8">
-        <h1 className="text-3xl font-bold mb-8">Wire Service Feed</h1>
-        <div className="space-y-4">
+      <main className="container mx-auto px-4 max-w-6xl pt-10 pb-16">
+        <h1 className="font-display font-extrabold text-6xl sm:text-8xl leading-[0.9] tracking-tight mb-8">Wire service feed</h1>
+        <div className="border-t-[3px] border-ink">
           {posts.map(post => (
-            <div key={post.id} className="p-4 border rounded bg-white">
-              <div className="text-sm text-gray-500 mb-1">
+            <div key={post.id} className="py-5 border-b border-rule">
+              <div className="eyebrow mb-1">
                 {post.username} • {new Date(post.timestamp).toLocaleString()}
               </div>
-              <div>{post.text}</div>
+              <div className="text-xl leading-snug">{post.text}</div>
             </div>
           ))}
         </div>

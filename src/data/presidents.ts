@@ -9,7 +9,7 @@ export const presidents: President[] = [
       start: '2001-01-20',
       end: '2009-01-20'
     },
-    color: '#CB4335'
+    color: '#E8665A'
   },
   {
     name: 'Barack Obama',
@@ -18,7 +18,7 @@ export const presidents: President[] = [
       start: '2009-01-20',
       end: '2017-01-20'
     },
-    color: '#2471A3'
+    color: '#4F9FDB'
   },
   {
     name: 'Donald J. Trump',
@@ -27,7 +27,7 @@ export const presidents: President[] = [
       start: '2017-01-20',
       end: '2021-01-20'
     },
-    color: '#E74C3C'
+    color: '#FF7B6E'
   },
   {
     name: 'Joe Biden',
@@ -36,7 +36,7 @@ export const presidents: President[] = [
       start: '2021-01-20',
       end: '2025-01-20'
     },
-    color: '#1A5276'
+    color: '#7FB8E8'
   },
   {
     name: 'Donald J. Trump',
@@ -45,7 +45,7 @@ export const presidents: President[] = [
       start: '2025-01-20',
       end: null
     },
-    color: '#E74C3C'
+    color: '#FF7B6E'
   }
 ];
 

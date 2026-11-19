@@ -27,12 +27,12 @@ const IndicatorCard: React.FC<IndicatorCardProps> = ({ data, isLoading, refetch 
       <div className="border-t-2 border-ink pt-4 pb-6">
         <div className="flex justify-between items-start mb-4">
           <div>
-            <h3 className="font-mono text-xs uppercase tracking-widest text-ink">Loading...</h3>
+            <h3 className="font-mono text-sm uppercase tracking-widest text-ink">Loading...</h3>
             <p className="text-sm text-ink-soft">Fetching indicator data</p>
           </div>
         </div>
 
-        <div className="flex items-center justify-center h-40 bg-black/5 rounded-md">
+        <div className="flex items-center justify-center h-40 bg-white/5 rounded-md">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-ink"></div>
         </div>
       </div>
@@ -47,19 +47,19 @@ const IndicatorCard: React.FC<IndicatorCardProps> = ({ data, isLoading, refetch 
       <div className="border-t-2 border-ink pt-4 pb-6">
         <div className="flex justify-between items-start mb-4">
           <div>
-            <h3 className="font-mono text-xs uppercase tracking-widest text-ink">{indicator.name}</h3>
+            <h3 className="font-mono text-sm uppercase tracking-widest text-ink">{indicator.name}</h3>
             <p className="mt-1 text-sm leading-snug text-ink-soft">{indicator.description}</p>
           </div>
         </div>
 
-        <div className="flex items-center justify-center h-40 bg-red-50 rounded-md border border-red-100">
+        <div className="flex items-center justify-center h-40 border border-flag bg-flag/10">
           <div className="text-center p-4">
-            <AlertTriangle className="h-8 w-8 text-red-500 mx-auto mb-2" />
-            <p className="text-sm text-red-800">No data available</p>
+            <AlertTriangle className="h-8 w-8 text-accent mx-auto mb-2" />
+            <p className="text-sm text-accent">No data available</p>
           </div>
         </div>
 
-        <div className="mt-4 font-mono text-[11px] uppercase tracking-wide text-ink-soft flex justify-between items-center">
+        <div className="mt-4 font-mono text-sm uppercase tracking-wide text-ink-soft flex justify-between items-center">
           <div>
             <span>Source: {indicator.source}</span>
           </div>
@@ -145,7 +145,7 @@ const IndicatorCard: React.FC<IndicatorCardProps> = ({ data, isLoading, refetch 
     <div className="border-t-2 border-ink pt-4 pb-6 flex flex-col h-full">
       <div className="flex justify-between items-start gap-3 mb-4 flex-1">
         <div>
-          <h3 className="font-mono text-xs uppercase tracking-widest text-ink">{indicator.name}</h3>
+          <h3 className="font-mono text-sm uppercase tracking-widest text-ink">{indicator.name}</h3>
           <p className="mt-1 text-sm leading-snug text-ink-soft">{indicator.description}</p>
         </div>
         <div className="flex space-x-2">
@@ -191,7 +191,7 @@ const IndicatorCard: React.FC<IndicatorCardProps> = ({ data, isLoading, refetch 
         <DetailChart data={data} filteredData={data?.data} /> {/* Added filteredData prop */}
       </div>
 
-      <div className="mt-4 font-mono text-[11px] uppercase tracking-wide text-ink-soft flex justify-between items-center">
+      <div className="mt-4 font-mono text-sm uppercase tracking-wide text-ink-soft flex justify-between items-center">
         <div>
           <span>Updated {indicator.frequency}</span>
           <span className="mx-2">•</span>

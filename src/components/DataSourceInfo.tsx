@@ -23,7 +23,7 @@ const SOURCES = [
 
 const DataSourceInfo: React.FC = () => {
   return (
-    <section className="border-t-4 border-double border-ink pt-5">
+    <section className="border-t-[3px] border-ink pt-5">
       <div className="flex items-baseline justify-between gap-3 mb-6">
         <h2 className="section-title">Data Sources</h2>
         <span className="eyebrow">Where the numbers come from</span>
@@ -38,7 +38,7 @@ const DataSourceInfo: React.FC = () => {
               href={source.href}
               target="_blank"
               rel="noopener noreferrer"
-              className="mt-3 inline-block font-mono text-xs uppercase tracking-wider border-b border-ink"
+              className="mt-3 inline-block font-mono text-sm uppercase tracking-wider border-b border-ink"
             >
               {source.link} ↗
             </a>

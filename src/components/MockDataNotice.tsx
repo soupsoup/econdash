@@ -28,7 +28,7 @@ const ApiErrorNotice: React.FC<ApiErrorNoticeProps> = ({ errors = {} }) => {
             {!expanded && (
               <button 
                 onClick={() => setExpanded(true)} 
-                className="font-mono text-xs uppercase tracking-wide underline ml-2"
+                className="font-mono text-sm uppercase tracking-wide underline ml-2"
               >
                 View error details
               </button>
