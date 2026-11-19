@@ -58,7 +58,13 @@ CREATE FUNCTION auth.jwt() RETURNS jsonb LANGUAGE sql STABLE AS $$
   SELECT coalesce(nullif(current_setting('request.jwt.claims', true), ''), '{}')::jsonb $$;
 CREATE FUNCTION auth.uid() RETURNS uuid LANGUAGE sql STABLE AS $$ SELECT nullif(auth.jwt() ->> 'sub', '')::uuid $$;
 CREATE FUNCTION auth.role() RETURNS text LANGUAGE sql STABLE AS $$ SELECT auth.jwt() ->> 'role' $$;
+-- Some tables point at Supabase's auth.users (egg_prices.user_id). Keep just
+-- the account ids so those links still hold; nobody signs in here.
+CREATE TABLE auth.users (id uuid PRIMARY KEY);
 SQL
+psql -X -q -v ON_ERROR_STOP=1 "$SOURCE_URL" -c "COPY (SELECT id FROM auth.users) TO STDOUT" \
+  | as_pg psql -X -q -v ON_ERROR_STOP=1 -d "$DB" -c "COPY auth.users (id) FROM STDIN"
+echo "    $(local_sql -c 'SELECT count(*) FROM auth.users') account ids kept for links to auth.users"
 for ext in $(src_sql -c "SELECT e.extname || ':' || n.nspname FROM pg_extension e JOIN pg_namespace n ON n.oid = e.extnamespace
     WHERE n.nspname IN ('public', 'extensions') AND e.extname NOT IN ('plpgsql', 'pg_stat_statements', 'pg_graphql', 'supabase_vault', 'pgsodium', 'pgjwt', 'pg_net')"); do
   name=${ext%%:*}; schema=${ext#*:}
