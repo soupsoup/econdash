@@ -8,7 +8,7 @@ import DataPreview from '../components/DataPreview';
 import { useQuery } from 'react-query';
 import { fetchAllIndicatorsData, updateIndicatorData, getDataSourcePreferences, setDataSourcePreference, getLastUpdated } from '../services/api';
 import ChartVisibilityControl from '../components/ChartVisibilityControl';
-import { useLocalStorage } from '../hooks/useLocalStorage';
+import { useVisibleCharts } from '../hooks/useVisibleCharts';
 import { IndicatorDataPoint } from '../types';
 import { Edit2, Save, X, LogOut, Database, PlusCircle } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
@@ -20,8 +20,7 @@ import WireManualAdminPanel from '../components/WireManualAdminPanel';
 
 export default function AdminDashboard() {
   const [selectedIndicator, setSelectedIndicator] = useState('');
-  const [visibleCharts, setVisibleCharts] = useLocalStorage<string[]>('visibleCharts', 
-    economicIndicators.map(i => i.id));
+  const [visibleCharts, setVisibleCharts] = useVisibleCharts();
   const [editingDescription, setEditingDescription] = useState('');
   const [isEditingDescription, setIsEditingDescription] = useState(false);
   const { logout } = useAuth();

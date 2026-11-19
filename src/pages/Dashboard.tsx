@@ -11,7 +11,7 @@ import { fetchAllIndicatorsData, checkForDataUpdates } from '../services/api';
 import { AlertTriangle, RefreshCw } from 'lucide-react';
 import { economicIndicators } from '../data/indicators';
 import { IndicatorData } from '../types';
-import { useLocalStorage } from '../hooks/useLocalStorage';
+import { useVisibleCharts } from '../hooks/useVisibleCharts';
 import { BreakingNewsBanner } from '../components/BreakingNewsBanner';
 import LatestPost from '../components/LatestPost';
 import WireServiceFeed from '../components/WireServiceFeed';
@@ -32,8 +32,7 @@ const INDICATOR_GROUPS = [
 export default function Dashboard() {
   const [lastUpdated, setLastUpdated] = useState<string | null>(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
-  const [visibleCharts] = useLocalStorage<string[]>('visibleCharts', 
-    economicIndicators.map(i => i.id));
+  const [visibleCharts] = useVisibleCharts();
 
   const { data: indicators, isLoading, isError, error, refetch } = useQuery<IndicatorData[]>(
     'allIndicatorsData',

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { economicIndicators } from '../data/indicators';
 import { getNextUpdateDate, formatDateTime } from '../utils/dateUtils';
 import { Clock } from 'lucide-react';
-import { useLocalStorage } from '../hooks/useLocalStorage';
+import { useVisibleCharts } from '../hooks/useVisibleCharts';
 
 interface UpdateInfo {
   id: string;
@@ -34,8 +34,7 @@ class ErrorBoundary extends React.Component<{ children: React.ReactNode }, { has
 const NextUpdates: React.FC = () => {
   const [updates, setUpdates] = useState<UpdateInfo[]>([]);
   const [timeUntilNextUpdate, setTimeUntilNextUpdate] = useState<string>('');
-  const [visibleCharts] = useLocalStorage<string[]>('visibleCharts', 
-    economicIndicators.map(i => i.id));
+  const [visibleCharts] = useVisibleCharts();
 
   useEffect(() => {
     // Calculate next update for each visible indicator
