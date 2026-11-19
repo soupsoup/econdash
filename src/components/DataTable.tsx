@@ -30,44 +30,44 @@ const EditModal: React.FC<{
   };
 
   return (
-    <div className="fixed inset-0 bg-gray-500 bg-opacity-75 flex items-center justify-center">
-      <div className="bg-white rounded-lg p-6 max-w-md w-full">
+    <div className="fixed inset-0 bg-ink/70 flex items-center justify-center z-50">
+      <div className="bg-paper border-t-4 border-double border-ink p-6 max-w-md w-full">
         <div className="flex justify-between items-center mb-4">
-          <h3 className="text-lg font-medium">Edit Data Point</h3>
-          <button onClick={onClose} className="text-gray-400 hover:text-gray-500">
+          <h3 className="font-display font-extrabold text-2xl">Edit Data Point</h3>
+          <button onClick={onClose} className="text-ink-soft hover:text-accent">
             <X className="h-5 w-5" />
           </button>
         </div>
         
         <div className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700">Date</label>
+            <label className="block eyebrow">Date</label>
             <input
               type="date"
               value={editedPoint.date}
               onChange={(e) => setEditedPoint({ ...editedPoint, date: e.target.value })}
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+              className="mt-1 block w-full bg-paper border border-ink px-2 py-1.5 font-mono text-sm focus:outline-none focus:ring-2 focus:ring-accent"
             />
           </div>
           
           <div>
-            <label className="block text-sm font-medium text-gray-700">Value</label>
+            <label className="block eyebrow">Value</label>
             <input
               type="number"
               step="0.01"
               value={editedPoint.value}
               onChange={(e) => setEditedPoint({ ...editedPoint, value: parseFloat(e.target.value) })}
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+              className="mt-1 block w-full bg-paper border border-ink px-2 py-1.5 font-mono text-sm focus:outline-none focus:ring-2 focus:ring-accent"
             />
           </div>
           
           <div>
-            <label className="block text-sm font-medium text-gray-700">President</label>
+            <label className="block eyebrow">President</label>
             <input
               type="text"
               value={editedPoint.president || ''}
               onChange={(e) => setEditedPoint({ ...editedPoint, president: e.target.value })}
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+              className="mt-1 block w-full bg-paper border border-ink px-2 py-1.5 font-mono text-sm focus:outline-none focus:ring-2 focus:ring-accent"
             />
           </div>
         </div>
@@ -75,13 +75,13 @@ const EditModal: React.FC<{
         <div className="mt-6 flex justify-end space-x-3">
           <button
             onClick={onClose}
-            className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200"
+            className="px-4 py-2 font-mono text-xs uppercase tracking-wider border border-ink hover:bg-black/5"
           >
             Cancel
           </button>
           <button
             onClick={handleSave}
-            className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 flex items-center"
+            className="px-4 py-2 font-mono text-xs uppercase tracking-wider bg-ink text-paper hover:bg-accent flex items-center"
           >
             <Save className="h-4 w-4 mr-2" />
             Save
@@ -180,16 +180,16 @@ const DataTable: React.FC<DataTableProps> = ({ data, indicator, onDelete, onEdit
 
   return (
     <div className="overflow-x-auto">
-      <div className="mb-4 text-sm text-gray-600">
+      <div className="mb-4 font-mono text-xs text-ink-soft">
         <p>Data Source: {dataSource || 'Uploaded Data'}</p>
         {lastApiUpdate && <p>Last API Update: {new Date(parseInt(lastApiUpdate)).toLocaleDateString()}</p>}
       </div>
-      <table className="min-w-full bg-white">
-        <thead className="bg-gray-50">
+      <table className="min-w-full">
+        <thead className="border-b-2 border-ink">
           <tr>
             <th
               scope="col"
-              className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer"
+              className="px-4 py-3 text-left eyebrow cursor-pointer hover:text-accent"
               onClick={() => handleSort('date')}
             >
               <span className="flex items-center">
@@ -198,7 +198,7 @@ const DataTable: React.FC<DataTableProps> = ({ data, indicator, onDelete, onEdit
             </th>
             <th
               scope="col"
-              className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer"
+              className="px-4 py-3 text-left eyebrow cursor-pointer hover:text-accent"
               onClick={() => handleSort('value')}
             >
               <span className="flex items-center">
@@ -207,7 +207,7 @@ const DataTable: React.FC<DataTableProps> = ({ data, indicator, onDelete, onEdit
             </th>
             <th
               scope="col"
-              className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer"
+              className="px-4 py-3 text-left eyebrow cursor-pointer hover:text-accent"
               onClick={() => handleSort('president')}
             >
               <span className="flex items-center">
@@ -215,35 +215,35 @@ const DataTable: React.FC<DataTableProps> = ({ data, indicator, onDelete, onEdit
               </span>
             </th>
             {isAdmin && (
-              <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th scope="col" className="px-4 py-3 text-right eyebrow">
                 Actions
               </th>
             )}
           </tr>
         </thead>
-        <tbody className="bg-white divide-y divide-gray-200">
+        <tbody className="divide-y divide-rule">
           {paginatedData.map((point, index) => (
-            <tr key={point.date} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
-              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+            <tr key={point.date} className={index % 2 === 0 ? '' : 'bg-black/[0.03]'}>
+              <td className="px-4 py-3 whitespace-nowrap">
                 {format(new Date(point.date), 'MMM d, yyyy')}
               </td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+              <td className="px-4 py-3 whitespace-nowrap">
                 {formatValue(point.value)}
               </td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+              <td className="px-4 py-3 whitespace-nowrap">
                 {point.president || 'N/A'}
               </td>
               {isAdmin && (
-                <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                <td className="px-4 py-3 whitespace-nowrap text-right">
                   <button
                     onClick={() => handleEdit(point)}
-                    className="text-blue-600 hover:text-blue-900 mr-3"
+                    className="text-ink hover:text-accent mr-3"
                   >
                     <Edit2 className="h-4 w-4 inline" />
                   </button>
                   <button
                     onClick={() => onDelete?.(point)}
-                    className="text-red-600 hover:text-red-900"
+                    className="text-accent hover:text-ink"
                   >
                     <Trash2 className="h-4 w-4 inline" />
                   </button>
@@ -264,22 +264,22 @@ const DataTable: React.FC<DataTableProps> = ({ data, indicator, onDelete, onEdit
       )}
 
       {totalPages > 1 && (
-        <div className="flex justify-center mt-4">
-          <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+        <div className="flex justify-center mt-6">
+          <nav className="relative z-0 inline-flex -space-x-px" aria-label="Pagination">
             <button
               onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
               disabled={currentPage === 1}
-              className="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50"
+              className="relative inline-flex items-center px-3 py-2 border border-ink font-mono text-xs uppercase tracking-wider hover:bg-black/5 disabled:opacity-40"
             >
               Previous
             </button>
-            <span className="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700">
+            <span className="relative inline-flex items-center px-4 py-2 border border-ink bg-ink text-paper font-mono text-xs uppercase tracking-wider">
               Page {currentPage} of {totalPages}
             </span>
             <button
               onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
               disabled={currentPage === totalPages}
-              className="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50"
+              className="relative inline-flex items-center px-3 py-2 border border-ink font-mono text-xs uppercase tracking-wider hover:bg-black/5 disabled:opacity-40"
             >
               Next
             </button>

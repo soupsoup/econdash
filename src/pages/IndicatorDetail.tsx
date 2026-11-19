@@ -1,9 +1,9 @@
 import React, { useState, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery } from 'react-query';
-import { format, subYears } from 'date-fns';
+import { subYears } from 'date-fns';
 import { fetchIndicatorData, getLastUpdatedTimestamp } from '../services/api';
-import { ArrowLeft, Download, Calendar, Filter, AlertTriangle, ExternalLink, Edit2, Save, X } from 'lucide-react';
+import Header from '../components/Header';
 import DetailChart from '../components/DetailChart';
 import PresidentialPeriods from '../components/PresidentialPeriods';
 import DataTable from '../components/DataTable';
@@ -96,21 +96,9 @@ const IndicatorDetail: React.FC = () => {
     let max = -Infinity;
     let processed = filteredData;
 
-    if (indicatorData.indicator?.id === 'monthly-inflation' || indicatorData.indicator?.id === 'cpi') {
-      // For monthly inflation and CPI, use the raw value for display
-      processed = filteredData.map(point => ({
-        ...point,
-        value: point.value // Keep the raw value
-      }));
-
-      if (processed.length > 0) {
-        current = processed[0].value;
-      }
-    } else {
-      // For other indicators, use the raw values
-      if (processed.length > 0) {
-        current = processed[0].value;
-      }
+    if (processed.length > 0) {
+      // Latest reading = the point with the most recent date, whatever the array order
+      current = processed.reduce((a, b) => (new Date(b.date) > new Date(a.date) ? b : a)).value;
     }
 
     // Calculate statistics from the processed values
@@ -148,16 +136,15 @@ const IndicatorDetail: React.FC = () => {
   }, [filteredData, indicatorData.indicator?.id]);
 
   const formatValue = (value: number) => {
+    if (!Number.isFinite(value)) return 'N/A';
     if (indicatorData.indicator?.id === 'job-creation') {
-      // For employment numbers, show in millions with 3 decimal places
-      const valueInMillions = value / 1000;
-      return valueInMillions.toFixed(3);
-    } else if (indicatorData.indicator?.id === 'monthly-inflation') {
-      // For CPI, show the raw value with 2 decimal places
-      return value.toFixed(2);
-    } else {
-      return value.toFixed(2);
+      // Employment is stored in thousands; show millions
+      return `${(value / 1000).toFixed(3)}M`;
     }
+    const text = value.toLocaleString(undefined, { maximumFractionDigits: 2 });
+    const unit = indicatorData.indicator?.unit;
+    if (!unit || unit === 'index') return text;
+    return unit === '%' ? `${text}%` : `${text} ${unit}`;
   };
 
   const exportCSV = () => {
@@ -204,10 +191,12 @@ const IndicatorDetail: React.FC = () => {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="animate-pulse flex flex-col items-center">
-          <div className="h-8 bg-gray-200 rounded w-64 mb-4"></div>
-          <div className="h-4 bg-gray-200 rounded w-48"></div>
+      <div className="min-h-screen bg-paper">
+        <Header />
+        <div className="container mx-auto px-4 max-w-6xl py-16 animate-pulse">
+          <div className="h-12 bg-rule w-2/3 mb-5"></div>
+          <div className="h-5 bg-rule w-1/2 mb-10"></div>
+          <div className="h-80 bg-rule/60 w-full"></div>
         </div>
       </div>
     );
@@ -215,203 +204,194 @@ const IndicatorDetail: React.FC = () => {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center max-w-md px-4">
-          <AlertTriangle className="h-12 w-12 text-red-500 mx-auto mb-4" />
-          <h2 className="text-xl font-bold text-gray-800 mb-2">Error Loading Data</h2>
-          <p className="text-gray-600 mb-4">
-            We couldn't retrieve the economic data for this indicator.
+      <div className="min-h-screen bg-paper">
+        <Header />
+        <div className="container mx-auto px-4 max-w-3xl py-16">
+          <div className="eyebrow !text-accent">Error</div>
+          <h1 className="mt-2 font-display font-extrabold text-4xl tracking-tight">We couldn't load this data</h1>
+          <p className="mt-3 text-lg text-ink-soft">The economic data for this indicator could not be retrieved.</p>
+          <p className="mt-6 font-mono text-xs border-y border-accent text-accent py-3 overflow-auto max-h-48">
+            {error instanceof Error ? error.message : 'Unknown error'}
           </p>
-          <div className="bg-red-50 border border-red-200 rounded-md p-3 mb-6 text-left">
-            <p className="text-sm text-red-800 font-medium">Error details:</p>
-            <p className="text-sm text-red-700 font-mono mt-1 overflow-auto max-h-48">
-              {error instanceof Error ? error.message : 'Unknown error'}
-            </p>
-          </div>
           <button
             onClick={() => navigate('/')}
-            className="flex items-center mx-auto bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md transition-colors"
+            className="mt-6 font-mono text-xs uppercase tracking-wider border border-ink px-4 py-2 hover:bg-ink hover:text-paper"
           >
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Back to Dashboard
+            ← Back to dashboard
           </button>
         </div>
       </div>
     );
   }
 
+  const rangeLabel = timeRange === 1 ? 'Last year' : `Last ${timeRange} years`;
+  const pillBase = 'font-mono text-xs uppercase tracking-wider px-3 py-2 border border-ink';
+  const pillOn = 'bg-ink text-paper';
+  const pillOff = 'bg-transparent hover:bg-black/5';
+
   return (
-    <div className="min-h-screen bg-gray-50">
-      <header className="bg-white shadow-md">
-        <div className="container mx-auto px-4 py-6">
-          <div className="flex flex-col md:flex-row justify-between items-start md:items-center">
-            <div>
-              <button
-                onClick={() => navigate('/')}
-                className="flex items-center text-blue-600 hover:text-blue-800 mb-4 md:mb-0"
-              >
-                <ArrowLeft className="h-4 w-4 mr-2" />
-                Back to Dashboard
-              </button>
-              <h1 className="text-2xl font-bold text-gray-800 mt-2">{indicator.name}</h1>
-              <div className="relative">
-                {isEditing ? (
-                  <div className="mt-2">
-                    <textarea
-                      value={editedDescription}
-                      onChange={(e) => setEditedDescription(e.target.value)}
-                      className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      rows={3}
-                    />
-                    <div className="mt-2 flex space-x-2">
-                      <button
-                        onClick={handleSaveClick}
-                        className="flex items-center px-3 py-1 bg-green-600 text-white rounded-md hover:bg-green-700"
-                      >
-                        <Save className="h-4 w-4 mr-1" />
-                        Save
-                      </button>
-                      <button
-                        onClick={handleCancelEdit}
-                        className="flex items-center px-3 py-1 bg-gray-600 text-white rounded-md hover:bg-gray-700"
-                      >
-                        <X className="h-4 w-4 mr-1" />
-                        Cancel
-                      </button>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="flex items-start">
-                    <p className="text-gray-600">{indicator.description}</p>
-                  </div>
-                )}
+    <div className="min-h-screen bg-paper">
+      <Header />
+
+      <main className="container mx-auto px-4 max-w-6xl py-8">
+        <button
+          onClick={() => navigate('/')}
+          className="eyebrow border-b border-ink pb-0.5 hover:text-accent"
+        >
+          ← Back to dashboard
+        </button>
+
+        <section className="mt-6 flex flex-wrap items-end justify-between gap-x-10 gap-y-5 pb-6 border-b-4 border-double border-ink">
+          <div className="flex-[3_1_520px] min-w-0">
+            <div className="eyebrow !text-accent">
+              {indicator.frequency} · {indicator.source}
+            </div>
+            <h1 className="mt-2 font-display font-extrabold text-4xl sm:text-6xl leading-[1.02] tracking-tight">
+              {indicator.name}
+            </h1>
+            {isEditing ? (
+              <div className="mt-3">
+                <textarea
+                  value={editedDescription}
+                  onChange={(e) => setEditedDescription(e.target.value)}
+                  className="w-full p-2 bg-paper border border-ink focus:outline-none focus:ring-2 focus:ring-accent"
+                  rows={3}
+                />
+                <div className="mt-2 flex gap-2">
+                  <button onClick={handleSaveClick} className={`${pillBase} ${pillOn}`}>Save</button>
+                  <button onClick={handleCancelEdit} className={`${pillBase} ${pillOff}`}>Cancel</button>
+                </div>
               </div>
-            </div>
-
-            <div className="flex items-center space-x-3 mt-4 md:mt-0">
-              <div className="text-sm text-gray-600">
-                {lastUpdated ? (
-                  <span>Last updated: {new Date(lastUpdated).toLocaleDateString()}</span>
-                ) : (
-                  <span>No update information</span>
-                )}
-              </div>
-              <button
-                onClick={exportCSV}
-                className="flex items-center bg-green-600 hover:bg-green-700 text-white px-3 py-2 rounded-md transition-colors text-sm"
-              >
-                <Download className="h-4 w-4 mr-2" />
-                Export Data
-              </button>
-            </div>
-          </div>
-        </div>
-      </header>
-
-      <main className="container mx-auto px-4 py-8">
-        {Object.keys(apiErrors).length > 0 && <ApiErrorNotice errors={apiErrors} />}
-
-        <div className="bg-white rounded-lg shadow-md p-6 mb-6">
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4">
-            <div className="flex items-center mb-4 sm:mb-0">
-              <Calendar className="h-5 w-5 text-blue-600 mr-2" />
-              <h2 className="text-lg font-semibold text-gray-800">Time Range</h2>
-            </div>
-
-            <div className="flex space-x-2">
-              <button
-                onClick={() => setViewMode('chart')}
-                className={`px-3 py-1 rounded-md text-sm ${
-                  viewMode === 'chart'
-                    ? 'bg-blue-600 text-white'
-                    : 'bg-gray-200 text-gray-800 hover:bg-gray-300'
-                }`}
-              >
-                Chart
-              </button>
-              <button
-                onClick={() => setViewMode('table')}
-                className={`px-3 py-1 rounded-md text-sm ${
-                  viewMode === 'table'
-                    ? 'bg-blue-600 text-white'
-                    : 'bg-gray-200 text-gray-800 hover:bg-gray-300'
-                }`}
-              >
-                Table
-              </button>
-            </div>
+            ) : (
+              <p className="mt-3 text-xl leading-relaxed text-ink-soft max-w-3xl">{indicator.description}</p>
+            )}
           </div>
 
-          <div className="flex flex-wrap gap-2">
+          <div className="flex-[1_1_220px] flex flex-col items-start sm:items-end gap-3">
+            <div className="font-mono text-xs uppercase tracking-wide text-ink-soft">
+              {lastUpdated ? `Last updated ${new Date(lastUpdated).toLocaleDateString()}` : 'No update information'}
+            </div>
+            <button onClick={exportCSV} className={`${pillBase} ${pillOff}`}>
+              Export data ↓
+            </button>
+          </div>
+        </section>
+
+        {Object.keys(apiErrors).length > 0 && (
+          <div className="mt-6"><ApiErrorNotice errors={apiErrors} /></div>
+        )}
+
+        {/* Stat strip */}
+        <section className="grid grid-cols-2 lg:grid-cols-4 border-b border-ink">
+          {[
+            { label: 'Latest', value: currentValue },
+            { label: `Average · ${rangeLabel.toLowerCase()}`, value: average },
+            { label: 'Low', value: minValue },
+            { label: 'High', value: maxValue },
+          ].map((stat, i) => (
+            <div
+              key={stat.label}
+              className={`py-5 pr-4 ${i > 0 ? 'lg:pl-5' : ''} ${i % 2 === 1 ? 'pl-4 lg:pl-5' : ''} border-r border-rule last:border-r-0`}
+            >
+              <div className="eyebrow !text-[11px]">{stat.label}</div>
+              <div className="mt-1.5 font-display font-extrabold text-3xl sm:text-4xl tracking-tight">
+                {Number.isFinite(stat.value) && processedData.length > 0 ? formatValue(stat.value) : 'N/A'}
+              </div>
+            </div>
+          ))}
+        </section>
+
+        {/* Controls */}
+        <section className="mt-8 flex flex-wrap items-center justify-between gap-4">
+          <div className="flex flex-wrap gap-2" role="group" aria-label="Time range">
             {[1, 5, 10, 20, 30].map(years => (
               <button
                 key={years}
                 onClick={() => setTimeRange(years)}
-                className={`px-3 py-1 rounded-md text-sm ${
-                  timeRange === years
-                    ? 'bg-blue-100 text-blue-800 border border-blue-300'
-                    : 'bg-gray-100 text-gray-800 border border-gray-200 hover:bg-gray-200'
-                }`}
+                aria-pressed={timeRange === years}
+                className={`${pillBase} ${timeRange === years ? pillOn : pillOff}`}
               >
-                {years === 1 ? 'Last year' : `Last ${years} years`}
+                {years === 1 ? '1 yr' : `${years} yrs`}
               </button>
             ))}
           </div>
-        </div>
+          <div className="flex" role="group" aria-label="View">
+            <button
+              onClick={() => setViewMode('chart')}
+              aria-pressed={viewMode === 'chart'}
+              className={`${pillBase} ${viewMode === 'chart' ? pillOn : pillOff}`}
+            >
+              Chart
+            </button>
+            <button
+              onClick={() => setViewMode('table')}
+              aria-pressed={viewMode === 'table'}
+              className={`${pillBase} -ml-px ${viewMode === 'table' ? pillOn : pillOff}`}
+            >
+              Table
+            </button>
+          </div>
+        </section>
 
         {/* Chart view */}
         {viewMode === 'chart' && (
           <>
-            <div className="bg-white rounded-lg shadow-md p-6 mb-6">
+            <section className="mt-5 border-y border-ink py-4">
               <div className="h-[400px]">
                 <DetailChart data={indicatorData} filteredData={processedData} />
               </div>
-            </div>
+              <div className="mt-2 font-mono text-[11px] text-ink-soft">
+                Line color shows the party of the sitting president. Source: {indicator.source.toUpperCase()}, series {indicator.seriesId || 'n/a'}.
+              </div>
+            </section>
 
-            <div className="bg-white rounded-lg shadow-md p-6">
-              <h2 className="text-xl font-bold text-gray-800 mb-4">Presidential Performance</h2>
+            <section className="mt-12 border-t-4 border-double border-ink pt-5">
+              <div className="flex items-baseline justify-between gap-3 mb-6">
+                <h2 className="section-title">Presidential Performance</h2>
+                <span className="eyebrow hidden sm:inline">By administration</span>
+              </div>
               <PresidentialPeriods data={indicatorData} />
-            </div>
+            </section>
           </>
         )}
 
         {/* Table view */}
         {viewMode === 'table' && (
-          <div className="bg-white rounded-lg shadow-md p-6">
+          <section className="mt-5 border-t border-ink pt-4">
             <DataTable data={processedData} indicator={indicatorData.indicator} />
-          </div>
+          </section>
         )}
 
-        <div className="bg-white rounded-lg shadow-md p-4">
-          <h2 className="text-lg font-semibold text-gray-800 mb-2">Data Source Information</h2>
-          <p className="text-gray-600 mb-4">
-            {editedSourceInfo || `This data is sourced from ${indicator.source} and is updated ${indicator.frequency}.`}
-          </p>
-          <div className="flex justify-between items-center">
-            <div className="text-sm text-gray-500">
-              <span>Source: {indicator.source}</span>
-              <span className="mx-2">•</span>
-              <span>Updated: {indicator.frequency}</span>
-            </div>
-            <a 
-              href={indicator.sourceUrl} 
-              target="_blank" 
-              rel="noopener noreferrer"
-              className="flex items-center text-blue-600 hover:text-blue-800"
-            >
-              <span className="mr-2">Visit official source</span>
-              <ExternalLink className="h-4 w-4" />
-            </a>
+        <section className="mt-12 border-t-4 border-double border-ink pt-5">
+          <div className="flex items-baseline justify-between gap-3 mb-4">
+            <h2 className="section-title">Data Source</h2>
+            <span className="eyebrow hidden sm:inline">Where this comes from</span>
           </div>
-        </div>
+          <p className="text-lg text-ink-soft max-w-3xl">
+            {editedSourceInfo || `This data is sourced from ${indicator.source.toUpperCase()} and is updated ${indicator.frequency}.`}
+          </p>
+          <div className="mt-4 flex flex-wrap items-center justify-between gap-3 py-3 border-y border-rule">
+            <div className="font-mono text-xs uppercase tracking-wide text-ink-soft">
+              Source: {indicator.source} · Updated {indicator.frequency}
+            </div>
+            {indicator.sourceUrl && (
+              <a
+                href={indicator.sourceUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="font-mono text-xs uppercase tracking-wider border-b border-ink"
+              >
+                Visit official source ↗
+              </a>
+            )}
+          </div>
+        </section>
       </main>
 
-      <footer className="bg-white border-t border-gray-200 mt-12">
-        <div className="container mx-auto px-4 py-6">
-          <p className="text-center text-gray-600 text-sm">
-            Presidential Economic Dashboard © {new Date().getFullYear()} | 
-            Data sourced from Federal Reserve Economic Data (FRED)
-          </p>
+      <footer className="mt-12 border-t border-ink">
+        <div className="container mx-auto px-4 max-w-6xl py-6 flex flex-wrap justify-between gap-2 font-mono text-xs text-ink-soft">
+          <span>The Economy © {new Date().getFullYear()}</span>
+          <span>Data: Federal Reserve Economic Data (FRED), BLS, BEA, Census</span>
         </div>
       </footer>
     </div>

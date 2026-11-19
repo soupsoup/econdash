@@ -35,7 +35,7 @@ interface DetailChartProps {
 const DetailChart: React.FC<DetailChartProps> = ({ data, filteredData }) => {
   if (!data?.indicator?.name || !Array.isArray(filteredData) || filteredData.length === 0) {
     return (
-      <div className="h-full flex items-center justify-center text-gray-500">
+      <div className="h-full flex items-center justify-center text-ink-soft">
         No data available
       </div>
     );
@@ -137,12 +137,20 @@ const DetailChart: React.FC<DetailChartProps> = ({ data, filteredData }) => {
         max: maxDate,
         grid: {
           display: false
+        },
+        ticks: {
+          color: '#4A453C',
+          font: { family: '"IBM Plex Mono", monospace', size: 11 }
         }
       },
       y: {
         display: true,
         grid: {
-          color: '#f0f0f0'
+          color: '#D9D1BE'
+        },
+        ticks: {
+          color: '#4A453C',
+          font: { family: '"IBM Plex Mono", monospace', size: 11 }
         }
       }
     }

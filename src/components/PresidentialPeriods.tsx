@@ -1,7 +1,6 @@
 import React from 'react';
 import { IndicatorData } from '../types';
 import { presidents } from '../data/presidents';
-import { TrendingUp, TrendingDown } from 'lucide-react';
 
 interface PresidentialPeriodsProps {
   data: IndicatorData;
@@ -103,84 +102,80 @@ const PresidentialPeriods: React.FC<PresidentialPeriodsProps> = ({ data }) => {
   };
   
   return (
-    <div className="space-y-6">
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-12 gap-y-10">
       {presidentialStats.length === 0 ? (
-        <div className="text-center py-8 text-gray-500">
+        <div className="py-8 text-ink-soft lg:col-span-2">
           No data available for this time period
         </div>
       ) : (
         presidentialStats.map(({ president, stats, presidencyId }) => {
           if (!stats) return null;
-          
-          const isPositiveChange = indicator.higherIsBetter 
-            ? stats.netChange > 0 
+
+          const isPositiveChange = indicator.higherIsBetter
+            ? stats.netChange > 0
             : stats.netChange < 0;
-          
+          const tone = isPositiveChange ? 'text-good' : 'text-accent';
+
           return (
-            <div key={presidencyId} className="border rounded-lg overflow-hidden">
-              <div 
-                className="p-4 flex justify-between items-center"
-                style={{ backgroundColor: `${president.color}15` }}
-              >
-                <div>
-                  <h3 className="font-bold text-lg">{president.name}</h3>
-                  <p className="text-sm text-gray-600">
+            <article key={presidencyId} className="border-t-2 border-ink pt-3 min-w-0">
+              <div className="flex items-start justify-between gap-4">
+                <div className="min-w-0">
+                  <h3 className="font-display font-extrabold text-2xl leading-tight flex items-center gap-2">
+                    <span
+                      className="inline-block h-3 w-3 shrink-0"
+                      style={{ backgroundColor: president.color }}
+                      aria-hidden="true"
+                    />
+                    {president.name}
+                  </h3>
+                  <p className="font-mono text-[11px] uppercase tracking-wide text-ink-soft mt-1">
                     {president.term.start} to {president.term.end || 'Present'}
                   </p>
                 </div>
-                <div className={`flex items-center ${isPositiveChange ? 'text-green-600' : 'text-red-600'}`}>
-                  {isPositiveChange ? (
-                    <TrendingUp className="h-5 w-5 mr-2" />
-                  ) : (
-                    <TrendingDown className="h-5 w-5 mr-2" />
-                  )}
-                  <span className="font-bold">
-                    {stats.percentChange > 0 ? '+' : ''}
-                    {stats.percentChange.toFixed(2)}%
-                  </span>
+                <div className={`font-display font-extrabold text-3xl tracking-tight whitespace-nowrap ${tone}`}>
+                  {isPositiveChange ? '▲' : '▼'} {stats.percentChange > 0 ? '+' : ''}
+                  {stats.percentChange.toFixed(2)}%
                 </div>
               </div>
-              
-              <div className="p-4 grid grid-cols-2 md:grid-cols-4 gap-4">
+
+              <dl className="mt-4 grid grid-cols-2 sm:grid-cols-4 gap-x-4 gap-y-3 pb-4 border-b border-rule">
                 <div>
-                  <p className="text-sm text-gray-600">Start Value</p>
-                  <p className="font-medium">{formatValue(stats.startValue)} {indicator.unit}</p>
+                  <dt className="eyebrow !text-[11px]">Start</dt>
+                  <dd className="font-semibold">{formatValue(stats.startValue)} {indicator.unit}</dd>
                 </div>
                 <div>
-                  <p className="text-sm text-gray-600">End Value</p>
-                  <p className="font-medium">{formatValue(stats.endValue)} {indicator.unit}</p>
+                  <dt className="eyebrow !text-[11px]">End</dt>
+                  <dd className="font-semibold">{formatValue(stats.endValue)} {indicator.unit}</dd>
                 </div>
                 <div>
-                  <p className="text-sm text-gray-600">Net Change</p>
-                  <p className={`font-medium ${isPositiveChange ? 'text-green-600' : 'text-red-600'}`}>
-                    {stats.netChange > 0 ? '+' : ''}
-                    {formatChange(stats.netChange)} {indicator.unit}
-                  </p>
+                  <dt className="eyebrow !text-[11px]">Net change</dt>
+                  <dd className={`font-semibold ${tone}`}>
+                    {stats.netChange > 0 ? '+' : ''}{formatChange(stats.netChange)} {indicator.unit}
+                  </dd>
                 </div>
                 <div>
-                  <p className="text-sm text-gray-600">Annualized Change</p>
-                  <p className={`font-medium ${isPositiveChange ? 'text-green-600' : 'text-red-600'}`}>
-                    {stats.annualizedChange > 0 ? '+' : ''}
-                    {stats.annualizedChange.toFixed(2)}%
-                  </p>
+                  <dt className="eyebrow !text-[11px]">Annualized</dt>
+                  <dd className={`font-semibold ${tone}`}>
+                    {stats.annualizedChange > 0 ? '+' : ''}{stats.annualizedChange.toFixed(2)}%
+                  </dd>
                 </div>
-              </div>
-              
-              <div className="p-4 bg-gray-50 grid grid-cols-3 gap-4 border-t">
+              </dl>
+
+              <dl className="pt-3 grid grid-cols-3 gap-4">
                 <div>
-                  <p className="text-sm text-gray-600">Average</p>
-                  <p className="font-medium">{formatValue(stats.average)} {indicator.unit}</p>
-                </div>
-                <div>
-                  <p className="text-sm text-gray-600">Minimum</p>
-                  <p className="font-medium">{formatValue(stats.min)} {indicator.unit}</p>
+                  <dt className="eyebrow !text-[11px]">Average</dt>
+                  <dd>{formatValue(stats.average)} {indicator.unit}</dd>
                 </div>
                 <div>
-                  <p className="text-sm text-gray-600">Maximum</p>
-                  <p className="font-medium">{formatValue(stats.max)} {indicator.unit}</p>
+                  <dt className="eyebrow !text-[11px]">Minimum</dt>
+                  <dd>{formatValue(stats.min)} {indicator.unit}</dd>
                 </div>
-              </div>
-            </div>
+                <div>
+                  <dt className="eyebrow !text-[11px]">Maximum</dt>
+                  <dd>{formatValue(stats.max)} {indicator.unit}</dd>
+                </div>
+              </dl>
+            </article>
           );
         })
       )}
